@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id           String   @id @default(cuid())
+  name         String
+  role         String
+  tagline      String
+  bio          String
+  location     String?
+  email        String
+  availability String?
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Hero {
+  id            String   @id @default(cuid())
+  headline      String
+  subtitle      String
+  description   String
+  image         String?
+  video         String?
+  visualMode    String   @default("image")
+  ctaText       String?
+  ctaLink       String?
+  secondaryCta  String?
+  secondaryLink String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Project {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  category       String
+  year           String?
+  shortDesc      String
+  fullDesc       String?
+  thumbnail      String
+  heroImage      String?
+  gallery        String?
+  video          String?
+  technologies   String?
+  liveUrl        String?
+  caseStudy      String?
+  featured       Boolean   @default(false)
+  published      Boolean   @default(true)
+  order          Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  category  String
+  title     String
+  items     String
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id        String   @id @default(cuid())
+  title     String
+  desc      String
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  company   String?
+  quote     String
+  image     String?
+  visible   Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  platform  String
+  username  String
+  url       String
+  icon      String?
+  visible   Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  projectType String?
+  budget      String?
+  message     String
+  status      String   @default("new")
+  createdAt   DateTime @default(now())
+}
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
