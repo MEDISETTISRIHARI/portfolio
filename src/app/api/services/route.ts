@@ -2,14 +2,14 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-export const GET = async () => {
+export async function GET() {
   try {
-    const data = await prisma.skill.findMany({
+    const data = await prisma.service.findMany({
       where: { visible: true },
       orderBy: { order: 'asc' },
     })
     return Response.json(data)
   } catch (error) {
-    return Response.json({ error: 'Failed to fetch skills' }, { status: 500 })
+    return Response.json({ error: 'Failed to fetch services' }, { status: 500 })
   }
 }

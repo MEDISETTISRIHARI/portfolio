@@ -9,7 +9,25 @@ import HeroCTA from './HeroCTA'
 import HeroMetadata from './HeroMetadata'
 import { useScroll } from '@/hooks/useScroll'
 
-export default function Hero() {
+type HeroData = {
+  headline: string
+  subtitle: string
+  description: string
+  image?: string | null
+  video?: string | null
+  visualMode: string
+  ctaText?: string | null
+  ctaLink?: string | null
+  secondaryCta?: string | null
+  secondaryLink?: string | null
+}
+
+type HeroProps = {
+  data: HeroData
+  role?: string
+}
+
+export default function Hero({ data, role }: HeroProps) {
   const heroRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const { scrollY, progress } = useScroll()
@@ -103,13 +121,24 @@ export default function Hero() {
       className="relative min-h-screen flex flex-col overflow-hidden"
     >
       {/* 3D Hero Visual - occupies upper portion */}
-      <HeroVisual mousePos={mousePos} scrollProgress={progress} />
+      <HeroVisual
+        mousePos={mousePos}
+        scrollProgress={progress}
+        visualMode={data.visualMode}
+        image={data.image}
+        video={data.video}
+      />
 
       {/* Content area - positioned in lower third */}
       <div className="relative z-20 w-full max-w-2xl mx-auto pb-32 md:pb-40">
-        <HeroContent />
-        <HeroMeta />
-        <HeroCTA />
+        <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />
+        <HeroMeta description={data.description} />
+        <HeroCTA
+          primaryText={data.ctaText || 'VIEW SELECTED WORK'}
+          primaryHref={data.ctaLink || '#work'}
+          secondaryText={data.secondaryCta || "LET'S TALK"}
+          secondaryHref={data.secondaryLink || '#contact'}
+        />
       </div>
 
       {/* Bottom metadata - pinned at bottom */}

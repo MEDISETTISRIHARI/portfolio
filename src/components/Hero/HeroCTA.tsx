@@ -3,7 +3,14 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
-export default function HeroCTA() {
+type HeroCTAProps = {
+  primaryText: string
+  primaryHref: string
+  secondaryText: string
+  secondaryHref: string
+}
+
+export default function HeroCTA({ primaryText, primaryHref, secondaryText, secondaryHref }: HeroCTAProps) {
   const primaryRef = useRef<HTMLAnchorElement>(null)
   const secondaryRef = useRef<HTMLAnchorElement>(null)
 
@@ -65,21 +72,21 @@ export default function HeroCTA() {
     <div className="mt-12 flex items-center gap-6">
       <a
         ref={primaryRef}
-        href="#work"
+        href={primaryHref}
         className="group relative px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent hover:text-background"
       >
-        <span className="relative z-10 block">VIEW SELECTED WORK</span>
+        <span className="relative z-10 block">{primaryText}</span>
         <span
           className="absolute inset-0 bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         />
       </a>
       <a
         ref={secondaryRef}
-        href="#contact"
+        href={secondaryHref}
         className="group relative px-8 py-4 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent"
       >
         <span className="relative z-10 flex items-center gap-2">
-          LET&apos;S TALK
+          {secondaryText}
           <svg
             className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
             fill="none"

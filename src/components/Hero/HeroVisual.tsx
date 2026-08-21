@@ -8,9 +8,12 @@ import { useState, useEffect } from 'react'
 type HeroVisualProps = {
   mousePos: { x: number; y: number }
   scrollProgress: number
+  visualMode?: string
+  image?: string | null
+  video?: string | null
 }
 
-export default function HeroVisual({ mousePos, scrollProgress }: HeroVisualProps) {
+export default function HeroVisual({ mousePos, scrollProgress, visualMode, image, video }: HeroVisualProps) {
   const [mounted, setMounted] = useState(false)
   const isWebGLSupported = useWebGL()
 

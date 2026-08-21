@@ -5,6 +5,7 @@ const prisma = new PrismaClient()
 export const GET = async () => {
   try {
     const data = await prisma.socialLink.findMany({
+      where: { visible: true },
       orderBy: { order: 'asc' },
     })
     return Response.json(data)

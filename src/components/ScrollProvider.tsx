@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-export default function ScrollProvider({ children }: { children: React.ReactNode }) {
+export default function ScrollProvider() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -27,5 +27,5 @@ export default function ScrollProvider({ children }: { children: React.ReactNode
     }
   }, [])
 
-  return <>{children}</>
+  return null
 }
