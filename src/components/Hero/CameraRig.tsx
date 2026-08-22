@@ -10,13 +10,14 @@ type CameraRigProps = {
   prefersReducedMotion: boolean
   pointerDistance?: number
   isMobile?: boolean
+  onSectionTransition?: (from: string, to: string, progress: number) => void
 }
 
 const LERP_RELAXED = 0.006
 const SPRING_FREQUENCY = 0.008
 const SPRING_DAMPING = 0.92
 
-export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false }: CameraRigProps) {
+export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false, onSectionTransition }: CameraRigProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null)
 
   const state = useRef({
@@ -38,6 +39,8 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     targetLookAtX: 0,
     targetLookAtY: 0,
     targetLookAtZ: 0,
+    prevSection: 'hero',
+    transitionProgress: 0,
   })
 
   useFrame(() => {
@@ -50,6 +53,22 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
       camera.position.z += (18 - scrollProgress * 1 - camera.position.z) * 0.004
       camera.lookAt(0, 0, 0)
       return
+    }
+
+    // Detect section transitions for wow moment
+    const currentSection = scrollProgress < 0.08 ? 'hero' : 'about'
+    if (currentSection !== state.current.prevSection && onSectionTransition) {
+      state.current.transitionProgress = 0
+      onSectionTransition(state.current.prevSection, currentSection, 0)
+      state.current.prevSection = currentSection
+    }
+
+    // Animate transition progress
+    if (state.current.transitionProgress < 1) {
+      state.current.transitionProgress += 0.02
+      if (onSectionTransition && state.current.transitionProgress <= 1) {
+        onSectionTransition(state.current.prevSection, currentSection, state.current.transitionProgress)
+      }
     }
 
     // Layer 1: Slow idle movement (organic drift using Lissajous-like curves)
@@ -79,10 +98,15 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     const scrollRotationY = scrollProgress * 0.3
     const scrollRotationX = scrollProgress * 0.1
 
+    // Layer 6: Hero-to-About wow moment transition
+    const transitionBoost = state.current.transitionProgress > 0 && state.current.transitionProgress < 1
+      ? Math.sin(state.current.transitionProgress * Math.PI) * 0.5
+      : 0
+
     // Combine all layers
-    const targetX = pointerX + idleX + scrollMicroX
-    const targetY = pointerY + idleY + scrollY
-    const targetZ = scrollZ
+    const targetX = pointerX + idleX + scrollMicroX + transitionBoost * Math.sin(scrollRotationY) * 2
+    const targetY = pointerY + idleY + scrollY + transitionBoost * Math.cos(scrollRotationX) * 1.5
+    const targetZ = scrollZ - transitionBoost * 2
 
     // Spring-based damping for smooth motion
     state.current.velocityX += (targetX - state.current.currentX) * SPRING_FREQUENCY

@@ -255,6 +255,9 @@ export default function Hero({ data, role }: HeroProps) {
         isMobile={isMobile}
       />
 
+      {/* Signature wow moment trigger */}
+      <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
+
       {/* Content area - positioned in lower third */}
       <div className={`hero-content-wrapper relative z-20 w-full max-w-2xl mx-auto ${isMobile ? 'pt-16 pb-24 px-6' : 'pb-32 md:pb-40'}`}>
         <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
 
 type ScrollState = {
   scrollY: number
@@ -258,6 +259,93 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
 
     return () => observer.disconnect()
   }, [children])
+
+  // Signature wow moment: Hero to About transition
+  useEffect(() => {
+    let wowTimeline: gsap.core.Timeline | null = null
+    let hasTriggeredWow = false
+
+    const handleSectionChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ sectionId: string }>
+      const newSection = customEvent.detail?.sectionId
+
+      if (newSection === 'about' && !hasTriggeredWow && activeSectionRef.current === 'hero') {
+        hasTriggeredWow = true
+
+        // Create cinematic wow moment
+        wowTimeline = gsap.timeline()
+
+        // 1. Hero content subtle separation
+        const heroContent = containerRef.current?.querySelector('.hero-content-wrapper')
+        if (heroContent) {
+          wowTimeline.to(heroContent, {
+            opacity: 0.3,
+            scale: 0.98,
+            y: -30,
+            duration: 0.8,
+            ease: 'power2.inOut',
+          }, 0)
+        }
+
+        // 2. 3D canvas subtle pulse
+        const heroCanvas = containerRef.current?.querySelector('.hero-canvas')
+        if (heroCanvas) {
+          wowTimeline.to(heroCanvas, {
+            scale: 1.02,
+            opacity: 0.7,
+            duration: 1,
+            ease: 'power2.inOut',
+          }, 0)
+        }
+
+        // 3. About section dramatic entrance
+        const aboutSection = containerRef.current?.querySelector('[data-scroll-section="about"]')
+        if (aboutSection) {
+          wowTimeline.fromTo(aboutSection,
+            { opacity: 0, y: 60 },
+            { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out' },
+            0.3
+          )
+        }
+
+        // 4. About headline clip-path reveal
+        const aboutLines = containerRef.current?.querySelectorAll('.about-hero-line')
+        if (aboutLines) {
+          wowTimeline.fromTo(aboutLines,
+            { clipPath: 'inset(0 100% 0 0)', opacity: 0 },
+            { clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 1.2, stagger: 0.1, ease: 'power3.out' },
+            0.5
+          )
+        }
+
+        // 5. Portrait emergence (if present)
+        const portrait = containerRef.current?.querySelector('.hero-portrait')
+        if (portrait) {
+          wowTimeline.fromTo(portrait,
+            { clipPath: 'inset(0 100% 0 0)', opacity: 0 },
+            { clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 1.4, ease: 'power3.inOut' },
+            0.6
+          )
+        }
+
+        // 6. Clean up hero after transition
+        wowTimeline.to('.hero-content-wrapper', {
+          opacity: 0,
+          duration: 0.4,
+          ease: 'power2.inOut',
+        }, 1.2)
+      }
+    }
+
+    window.addEventListener('scroll-section-change', handleSectionChange as EventListener)
+
+    return () => {
+      window.removeEventListener('scroll-section-change', handleSectionChange as EventListener)
+      if (wowTimeline) {
+        wowTimeline.kill()
+      }
+    }
+  }, [])
 
   // Animation loop
   useEffect(() => {

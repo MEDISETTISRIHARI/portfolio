@@ -12,28 +12,54 @@ type HeroContentProps = {
 export default function HeroContent({ headline, subtitle, role }: HeroContentProps) {
   const subtitleLines = subtitle.split('\n')
   const titleRef = useRef<HTMLHeadingElement>(null)
+  const subtitleRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
     if (!titleRef.current) return
 
     const ctx = gsap.context(() => {
+      // Word-level animation with clip-path reveal
       const words = titleRef.current?.querySelectorAll('.hero-word')
       if (words) {
         gsap.fromTo(
           words,
           {
             opacity: 0,
-            y: 40,
-            filter: 'blur(4px)',
+            y: 50,
+            clipPath: 'inset(0 0 100% 0)',
+            filter: 'blur(6px)',
+          },
+          {
+            opacity: 1,
+            y: 0,
+            clipPath: 'inset(0 0 0% 0)',
+            filter: 'blur(0px)',
+            duration: 0.9,
+            stagger: 0.06,
+            ease: 'power3.out',
+            delay: 0.3,
+          }
+        )
+      }
+
+      // Subtitle line reveal with depth
+      const subtitleWords = subtitleRef.current?.querySelectorAll('.hero-word')
+      if (subtitleWords) {
+        gsap.fromTo(
+          subtitleWords,
+          {
+            opacity: 0,
+            y: 30,
+            filter: 'blur(3px)',
           },
           {
             opacity: 1,
             y: 0,
             filter: 'blur(0px)',
             duration: 0.8,
-            stagger: 0.05,
-            ease: 'power3.out',
-            delay: 0.3,
+            stagger: 0.04,
+            ease: 'power2.out',
+            delay: 0.6,
           }
         )
       }
@@ -65,6 +91,7 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
       {subtitleLines.map((line, i) => (
         <div key={i} className="hero-title-wrapper overflow-hidden">
           <h2
+            ref={subtitleRef}
             className="font-display text-[clamp(3.5rem,8vw,9rem)] text-text-primary hero-title-line leading-[0.9] tracking-[-0.04em]"
             style={{ lineHeight: '0.9', letterSpacing: '-0.04em' }}
           >

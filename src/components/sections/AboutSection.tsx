@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
+import HeroPortrait from '@/components/HeroPortrait'
 
 type Profile = {
   id: string
@@ -25,7 +26,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
   const [hoveredLine, setHoveredLine] = useState<number | null>(null)
 
   const headline = data.tagline || data.name
-  // Try to extract "I DESIGN. I BUILD. I EXPERIMENT." pattern from headline
   const lines = headline.split('.').filter((line) => line.trim().length > 0)
   const capabilities = ['DESIGN', 'DEVELOPMENT', 'MOTION', 'EXPERIENCE']
 
@@ -50,11 +50,14 @@ export default function AboutSection({ data }: AboutSectionProps) {
     if (!isInView) return
 
     const ctx = gsap.context(() => {
+      const section = sectionRef.current
+      if (!section) return
+
       // Staggered line reveals with clip-path and blur
-      const lines = sectionRef.current?.querySelectorAll('.about-hero-line')
-      if (lines) {
+      const aboutLines = section.querySelectorAll('.about-hero-line')
+      if (aboutLines) {
         gsap.fromTo(
-          lines,
+          aboutLines,
           {
             opacity: 0,
             y: 80,
@@ -73,23 +76,32 @@ export default function AboutSection({ data }: AboutSectionProps) {
         )
       }
 
+      // Portrait reveal
+      const portrait = section.querySelector('.hero-portrait')
+      if (portrait) {
+        gsap.fromTo(portrait,
+          { clipPath: 'inset(0 100% 0 0)', opacity: 0 },
+          { clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 1.4, ease: 'power3.inOut', delay: 0.4 }
+        )
+      }
+
       // Supporting text reveal
-      const supporting = sectionRef.current?.querySelector('.about-supporting')
+      const supporting = section.querySelector('.about-supporting')
       if (supporting) {
         gsap.fromTo(
           supporting,
           { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 1, ease: 'power2.out', delay: 0.6 }
+          { opacity: 1, y: 0, duration: 1, ease: 'power2.out', delay: 0.8 }
         )
       }
 
       // Capabilities stagger
-      const caps = sectionRef.current?.querySelectorAll('.about-capability')
+      const caps = section.querySelectorAll('.about-capability')
       if (caps) {
         gsap.fromTo(
           caps,
           { opacity: 0, x: -20 },
-          { opacity: 1, x: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out', delay: 0.8 }
+          { opacity: 1, x: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out', delay: 1 }
         )
       }
     }, sectionRef)
@@ -103,13 +115,21 @@ export default function AboutSection({ data }: AboutSectionProps) {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 items-start">
-          {/* Left column - minimal metadata */}
+          {/* Left column - minimal metadata + portrait */}
           <div className="md:col-span-4 relative">
             <p className="label text-text-muted mb-4" data-scroll-reveal data-scroll-parallax="0.1">01 — ABOUT</p>
             <div className="w-16 h-px bg-border-default mb-8" data-scroll-reveal />
             {data.availability && (
               <p className="body-sm text-accent mb-4" data-scroll-reveal>{data.availability}</p>
             )}
+
+            {/* Portrait - masked reveal with editorial treatment */}
+            {data.image && (
+              <div className="hidden md:block mb-8" data-scroll-parallax="0.15">
+                <HeroPortrait src={data.image} alt={data.name} isInView={isInView} />
+              </div>
+            )}
+
             <div className="space-y-2 mt-8 hidden md:block">
               {capabilities.map((cap, i) => (
                 <p
