@@ -6,10 +6,9 @@ import { gsap } from 'gsap'
 type HeroContentProps = {
   headline: string
   subtitle: string
-  role?: string
 }
 
-export default function HeroContent({ headline, subtitle, role }: HeroContentProps) {
+export default function HeroContent({ headline, subtitle }: HeroContentProps) {
   const subtitleLines = subtitle.split('\n')
   const titleRef = useRef<HTMLHeadingElement>(null)
   const subtitleRef = useRef<HTMLHeadingElement>(null)
@@ -70,11 +69,6 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
 
   return (
     <>
-      {role && (
-        <p className="text-[clamp(0.65rem,1vw,0.75rem)] text-text-muted/50 mb-6 md:mb-8 tracking-[0.35em] uppercase hero-role font-light" style={{ letterSpacing: '0.35em' }}>
-          {role}
-        </p>
-      )}
       <div className="hero-title-wrapper overflow-hidden">
         <h1
           ref={titleRef}

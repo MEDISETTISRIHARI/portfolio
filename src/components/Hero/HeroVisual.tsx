@@ -57,10 +57,10 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
       <div className="absolute inset-0 hero-canvas">
         <Canvas
           dpr={[1, dpr]}
-          camera={{ position: [0, 0, 18], fov: 55 }}
+          camera={{ position: [0, 0, 18], fov: isMobile ? 60 : 55 }}
           gl={{ antialias: true, alpha: true }}
         >
-          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} pointerDistance={pointerDistance} isMobile={false} />
+          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} pointerDistance={pointerDistance} isMobile={isMobile} />
         </Canvas>
       </div>
     )
@@ -79,7 +79,7 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
     <div className="absolute inset-0 hero-canvas pointer-events-none">
       <Canvas
         dpr={[1, dpr]}
-        camera={{ position: [0, 0, 18], fov: 55 }}
+        camera={{ position: [0, 0, 18], fov: isMobile ? 60 : 55 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
         <Suspense fallback={null}>
@@ -96,14 +96,14 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
       <div
         className="absolute inset-0 pointer-events-none transition-opacity duration-700"
         style={{
-          background: `radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(5,5,5,${0.15 + scrollProgress * 0.25}) 100%)`,
+          background: `radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(5,5,5,${0.12 + scrollProgress * 0.2}) 100%)`,
         }}
       />
       {/* Vignette for cinematic depth */}
       <div
         className="absolute inset-0 pointer-events-none transition-opacity duration-700"
         style={{
-          background: `radial-gradient(ellipse 70% 50% at 50% 50%, transparent 0%, rgba(5,5,5,${0.25 + scrollProgress * 0.35}) 100%)`,
+          background: `radial-gradient(ellipse 70% 50% at 50% 50%, transparent 0%, rgba(5,5,5,${0.2 + scrollProgress * 0.3}) 100%)`,
         }}
       />
     </div>

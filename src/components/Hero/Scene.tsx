@@ -49,9 +49,10 @@ function createPrimaryForm(index: number, depthLayer: 'background' | 'midground'
 
   const mesh = new THREE.Mesh(geometry, material)
 
-  // Depth-based positioning
-  const depthFactor = depthLayer === 'background' ? 2.5 : depthLayer === 'foreground' ? 0.7 : 1.2
-  const radius = (6 + (index % 3) * 2.5) * depthFactor
+  // Depth-based positioning with explicit z separation
+  const depthZ = depthLayer === 'background' ? -8 : depthLayer === 'foreground' ? 4 : 0
+  const depthFactor = depthLayer === 'background' ? 2.2 : depthLayer === 'foreground' ? 0.8 : 1.2
+  const radius = (5 + (index % 3) * 2.2) * depthFactor
   const polarAngle = (index * 0.523) + (Math.random() * 0.3)
   const azimuthalAngle = (index * 0.785) + (Math.random() * 0.3)
   const polarOffset = (index % 2 === 0) ? -1 : 1
@@ -59,7 +60,7 @@ function createPrimaryForm(index: number, depthLayer: 'background' | 'midground'
   mesh.position.set(
     radius * Math.sin(polarAngle) * Math.cos(azimuthalAngle) * polarOffset,
     radius * Math.cos(polarAngle) * polarOffset,
-    radius * 0.5 * Math.sin(azimuthalAngle) * polarOffset
+    depthZ + radius * 0.4 * Math.sin(azimuthalAngle) * polarOffset
   )
 
   mesh.rotation.set(
@@ -96,10 +97,10 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
   // Setup cinematic tone mapping
   useEffect(() => {
     gl.toneMapping = isMobile ? THREE.ReinhardToneMapping : THREE.ACESFilmicToneMapping
-    gl.toneMappingExposure = isMobile ? 1.1 : 0.85
+    gl.toneMappingExposure = isMobile ? 1.05 : 0.8
     gl.outputColorSpace = THREE.SRGBColorSpace
 
-    scene.fog = new THREE.Fog('#050505', isMobile ? 15 : 12, isMobile ? 50 : 45)
+    scene.fog = new THREE.Fog('#050505', isMobile ? 18 : 14, isMobile ? 55 : 48)
   }, [gl, scene, isMobile])
 
   // =============================================
@@ -300,43 +301,44 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
           const baseScale = child.userData.baseScale || 1
           const depthLayer = child.userData.depthLayer || 'midground'
 
-          // Choreographed orbital-like rotation
+          // Choreographed orbital-like rotation with depth-based speed
           const rotOffset = i * 0.7
           child.rotation.y += (0.0004 + Math.sin(t * 0.1 + rotOffset) * 0.0002) * rotMult * layerSpeed * motionScale
           child.rotation.x += (0.0002 + Math.cos(t * 0.08 + rotOffset) * 0.0001) * rotMult * layerSpeed * motionScale
           child.rotation.z += Math.sin(t * 0.06 + rotOffset) * 0.0001 * layerSpeed * motionScale
 
           // Floating movement with depth-aware amplitude
-          const floatAmp = depthLayer === 'foreground' ? 0.18 : depthLayer === 'background' ? 0.05 : 0.1
+          const floatAmp = depthLayer === 'foreground' ? 0.2 : depthLayer === 'background' ? 0.04 : 0.1
           child.position.y = baseY + Math.sin(t * floatSpeed + i * 0.5) * floatAmp * layerAmplitude * motionScale
 
-          // Subtle orbital drift
-          const orbitRadius = 0.3 * layerSpeed * motionScale
-          child.position.x += Math.sin(t * 0.04 + i * 0.3) * orbitRadius * 0.01
-          child.position.z += Math.cos(t * 0.03 + i * 0.2) * orbitRadius * 0.01
+          // Subtle orbital drift - independent per layer
+          const orbitRadius = 0.4 * layerSpeed * motionScale
+          child.position.x += Math.sin(t * 0.04 + i * 0.3) * orbitRadius * 0.012
+          child.position.z += Math.cos(t * 0.03 + i * 0.2) * orbitRadius * 0.012
 
           // Scale based on depth
           child.scale.setScalar(baseScale)
 
-          // Pointer interaction with proximity falloff
+          // Pointer interaction with strong depth-based falloff
           if (pointerDistance !== undefined) {
             const strength = Math.max(0, 1 - pointerDistance / 2.5)
-            const proximityBoost = depthLayer === 'foreground' ? 1.8 : depthLayer === 'background' ? 0.4 : 1.0
-            child.rotation.y += strength * 0.003 * layerSpeed * proximityBoost * motionScale
-            child.position.y += strength * 0.04 * layerAmplitude * proximityBoost * motionScale
-            child.scale.setScalar(baseScale + strength * 0.02 * proximityBoost)
+            const proximityBoost = depthLayer === 'foreground' ? 2.2 : depthLayer === 'background' ? 0.3 : 1.0
+            child.rotation.y += strength * 0.004 * layerSpeed * proximityBoost * motionScale
+            child.position.y += strength * 0.05 * layerAmplitude * proximityBoost * motionScale
+            child.scale.setScalar(baseScale + strength * 0.025 * proximityBoost)
           }
 
           // Scroll-based depth movement
           child.position.z += scrollProgress * scrollInfluence * 0.15 * motionScale
 
-          // Atmospheric perspective - fade distant objects
+          // Atmospheric perspective - stronger depth-based contrast
           const dist = child.position.length()
-          if (dist > 8) {
-            const fade = Math.max(0, 1 - (dist - 8) / 8)
+          if (dist > 6) {
+            const fade = Math.max(0, 1 - (dist - 6) / 10)
             const mesh = child as THREE.Mesh
             const mat = mesh.material as THREE.MeshStandardMaterial
-            mat.opacity = fade * 0.9 * (depthLayer === 'background' ? 0.4 : 0.7)
+            const depthFade = depthLayer === 'background' ? 0.35 : depthLayer === 'foreground' ? 0.75 : 0.55
+            mat.opacity = fade * depthFade
             mat.transparent = true
           }
         }
@@ -344,14 +346,14 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
     }
 
     // Animate each depth layer with different speeds and scroll influence
-    animateDepthGroup(backgroundGroupRef.current, 0.3, 0.4, -0.5)
-    animateDepthGroup(midgroundGroupRef.current, 0.6, 0.6, 0.2)
-    animateDepthGroup(foregroundGroupRef.current, 1.0, 0.8, 0.6)
+    animateDepthGroup(backgroundGroupRef.current, 0.25, 0.35, -0.6)
+    animateDepthGroup(midgroundGroupRef.current, 0.55, 0.55, 0.15)
+    animateDepthGroup(foregroundGroupRef.current, 0.9, 0.75, 0.5)
 
-    // Hero object - slow elegant rotation with pointer response
+    // Hero object - slow elegant rotation with occasional forward drift
     if (heroObjectRef.current) {
-      heroObjectRef.current.rotation.y += 0.004 * motionScale
-      heroObjectRef.current.rotation.z = Math.sin(t * 0.12) * 0.04 * motionScale
+      heroObjectRef.current.rotation.y += 0.003 * motionScale
+      heroObjectRef.current.rotation.z = Math.sin(t * 0.12) * 0.035 * motionScale
       heroObjectRef.current.rotation.x = Math.cos(t * 0.1) * 0.02 * motionScale
 
       // Proximity-based interaction
@@ -360,29 +362,31 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
         proximity = Math.max(0, 1 - pointerDistance / 3.5)
       }
 
-      // Subtle scale pulse based on proximity (reusing vector to avoid allocation)
+      // Subtle scale pulse based on proximity
       targetScaleVec.current.setScalar(1 + proximity * 0.04)
       heroObjectRef.current.scale.lerp(targetScaleVec.current, 0.02)
 
-      // Position float with proximity influence
-      heroObjectRef.current.position.y = 1.0 + Math.sin(t * 0.25) * 0.04 * motionScale + proximity * 0.02
+      // Position float with proximity influence - occasionally drift forward
+      const forwardDrift = Math.sin(t * 0.08) * 0.5
+      heroObjectRef.current.position.y = 0.8 + Math.sin(t * 0.25) * 0.04 * motionScale + proximity * 0.02
+      heroObjectRef.current.position.z = forwardDrift * motionScale
 
       // Rotation speedup when pointer is close
-      heroObjectRef.current.rotation.y += proximity * 0.005 * motionScale
+      heroObjectRef.current.rotation.y += proximity * 0.004 * motionScale
 
       // Scroll-based subtle rotation
-      heroObjectRef.current.rotation.x += scrollProgress * 0.015 * motionScale
+      heroObjectRef.current.rotation.x += scrollProgress * 0.012 * motionScale
     }
 
     // Secondary particles - subtle rotation and pointer reaction
     if (particlesRef.current) {
-      particlesRef.current.rotation.y = t * 0.005 * motionScale
+      particlesRef.current.rotation.y = t * 0.004 * motionScale
       particlesRef.current.rotation.x = t * 0.002 * motionScale
 
       if (pointerDistance !== undefined) {
         const strength = Math.max(0, 1 - pointerDistance / 4)
         particlesRef.current.rotation.y += strength * 0.001 * motionScale
-        const particleScale = 1 + strength * 0.06
+        const particleScale = 1 + strength * 0.05
         particlesRef.current.scale.setScalar(particleScale)
       } else {
         particlesRef.current.scale.setScalar(1)
@@ -391,35 +395,38 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
 
     // Ambient particles - gentle floating motion
     if (ambientParticlesRef.current) {
-      ambientParticlesRef.current.rotation.y = t * 0.0015 * motionScale
-      ambientParticlesRef.current.position.y = Math.sin(t * 0.15) * 0.1 * motionScale
-      ambientParticlesRef.current.position.x = Math.cos(t * 0.12) * 0.08 * motionScale
+      ambientParticlesRef.current.rotation.y = t * 0.0012 * motionScale
+      ambientParticlesRef.current.position.y = Math.sin(t * 0.15) * 0.08 * motionScale
+      ambientParticlesRef.current.position.x = Math.cos(t * 0.12) * 0.06 * motionScale
     }
   })
 
   return (
     <group>
-      {/* Cinematic lighting system - restrained */}
-      {/* Soft key light from upper right */}
-      <directionalLight position={[8, 10, 6]} intensity={0.35} color="#ffffff" />
+      {/* Cinematic lighting system - restrained luxury */}
+      {/* Soft key light from upper right - warm white */}
+      <directionalLight position={[8, 10, 6]} intensity={0.3} color="#f8f8ff" />
 
-      {/* Low-intensity fill from left */}
-      <directionalLight position={[-6, 4, -4]} intensity={0.25} color="#e8f4ff" />
+      {/* Cool fill from left - architectural */}
+      <directionalLight position={[-6, 4, -4]} intensity={0.2} color="#dbeafe" />
 
-      {/* Subtle rim/back light */}
-      <directionalLight position={[0, 1, -8]} intensity={0.12} color="#7dcffd" />
+      {/* Rim/back light for depth separation */}
+      <directionalLight position={[0, 1, -8]} intensity={0.1} color="#7dcffd" />
 
-      {/* Cool accent - tight area */}
-      <pointLight position={[0, 2, 4]} intensity={0.15} color="#3b82f6" distance={12} />
+      {/* Controlled accent glow - tight area */}
+      <pointLight position={[0, 2, 4]} intensity={0.12} color="#3b82f6" distance={10} />
 
-      {/* Warm subtle fill for depth */}
-      <pointLight position={[-4, -2, 2]} intensity={0.08} color="#f0f0f0" distance={10} />
+      {/* Subtle warm fill for depth */}
+      <pointLight position={[-4, -2, 2]} intensity={0.06} color="#f0f0f0" distance={8} />
 
-      {/* Ambient light */}
-      <ambientLight intensity={0.12} />
+      {/* Atmospheric depth light - low intensity */}
+      <pointLight position={[0, -3, -2]} intensity={0.04} color="#7dcffd" distance={14} />
+
+      {/* Ambient light - very low for cinematic contrast */}
+      <ambientLight intensity={0.08} />
 
       {/* Hemisphere light - natural ambient */}
-      <hemisphereLight intensity={0.2} />
+      <hemisphereLight intensity={0.15} />
 
       {/* Camera rig for mouse and scroll interaction */}
       <CameraRig

@@ -111,8 +111,11 @@ export default function AboutSection({ data }: AboutSectionProps) {
 
   return (
     <section id="about" data-scroll-section="about" className="py-24 md:py-48 relative overflow-hidden" ref={sectionRef}>
-      {/* Section continuity line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
+      {/* Section continuity line - animated on transition */}
+      <div
+        className="section-continuity-line absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent origin-left"
+        style={{ transform: 'scaleX(0)', opacity: 0 }}
+      />
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 items-start">
           {/* Left column - minimal metadata + portrait */}

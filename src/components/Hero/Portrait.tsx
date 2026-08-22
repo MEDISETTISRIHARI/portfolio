@@ -90,6 +90,7 @@ export default function Portrait({ src, alt = 'Portrait', isInView = false, mous
 
   // Placeholder or real image
   const imageSrc = src || '/images/srihari.jpg'
+  const isPlaceholder = !src
 
   return (
     <div
@@ -113,6 +114,7 @@ export default function Portrait({ src, alt = 'Portrait', isInView = false, mous
         ref={imageRef}
         className="relative overflow-hidden"
         style={{
+          width: 'min(82vw, 320px)',
           aspectRatio: '3/4',
           clipPath: 'inset(0% 0% 0% 0%)',
           transform: 'scale(1)',
@@ -120,13 +122,28 @@ export default function Portrait({ src, alt = 'Portrait', isInView = false, mous
           transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease',
         }}
       >
-        {/* Background gradient for placeholder */}
-        <div
-          className="absolute inset-0 bg-gradient-to-br from-surface via-background to-surface"
+        {/* Mobile-first responsive image */}
+        <img
+          src={imageSrc}
+          alt={alt}
+          className="w-full h-full object-cover"
           style={{
-            backgroundImage: `url(${imageSrc})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 20%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+          loading="lazy"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement
+            target.style.display = 'none'
+          }}
+        />
+
+        {/* Placeholder gradient when image missing or fails to load */}
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-surface via-background to-surface pointer-events-none"
+          style={{
+            opacity: isPlaceholder ? 1 : 0,
+            transition: 'opacity 0.3s ease',
           }}
         />
 

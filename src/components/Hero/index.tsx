@@ -6,8 +6,9 @@ import HeroVisual from './HeroVisual'
 import HeroContent from './HeroContent'
 import HeroMeta from './HeroMeta'
 import HeroCTA from './HeroCTA'
-import HeroMetadata from './HeroMetadata'
+import HeroIdentity from './HeroIdentity'
 import Portrait from './Portrait'
+import HeroMetadata from './HeroMetadata'
 import { useScroll } from '@/hooks/useScroll'
 
 type HeroData = {
@@ -188,6 +189,46 @@ export default function Hero({ data, role }: HeroProps) {
         { opacity: 1, scale: 1, duration: 1.5, ease: 'power2.out' }
       )
 
+      // Identity mark reveal
+      tl.fromTo(
+        '.identity-mark',
+        { opacity: 0, y: 20, filter: 'blur(4px)' },
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out' },
+        '-=1'
+      )
+
+      // Role reveal
+      tl.fromTo(
+        '.identity-role',
+        { opacity: 0, y: 15, filter: 'blur(2px)' },
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: 'power2.out' },
+        '-=0.4'
+      )
+
+      // Tagline reveal
+      tl.fromTo(
+        '.identity-tagline',
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
+        '-=0.3'
+      )
+
+      // Divider reveal
+      tl.fromTo(
+        '.identity-divider',
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 1, duration: 0.8, ease: 'power3.out' },
+        '-=0.3'
+      )
+
+      // Meta items reveal
+      tl.fromTo(
+        '.identity-meta',
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' },
+        '-=0.4'
+      )
+
       // Title lines: masked clip-path reveal, staggered
       tl.fromTo(
         '.hero-title-line',
@@ -206,14 +247,6 @@ export default function Hero({ data, role }: HeroProps) {
           stagger: 0.15,
           ease: 'power3.out',
         },
-        '-=1'
-      )
-
-      // Role text: fade up from muted
-      tl.fromTo(
-        '.hero-role',
-        { opacity: 0, y: 20, filter: 'blur(2px)' },
-        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out' },
         '-=0.6'
       )
 
@@ -257,8 +290,12 @@ export default function Hero({ data, role }: HeroProps) {
     if (hasSeenIntro) {
       // Shortened entrance for returning visitors
       const tl = gsap.timeline()
-      tl.fromTo('.hero-title-line', { opacity: 0, y: 30, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, stagger: 0.1, ease: 'power3.out' })
-        .fromTo('.hero-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.4')
+      tl.fromTo('.identity-mark', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+        .fromTo('.identity-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.3')
+        .fromTo('.identity-tagline', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2')
+        .fromTo('.identity-divider', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: 'power3.out' }, '-=0.2')
+        .fromTo('.identity-meta', { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, '-=0.3')
+        .fromTo('.hero-title-line', { opacity: 0, y: 30, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
         .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
         .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
         .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
@@ -296,24 +333,17 @@ export default function Hero({ data, role }: HeroProps) {
 
       {/* Hero editorial grid */}
       <div className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-6 pt-16 pb-24' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`}>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
-          {/* Left column - identity metadata */}
-          <div className="md:col-span-3 lg:col-span-3 order-2 md:order-1">
+        <div className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-12 items-center">
+          {/* Left column - identity system */}
+          <div className="md:col-span-3 lg:col-span-3 order-1">
             <div className="md:sticky md:top-32">
-              {role && (
-                <p className="text-[clamp(0.7rem,1.2vw,0.8rem)] text-text-muted/60 mb-4 tracking-[0.3em] uppercase font-medium hero-role" style={{ letterSpacing: '0.3em' }}>
-                  {role}
-                </p>
-              )}
-              <div className="w-12 h-px bg-border-default mb-6" data-scroll-reveal />
-              <p className="text-meta text-text-muted mb-2" data-scroll-reveal>CREATIVE DEVELOPER</p>
-              <p className="text-meta text-text-muted" data-scroll-reveal>INDIA — 2026</p>
+              <HeroIdentity role={role} isInView={isInView} />
             </div>
           </div>
 
-          {/* Center-left column - large typography */}
-          <div className="md:col-span-5 lg:col-span-5 order-1 md:order-2 hero-center-column">
-            <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />
+          {/* Center column - typography, description, CTA */}
+          <div className="md:col-span-5 lg:col-span-5 order-2 md:order-2 hero-center-column">
+            <HeroContent headline={data.headline} subtitle={data.subtitle} />
             <div className="mt-8 md:mt-12">
               <HeroMeta description={data.description} />
             </div>
@@ -340,9 +370,9 @@ export default function Hero({ data, role }: HeroProps) {
             </div>
           </div>
 
-          {/* Mobile portrait - shown below headline */}
-          <div className="md:hidden order-3 mt-8" data-scroll-parallax="0.06">
-            <div className="relative max-w-xs mx-auto">
+          {/* Mobile portrait - strong crop, centered */}
+          <div className="md:hidden order-3 mt-10" data-scroll-parallax="0.06">
+            <div className="relative mx-auto" style={{ width: 'min(82vw, 320px)' }}>
               <Portrait
                 src={data.image}
                 alt={role || 'SRIHARI'}
