@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState('')
 
   useEffect(() => {
     const handleScroll = () => {
@@ -12,6 +13,15 @@ export default function Navigation() {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const handleSectionChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ sectionId: string }>
+      setActiveSection(customEvent.detail?.sectionId || '')
+    }
+    window.addEventListener('scroll-section-change', handleSectionChange)
+    return () => window.removeEventListener('scroll-section-change', handleSectionChange)
   }, [])
 
   useEffect(() => {
@@ -32,6 +42,11 @@ export default function Navigation() {
     { label: 'CONTACT', href: '#contact' },
   ]
 
+  const isActive = (href: string) => {
+    const id = href.replace('#', '')
+    return activeSection === id
+  }
+
   return (
     <>
       <nav
@@ -40,7 +55,7 @@ export default function Navigation() {
         }`}
       >
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
+          <div className={`flex items-center justify-between transition-all duration-500 ${isScrolled ? 'h-16' : 'h-20'}`}>
             <a href="#" className="font-display text-sm tracking-widest text-text-primary hover:text-accent transition-colors duration-300">
               SRIHARI
             </a>
@@ -50,9 +65,12 @@ export default function Navigation() {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="caption text-text-muted hover:text-text-primary transition-colors duration-300"
+                  className={`caption relative transition-colors duration-300 ${isActive(item.href) ? 'text-text-primary' : 'text-text-muted hover:text-text-primary'}`}
                 >
                   {item.label}
+                  {isActive(item.href) && (
+                    <span className="absolute -bottom-1 left-0 w-full h-px bg-accent" />
+                  )}
                 </a>
               ))}
               <a

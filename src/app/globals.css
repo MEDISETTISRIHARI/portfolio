@@ -402,8 +402,8 @@ body::before {
 }
 
 /* ============================================
-   REDUCED MOTION
-   ============================================ */
+    REDUCED MOTION
+    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -426,6 +426,38 @@ body::before {
     opacity: 1;
     transform: none;
     animation: none;
+  }
+}
+
+/* ============================================
+    ACCESSIBILITY
+    ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/* ============================================
+    MOBILE TYPOGRAPHY
+    ============================================ */
+
+@media (max-width: 768px) {
+  .text-display-xl,
+  .text-display-lg,
+  .text-display-md,
+  .text-display-sm {
+    letter-spacing: -0.02em;
+  }
+
+  .max-w-readable {
+    max-width: 100%;
   }
 }
 

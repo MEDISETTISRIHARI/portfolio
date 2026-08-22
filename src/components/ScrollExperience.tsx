@@ -298,6 +298,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
       if (mostVisibleId && mostVisibleId !== activeSectionRef.current) {
         activeSectionRef.current = mostVisibleId
         setActiveSection(mostVisibleId)
+        window.dispatchEvent(new CustomEvent('scroll-section-change', { detail: { sectionId: mostVisibleId } }))
       }
 
       elements.current.forEach((elInfo) => {
