@@ -45,14 +45,14 @@ function createPrimaryForm(index: number, depthLayer: 'background' | 'midground'
     roughness,
     flatShading: isMetallic ? false : true,
     transparent: true,
-    opacity: depthLayer === 'background' ? 0.5 : depthLayer === 'foreground' ? 0.9 : 0.7,
+    opacity: depthLayer === 'background' ? 0.4 : depthLayer === 'foreground' ? 0.5 : 0.55,
   })
 
   const mesh = new THREE.Mesh(geometry, material)
 
   // Depth-based positioning with explicit z separation
-  const depthZ = depthLayer === 'background' ? -8 : depthLayer === 'foreground' ? 4 : 0
-  const depthFactor = depthLayer === 'background' ? 2.2 : depthLayer === 'foreground' ? 0.8 : 1.2
+  const depthZ = depthLayer === 'background' ? -8 : depthLayer === 'foreground' ? 3 : 0
+  const depthFactor = depthLayer === 'background' ? 2.2 : depthLayer === 'foreground' ? 0.7 : 1.2
   const radius = (5 + (index % 3) * 2.2) * depthFactor
   const polarAngle = (index * 0.523) + (Math.random() * 0.3)
   const azimuthalAngle = (index * 0.785) + (Math.random() * 0.3)
@@ -78,7 +78,7 @@ function createPrimaryForm(index: number, depthLayer: 'background' | 'midground'
     interactionStrength: 0,
     baseY: mesh.position.y,
     depthLayer,
-    baseScale: depthLayer === 'background' ? 0.7 : depthLayer === 'foreground' ? 1.3 : 1.0,
+    baseScale: depthLayer === 'background' ? 0.7 : depthLayer === 'foreground' ? 0.9 : 1.0,
   }
 
   return mesh
@@ -369,9 +369,10 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
       heroObjectRef.current.scale.lerp(targetScaleVec.current, 0.02)
 
       // Position float with proximity influence - occasionally drift forward
-      const forwardDrift = Math.sin(t * 0.08) * 0.5
-      heroObjectRef.current.position.y = 0.8 + Math.sin(t * 0.25) * 0.04 * motionScale + proximity * 0.02
+      const forwardDrift = Math.sin(t * 0.08) * 0.3
+      heroObjectRef.current.position.y = 0.6 + Math.sin(t * 0.25) * 0.03 * motionScale + proximity * 0.02
       heroObjectRef.current.position.z = forwardDrift * motionScale
+      heroObjectRef.current.position.x = Math.max(-2, Math.min(2, heroObjectRef.current.position.x))
 
       // Rotation speedup when pointer is close
       heroObjectRef.current.rotation.y += proximity * 0.004 * motionScale

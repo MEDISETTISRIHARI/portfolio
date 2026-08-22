@@ -143,6 +143,13 @@ export default function Hero({ data, role }: HeroProps) {
     }
   }, [])
 
+  // Ensure hero starts at top and prevent scroll jump
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0)
+    }
+  }, [])
+
   // Scroll exit: fade hero content as user scrolls down
   useEffect(() => {
     if (prefersReducedMotion) return
@@ -393,6 +400,26 @@ export default function Hero({ data, role }: HeroProps) {
       </div>
 
       {/* Atmosphere layers - localized focus */}
+      {/* Content shield - protects text/CTA from 3D overlaps */}
+      <div
+        data-depth="content"
+        className="absolute inset-0 pointer-events-none md:left-0 md:right-[38%]"
+        style={{
+          background: 'linear-gradient(to right, rgba(5,5,5,0.5) 0%, transparent 50%)',
+          zIndex: 2,
+        }}
+        aria-hidden="true"
+      />
+      {/* Mobile content shield */}
+      <div
+        data-depth="content"
+        className="absolute inset-0 pointer-events-none md:hidden"
+        style={{
+          background: 'linear-gradient(to bottom, transparent 40%, rgba(5,5,5,0.3) 70%, rgba(5,5,5,0.6) 100%)',
+          zIndex: 2,
+        }}
+        aria-hidden="true"
+      />
       {/* Portrait radial spotlight - desktop only */}
       <div
         data-depth="background"
@@ -440,10 +467,10 @@ export default function Hero({ data, role }: HeroProps) {
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
 
       {/* Content depth - editorial grid */}
-      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-5 pt-14 pb-16' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
+      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-5 pt-14 pb-20' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
 
         {/* Desktop layout */}
-        <div className="hidden md:grid md:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="hidden md:grid md:grid-cols-12 gap-6 lg:gap-8 items-center">
           {/* Left 55% - editorial headline and identity */}
           <div className="md:col-span-7 lg:col-span-7">
             <div className="mb-10">
@@ -465,7 +492,7 @@ export default function Hero({ data, role }: HeroProps) {
 
           {/* Right 40% - portrait composition with intentional overlap */}
           <div className="md:col-span-5 lg:col-span-5 relative">
-            <div className="flex justify-center lg:justify-end lg:-mr-8">
+            <div className="flex justify-center lg:justify-end lg:-mr-6">
               <div className="w-full max-w-[420px]">
                 <HeroPortrait
                   src={data.image}
@@ -484,16 +511,16 @@ export default function Hero({ data, role }: HeroProps) {
         {/* Mobile layout - controlled composition */}
         <div className="flex flex-col md:hidden">
           {/* Role / identity */}
-          <div className="mb-4">
+          <div className="mb-3">
             <HeroIdentity role={role} isInView={isInView} />
           </div>
 
           {/* Headline */}
           <HeroContent headline={data.headline} subtitle={data.subtitle} mousePos={mousePos} />
 
-          {/* Portrait - intentional reserved area */}
-          <div className="my-5 flex justify-center">
-            <div className="relative" style={{ width: 'min(60vw, 200px)' }}>
+          {/* Portrait - larger, more visible */}
+          <div className="my-6 flex justify-center">
+            <div className="relative" style={{ width: 'min(82vw, 360px)' }}>
               <HeroPortrait
                 src={data.image}
                 alt={role || 'SRIHARI'}
@@ -507,7 +534,7 @@ export default function Hero({ data, role }: HeroProps) {
           </div>
 
           {/* Description */}
-          <div className="mt-1">
+          <div className="mt-2">
             <HeroMeta description={data.description} />
           </div>
 

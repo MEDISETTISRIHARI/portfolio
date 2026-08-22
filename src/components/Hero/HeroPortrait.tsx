@@ -48,6 +48,7 @@ export default function HeroPortrait({
   const grainRef = useRef<HTMLDivElement>(null)
   const [isClient, setIsClient] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   const target = useRef<TransformState>({ x: 0, y: 0, rotY: 0, rotX: 0, scale: 1 })
@@ -57,6 +58,14 @@ export default function HeroPortrait({
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  // Ensure portrait is visible immediately on mobile
+  useEffect(() => {
+    if (!isClient || !containerRef.current) return
+    if (isMobile && isInView) {
+      containerRef.current.style.opacity = '1'
+    }
+  }, [isClient, isMobile, isInView])
 
   // Smooth interpolation animation loop
   useEffect(() => {
@@ -177,7 +186,8 @@ export default function HeroPortrait({
         return
       }
 
-      const tl = gsap.timeline({ delay: 1.0 })
+      const delay = isMobile ? 0.6 : 1.0
+      const tl = gsap.timeline({ delay })
 
       tl.fromTo('.hero-portrait-container',
         { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0, scale: 1.08, y: 50, rotateY: 8, filter: 'blur(12px)' },
@@ -210,7 +220,7 @@ export default function HeroPortrait({
     }, containerRef)
 
     return () => ctx.revert()
-  }, [isInView, prefersReducedMotion])
+  }, [isInView, prefersReducedMotion, isMobile])
 
   const imageSrc = src || '/images/srihari-portrait.jpg'
   const showPlaceholder = !src || imageError
@@ -220,7 +230,6 @@ export default function HeroPortrait({
       ref={containerRef}
       className="hero-portrait relative"
       style={{
-        opacity: 0,
         willChange: 'transform',
         perspective: '1200px',
         transformStyle: 'preserve-3d',
@@ -260,12 +269,13 @@ export default function HeroPortrait({
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-surface via-background to-surface">
-            <div className="text-center px-8">
-              <p className="font-display text-display-sm text-text-primary tracking-widest mb-2">PORTRAIT</p>
-              <p className="caption text-text-muted tracking-widest">SRIHARI</p>
-              <p className="caption text-text-muted/60 mt-4 max-w-[200px] mx-auto leading-relaxed">
-                Add your photo at <br />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-surface via-background to-surface border border-border-subtle">
+            <div className="text-center px-6">
+              <p className="font-display text-display-sm text-text-primary tracking-widest mb-3">PORTRAIT</p>
+              <p className="caption text-text-muted tracking-widest mb-4">SRIHARI</p>
+              <div className="w-12 h-px bg-border-default mx-auto mb-4" />
+              <p className="caption text-text-muted/70 max-w-[180px] mx-auto leading-relaxed">
+                Drop image at<br />
                 <span className="text-accent">/images/srihari-portrait.jpg</span>
               </p>
             </div>
