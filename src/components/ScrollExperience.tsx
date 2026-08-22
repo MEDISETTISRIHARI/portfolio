@@ -439,6 +439,10 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           const workProgress = section.progress
           sectionEl.style.background = `linear-gradient(to bottom, transparent 0%, rgba(125, 211, 252, ${workProgress * 0.02}) 50%, transparent 100%)`
         }
+        if (section.id === 'testimonials') {
+          const testimonialsProgress = section.progress
+          sectionEl.style.background = `linear-gradient(to bottom, transparent 0%, rgba(125, 211, 252, ${testimonialsProgress * 0.015}) 50%, transparent 100%)`
+        }
       })
 
       // Dispatch section change events

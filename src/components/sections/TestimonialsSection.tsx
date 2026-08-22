@@ -94,8 +94,11 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
 
   return (
     <section id="testimonials" data-scroll-section="testimonials" className="py-24 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
-      {/* Section continuity line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
+      {/* Section continuity line - carries accent from projects */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent opacity-60" />
+
+      {/* Atmospheric glow transition */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-6">
         {/* Section header */}

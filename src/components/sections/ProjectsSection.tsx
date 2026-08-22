@@ -30,15 +30,72 @@ type ProjectsSectionProps = {
   data: Project[]
 }
 
+function ProjectCTA({ href, isActive, magneticRef }: { href: string; isActive: boolean; magneticRef: (el: HTMLAnchorElement | null) => void }) {
+  const linkRef = useRef<HTMLAnchorElement | null>(null)
+
+  useEffect(() => {
+    const el = linkRef.current
+    if (!el) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect()
+      const x = (e.clientX - rect.left - rect.width / 2) * 0.15
+      const y = (e.clientY - rect.top - rect.height / 2) * 0.15
+      gsap.to(el, { x, y, duration: 0.4, ease: 'power2.out' })
+    }
+
+    const handleMouseLeave = () => {
+      gsap.to(el, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)' })
+    }
+
+    el.addEventListener('mousemove', handleMouseMove)
+    el.addEventListener('mouseleave', handleMouseLeave)
+
+    return () => {
+      el.removeEventListener('mousemove', handleMouseMove)
+      el.removeEventListener('mouseleave', handleMouseLeave)
+    }
+  }, [])
+
+  return (
+    <a
+      ref={(el) => {
+        linkRef.current = el
+        magneticRef(el)
+      }}
+      href={href}
+      className="group/project-cta relative inline-flex items-center gap-3 text-sm font-medium tracking-wide text-text-primary hover:text-accent transition-colors duration-500"
+      style={{ willChange: 'transform' }}
+    >
+      <span className="relative">
+        <span className="relative z-10">EXPLORE PROJECT</span>
+        <span className="absolute bottom-0 left-0 h-px bg-accent origin-left transition-all duration-500 group-hover/project-cta:scale-x-100"
+          style={{ width: '100%', transform: 'scaleX(0)' }}
+        />
+      </span>
+      <svg
+        className="w-4 h-4 transition-transform duration-300 group-hover/project-cta:translate-x-1"
+        style={{ transform: isActive ? 'translateX(4px)' : 'translateX(0)' }}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+      </svg>
+    </a>
+  )
+}
+
 export default function ProjectsSection({ data }: ProjectsSectionProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isInView, setIsInView] = useState(false)
   const [scrollVelocity, setScrollVelocity] = useState(0)
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const sectionRef = useRef<HTMLElement>(null)
-  const projectRefs = useRef<(HTMLDivElement | null)[]>([])
+  const projectRefs = useRef<Array<HTMLDivElement | null>>([])
   const magneticRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
   const { scrollY, progress } = useScroll()
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -108,73 +165,87 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
         const numberEl = projectEl.querySelector('.project-number')
         const dividerEl = projectEl.querySelector('.project-divider')
         const titleEl = projectEl.querySelector('.project-title')
+        const categoryEl = projectEl.querySelector('.project-category')
         const descEl = projectEl.querySelector('.project-description')
         const visualEl = projectEl.querySelector('.project-visual-container')
         const metaEl = projectEl.querySelector('.project-meta')
+        const ctaEl = projectEl.querySelector('.project-cta')
 
-        const tl = gsap.timeline({ delay: 0.3 + i * 0.15 })
+        const delay = prefersReducedMotion ? 0 : 0.3 + i * 0.15
 
         // 1. Number appears
-        if (numberEl) {
-          tl.fromTo(numberEl,
+        if (numberEl && !prefersReducedMotion) {
+          gsap.fromTo(numberEl,
             { opacity: 0, y: 40, clipPath: 'inset(0 0 100% 0)' },
-            { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, ease: 'power3.out' },
-            0
+            { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, ease: 'power3.out', delay }
           )
         }
 
         // 2. Divider draws
-        if (dividerEl) {
-          tl.fromTo(dividerEl,
+        if (dividerEl && !prefersReducedMotion) {
+          gsap.fromTo(dividerEl,
             { scaleX: 0, opacity: 0 },
-            { scaleX: 1, opacity: 1, duration: 0.6, ease: 'power3.out' },
-            0.2
+            { scaleX: 1, opacity: 1, duration: 0.6, ease: 'power3.out', delay: delay + 0.2 }
           )
         }
 
         // 3. Title reveals
-        if (titleEl) {
-          tl.fromTo(titleEl,
+        if (titleEl && !prefersReducedMotion) {
+          gsap.fromTo(titleEl,
             { opacity: 0, y: 60, clipPath: 'inset(0 0 100% 0)' },
-            { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 1, ease: 'power3.out' },
-            0.3
+            { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 1, ease: 'power3.out', delay: delay + 0.3 }
           )
         }
 
-        // 4. Description appears
-        if (descEl) {
-          tl.fromTo(descEl,
+        // 3b. Category reveals
+        if (categoryEl && !prefersReducedMotion) {
+          gsap.fromTo(categoryEl,
             { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
-            0.5
+            { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', delay: delay + 0.4 }
           )
         }
 
-        // 5. Visual reveals through mask
-        if (visualEl) {
-          tl.fromTo(visualEl,
+        // 4. Visual reveals through mask
+        if (visualEl && !prefersReducedMotion) {
+          gsap.fromTo(visualEl,
             { opacity: 0, scale: 0.98, clipPath: 'inset(0 0 10% 0)' },
-            { opacity: 1, scale: 1, clipPath: 'inset(0 0 0% 0)', duration: 1.2, ease: 'power3.out' },
-            0.4
+            { opacity: 1, scale: 1, clipPath: 'inset(0 0 0% 0)', duration: 1.2, ease: 'power3.out', delay: delay + 0.4 }
+          )
+        }
+
+        // 5. Description appears
+        if (descEl && !prefersReducedMotion) {
+          gsap.fromTo(descEl,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: delay + 0.6 }
           )
         }
 
         // 6. Metadata settles
-        if (metaEl) {
-          tl.fromTo(metaEl,
+        if (metaEl && !prefersReducedMotion) {
+          gsap.fromTo(metaEl,
             { opacity: 0, y: 10 },
-            { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
-            0.7
+            { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: delay + 0.7 }
+          )
+        }
+
+        // 7. CTA appears
+        if (ctaEl && !prefersReducedMotion) {
+          gsap.fromTo(ctaEl,
+            { opacity: 0, y: 15 },
+            { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: delay + 0.8 }
           )
         }
       })
     }, sectionRef)
 
     return () => ctx.revert()
-  }, [isInView, data.length])
+  }, [isInView, data.length, prefersReducedMotion])
 
   // Track scroll velocity for physical scroll response
   useEffect(() => {
+    if (prefersReducedMotion) return
+
     let lastY = scrollY
     let raf: number
 
@@ -188,7 +259,7 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
 
     raf = requestAnimationFrame(updateVelocity)
     return () => cancelAnimationFrame(raf)
-  }, [scrollY])
+  }, [scrollY, prefersReducedMotion])
 
   const handleTouch = useCallback((id: string) => {
     setActiveId(activeId === id ? null : id)
@@ -202,45 +273,9 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
     setActiveId(null)
   }, [])
 
-  // GSAP hover experience
-  useEffect(() => {
-    const refs = magneticRefs.current
-    if (!refs.size) return
-
-    const cleanups: (() => void)[] = []
-
-    refs.forEach((domElement) => {
-      const xTo = gsap.quickTo(domElement, 'x', { duration: 0.4, ease: 'power2.out' })
-      const yTo = gsap.quickTo(domElement, 'y', { duration: 0.4, ease: 'power2.out' })
-
-      const handleMouseMove = (e: MouseEvent) => {
-        const rect = domElement.getBoundingClientRect()
-        const x = (e.clientX - rect.left - rect.width / 2) * 0.2
-        const y = (e.clientY - rect.top - rect.height / 2) * 0.2
-        xTo(x)
-        yTo(y)
-      }
-
-      const handleMouseLeave = () => {
-        gsap.to(domElement, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)' })
-      }
-
-      domElement.addEventListener('mousemove', handleMouseMove)
-      domElement.addEventListener('mouseleave', handleMouseLeave)
-
-      cleanups.push(() => {
-        domElement.removeEventListener('mousemove', handleMouseMove)
-        domElement.removeEventListener('mouseleave', handleMouseLeave)
-      })
-    })
-
-    return () => {
-      cleanups.forEach((cleanup) => cleanup())
-    }
-  }, [activeId])
-
   // Scroll velocity effect on projects
   const getVelocityStyle = (): React.CSSProperties => {
+    if (prefersReducedMotion) return {}
     if (scrollVelocity > 30) return { transform: 'translateX(2px) skewX(1deg)' }
     if (scrollVelocity > 15) return { transform: 'translateX(1px) skewX(0.5deg)' }
     return {}
@@ -297,15 +332,15 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                   />
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 lg:gap-10 items-start">
                   {/* Project number - large editorial */}
-                  <div className="lg:col-span-1" data-scroll-parallax="0.06">
+                  <div className="lg:col-span-1 order-1" data-scroll-parallax="0.06">
                     <div className="relative">
                       <p
-                        className="project-number font-display text-[clamp(3rem,6vw,6rem)] leading-none transition-all duration-700"
+                        className="project-number font-display text-[clamp(2.5rem,5vw,5rem)] md:text-[clamp(3rem,6vw,6rem)] leading-none transition-all duration-700"
                         style={{
                           color: isActive ? '#7dd3fc' : '#2a2a2a',
-                          transform: isActive ? 'translateY(-8px)' : 'translateY(0)',
+                          transform: isActive ? 'translateY(-6px)' : 'translateY(0)',
                         }}
                       >
                         {String(i + 1).padStart(2, '0')}
@@ -319,22 +354,22 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                     </div>
                   </div>
 
-                  {/* Project info - massive typography */}
-                  <div className="lg:col-span-6" data-scroll-parallax="0.1">
-                    <div className="overflow-hidden mb-4">
+                  {/* Title + Category (before visual on mobile) */}
+                  <div className="lg:col-span-6 order-2" data-scroll-parallax="0.1">
+                    <div className="overflow-hidden mb-3 md:mb-4">
                       <h3
-                        className="project-title font-display text-[clamp(2.5rem,5vw,5.5rem)] text-text-primary transition-all duration-700 leading-[0.9]"
+                        className="project-title font-display text-[clamp(2rem,5vw,4.5rem)] md:text-[clamp(2.5rem,5vw,5.5rem)] text-text-primary transition-all duration-700 leading-[0.9]"
                         style={{
                           letterSpacing: '-0.03em',
-                          transform: isActive ? 'translateX(12px)' : 'translateX(0)',
+                          transform: isActive ? 'translateX(10px)' : 'translateX(0)',
                         }}
                       >
                         {project.title}
                       </h3>
                     </div>
 
-                    {/* Metadata row */}
-                    <div className="project-meta flex flex-wrap items-center gap-4 md:gap-6 mb-6">
+                    {/* Category + Year */}
+                    <div className="project-category flex flex-wrap items-center gap-3 md:gap-4 md:gap-6 mb-4 md:mb-6">
                       <span
                         className="label transition-all duration-500"
                         style={{
@@ -347,20 +382,54 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                       <span className="w-1 h-1 rounded-full bg-text-muted" />
                       <span className="body-sm text-text-muted">{project.year}</span>
                     </div>
+                  </div>
 
-                    {/* Description */}
+                  {/* Project visual - between title/category and description on mobile */}
+                  <div className="order-3 lg:order-3 lg:col-span-5">
+                    <div
+                      className="project-visual-container w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden relative"
+                      data-scroll-parallax="0.2"
+                      style={{
+                        transform: isActive ? 'scale(1.003)' : 'scale(1)',
+                        transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'transform',
+                      }}
+                      onClick={() => handleTouch(project.id)}
+                      onMouseEnter={() => handleMouseEnter(project.id)}
+                      onMouseLeave={handleMouseLeave}
+                      data-cursor="project"
+                    >
+                      <ProjectVisual
+                        category={project.category}
+                        title={project.title}
+                        isActive={isActive}
+                      />
+                    </div>
+
+                    {/* Mobile metadata below visual */}
+                    <div className="lg:hidden mt-4 flex items-center gap-4">
+                      <span className="label text-text-muted" style={{ letterSpacing: '0.15em' }}>
+                        {project.category.toUpperCase()}
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-text-muted" />
+                      <span className="body-sm text-text-muted">{project.year}</span>
+                    </div>
+                  </div>
+
+                  {/* Description + Tech + CTA (after visual on mobile) */}
+                  <div className="lg:col-span-6 lg:col-start-1 order-4" data-scroll-parallax="0.05">
                     <p
-                      className="project-description body-lg text-text-secondary max-w-xl transition-all duration-700 mb-6"
+                      className="project-description body-lg text-text-secondary max-w-xl transition-all duration-700 mb-4 md:mb-6"
                       style={{
                         opacity: isActive ? 1 : 0.5,
-                        transform: isActive ? 'translateY(0)' : 'translateY(8px)',
+                        transform: isActive ? 'translateY(0)' : 'translateY(6px)',
                       }}
                     >
                       {project.shortDesc}
                     </p>
 
                     {/* Technology / capability indicators */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="hidden md:flex flex-wrap gap-2 mb-6">
                       {techList.map((tech, idx) => (
                         <span
                           key={idx}
@@ -374,77 +443,14 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                         </span>
                       ))}
                     </div>
-                  </div>
 
-                  {/* View project - magnetic CTA */}
-                  <div className="lg:col-span-5 hidden lg:flex items-start justify-end" data-scroll-parallax="0.04">
-                    <a
-                      ref={(el) => {
+                    {/* CTA */}
+                    <div className="project-cta">
+                      <ProjectCTA href={href} isActive={isActive} magneticRef={(el) => {
                         if (el) magneticRefs.current.set(project.id, el)
-                      }}
-                      href={href}
-                      className="group/link relative px-8 py-4 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-500 hover:border-accent hover:text-accent"
-                      style={{
-                        borderRadius: '2px',
-                        borderColor: isActive ? 'rgba(125, 211, 252, 0.3)' : 'rgba(255, 255, 255, 0.1)',
-                      }}
-                    >
-                      <span className="relative z-10 flex items-center gap-3">
-                        VIEW PROJECT
-                        <svg
-                          className="w-4 h-4 transition-transform duration-300 group-hover/link:translate-x-1"
-                          style={{
-                            transform: isActive ? 'translateX(4px)' : 'translateX(0)',
-                          }}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                        </svg>
-                      </span>
-                    </a>
+                      }} />
+                    </div>
                   </div>
-                </div>
-
-                {/* Project visual - large editorial area */}
-                <div
-                  className="project-visual-container mt-10 md:mt-14 w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden relative cursor-pointer"
-                  data-scroll-parallax="0.2"
-                  style={{
-                    transform: isActive ? 'scale(1.005)' : 'scale(1)',
-                    transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-                  }}
-                  onClick={() => handleTouch(project.id)}
-                  onMouseEnter={() => handleMouseEnter(project.id)}
-                  onMouseLeave={handleMouseLeave}
-                  data-cursor="project"
-                >
-                  <ProjectVisual
-                    category={project.category}
-                    title={project.title}
-                    isActive={isActive}
-                  />
-
-                  {/* Mobile CTA */}
-                  <div className="lg:hidden absolute bottom-6 right-6">
-                    <a
-                      href={href}
-                      className="px-6 py-3 bg-text-primary text-background text-xs font-medium tracking-wide hover:bg-accent transition-colors duration-300"
-                      style={{ borderRadius: '2px' }}
-                    >
-                      VIEW PROJECT
-                    </a>
-                  </div>
-                </div>
-
-                {/* Mobile metadata */}
-                <div className="lg:hidden mt-6 flex items-center gap-4">
-                  <span className="label text-text-muted" style={{ letterSpacing: '0.15em' }}>
-                    {project.category.toUpperCase()}
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-text-muted" />
-                  <span className="body-sm text-text-muted">{project.year}</span>
                 </div>
               </div>
             )

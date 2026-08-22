@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useId } from 'react'
 import { gsap } from 'gsap'
 
 type ProjectVisualProps = {
@@ -22,12 +22,19 @@ function getCategoryKey(category?: string): string {
 export default function ProjectVisual({ category, title, isActive }: ProjectVisualProps) {
   const visualRef = useRef<HTMLDivElement>(null)
   const categoryKey = getCategoryKey(category)
+  const uniqueId = useId()
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => {
     if (!visualRef.current) return
     const el = visualRef.current
 
     const ctx = gsap.context(() => {
+      if (prefersReducedMotion) {
+        gsap.set(el, { opacity: 1, scale: 1 })
+        return
+      }
+
       gsap.set(el, { opacity: 0, scale: 0.98 })
 
       if (isActive) {
@@ -41,13 +48,15 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
     }, visualRef)
 
     return () => ctx.revert()
-  }, [isActive])
+  }, [isActive, prefersReducedMotion])
 
   useEffect(() => {
     if (!visualRef.current) return
     const el = visualRef.current
 
     const ctx = gsap.context(() => {
+      if (prefersReducedMotion) return
+
       const shapeEl = el.querySelector('.pv-shape')
       const patternEl = el.querySelector('.pv-pattern')
       const lineEl = el.querySelector('.pv-line')
@@ -117,14 +126,14 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
     }, visualRef)
 
     return () => ctx.revert()
-  }, [isActive])
+  }, [isActive, prefersReducedMotion])
 
   const renderVisual = () => {
     switch (categoryKey) {
       case 'insurance':
         return <InsuranceVisual isActive={isActive} title={title} />
       case 'fintech':
-        return <FintechVisual isActive={isActive} title={title} />
+        return <FintechVisual isActive={isActive} title={title} uniqueId={uniqueId} />
       case 'creative':
         return <CreativeVisual isActive={isActive} title={title} />
       case 'architecture':
@@ -140,6 +149,7 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
       className="project-visual absolute inset-0 overflow-hidden"
       style={{
         background: '#050505',
+        willChange: 'transform, opacity',
       }}
     >
       {/* Depth layer - base atmosphere */}
@@ -221,13 +231,13 @@ function InsuranceVisual({ isActive, title }: { isActive: boolean; title: string
       />
 
       {/* Interface layer - data cards */}
-      <div className="pv-depth-1 absolute top-[15%] left-[10%] w-32 h-20 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+      <div className="pv-depth-1 absolute top-[15%] left-[10%] w-32 h-20 border border-white/5 bg-white/[0.02] backdrop-blur-none md:backdrop-blur-sm transition-all duration-1000"
         style={{ transform: `translateY(${isActive ? 0 : 10}px)`, opacity: isActive ? 0.6 : 0.3 }}
       />
-      <div className="pv-depth-1 absolute top-[25%] left-[25%] w-40 h-24 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+      <div className="pv-depth-1 absolute top-[25%] left-[25%] w-40 h-24 border border-white/5 bg-white/[0.02] backdrop-blur-none md:backdrop-blur-sm transition-all duration-1000"
         style={{ transform: `translateY(${isActive ? 0 : 15}px)`, opacity: isActive ? 0.5 : 0.2, transitionDelay: '0.1s' }}
       />
-      <div className="pv-depth-1 absolute top-[18%] right-[15%] w-36 h-16 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+      <div className="pv-depth-1 absolute top-[18%] right-[15%] w-36 h-16 border border-white/5 bg-white/[0.02] backdrop-blur-none md:backdrop-blur-sm transition-all duration-1000"
         style={{ transform: `translateY(${isActive ? 0 : 8}px)`, opacity: isActive ? 0.5 : 0.2, transitionDelay: '0.2s' }}
       />
 
@@ -250,7 +260,8 @@ function InsuranceVisual({ isActive, title }: { isActive: boolean; title: string
   )
 }
 
-function FintechVisual({ isActive, title }: { isActive: boolean; title: string }) {
+function FintechVisual({ isActive, title, uniqueId }: { isActive: boolean; title: string; uniqueId: string }) {
+  const gradientId = `finGrad-${uniqueId.replace(/:/g, '')}`
   return (
     <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'translateX(5%)' : 'translateX(0)' }}>
       {/* Depth layer 3 - background texture */}
@@ -265,16 +276,16 @@ function FintechVisual({ isActive, title }: { isActive: boolean; title: string }
         viewBox="0 0 400 200" preserveAspectRatio="none"
         style={{ transform: isActive ? 'translateY(0)' : 'translateY(10px)' }}>
         <defs>
-          <linearGradient id="finGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="transparent" />
             <stop offset="50%" stopColor="rgba(91,141,239,0.3)" />
             <stop offset="100%" stopColor="transparent" />
           </linearGradient>
         </defs>
         <path d={isActive ? 'M0,100 Q100,60 200,100 T400,100' : 'M0,100 Q100,140 200,100 T400,100'}
-          stroke="url(#finGrad)" strokeWidth="1" fill="none" className="transition-all duration-1000" />
+          stroke={`url(#${gradientId})`} strokeWidth="1" fill="none" className="transition-all duration-1000" />
         <path d={isActive ? 'M0,120 Q100,80 200,120 T400,120' : 'M0,120 Q100,160 200,120 T400,120'}
-          stroke="url(#finGrad)" strokeWidth="0.5" fill="none" className="transition-all duration-1000" style={{ transitionDelay: '0.2s' }} />
+          stroke={`url(#${gradientId})`} strokeWidth="0.5" fill="none" className="transition-all duration-1000" style={{ transitionDelay: '0.2s' }} />
       </svg>
 
       {/* Interface layer - chart bars */}
