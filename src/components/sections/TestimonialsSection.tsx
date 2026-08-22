@@ -97,8 +97,17 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
       {/* Section continuity line - carries accent from projects */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent opacity-60" />
 
+      {/* Background depth - subtle grain */}
+      <div data-depth="background" className="absolute inset-0 pointer-events-none opacity-[0.02]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '256px 256px',
+        }}
+      />
+
       {/* Atmospheric glow transition */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+      <div data-depth="background" className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-6">
         {/* Section header */}

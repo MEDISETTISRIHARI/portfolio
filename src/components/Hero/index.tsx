@@ -317,22 +317,24 @@ export default function Hero({ data, role }: HeroProps) {
       data-scroll-section="hero"
       className="relative min-h-screen flex flex-col overflow-hidden"
     >
-      {/* 3D Hero Visual - background layer */}
-      <HeroVisual
-        mousePos={mousePos}
-        scrollProgress={progress}
-        pointerDistance={pointerDistance}
-        visualMode={data.visualMode}
-        image={data.image}
-        video={data.video}
-        isMobile={isMobile}
-      />
+      {/* Background depth - 3D environment */}
+      <div data-depth="background" className="absolute inset-0 z-0">
+        <HeroVisual
+          mousePos={mousePos}
+          scrollProgress={progress}
+          pointerDistance={pointerDistance}
+          visualMode={data.visualMode}
+          image={data.image}
+          video={data.video}
+          isMobile={isMobile}
+        />
+      </div>
 
       {/* Signature wow moment trigger */}
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
 
-      {/* Hero editorial grid */}
-      <div className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-6 pt-16 pb-24' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`}>
+      {/* Content depth - editorial grid */}
+      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-6 pt-16 pb-24' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`}>
         <div className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-12 items-center">
           {/* Left column - identity system */}
           <div className="md:col-span-3 lg:col-span-3 order-1">
@@ -385,8 +387,10 @@ export default function Hero({ data, role }: HeroProps) {
         </div>
       </div>
 
-      {/* Bottom metadata - pinned at bottom */}
-      <HeroMetadata className={isMobile ? 'mt-8' : 'mt-auto'} onRequestOrientation={requestOrientation} />
+      {/* Foreground depth - metadata */}
+      <div data-depth="foreground" className="relative z-30">
+        <HeroMetadata className={isMobile ? 'mt-8' : 'mt-auto'} onRequestOrientation={requestOrientation} />
+      </div>
     </section>
   )
 }

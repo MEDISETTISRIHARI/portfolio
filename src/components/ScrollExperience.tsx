@@ -10,6 +10,10 @@ type ScrollState = {
   direction: 'up' | 'down' | null
   viewportHeight: number
   viewportWidth: number
+  targetScrollY: number
+  targetVelocity: number
+  smoothScrollY: number
+  smoothVelocity: number
 }
 
 type SectionInfo = {
@@ -22,6 +26,11 @@ type SectionInfo = {
   visibility: number
   active: boolean
   prevActive: boolean
+  depthLayers: {
+    background: HTMLElement | null
+    content: HTMLElement | null
+    foreground: HTMLElement | null
+  }
 }
 
 type ElementInfo = {
@@ -29,6 +38,7 @@ type ElementInfo = {
   sectionId: string
   type: 'reveal' | 'parallax' | 'scale' | 'opacity' | 'rotate' | 'blur'
   speed?: number
+  depthLayer?: 'background' | 'content' | 'foreground'
   currentValues: {
     translateY: number
     scale: number
@@ -40,6 +50,8 @@ type ElementInfo = {
 
 const SMOOTHING = 0.08
 const PARALLAX_BASE = 0.3
+const SCROLL_SMOOTHING = 0.12
+const VELOCITY_SMOOTHING = 0.15
 
 export default function ScrollExperience({ children }: { children: React.ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -50,6 +62,10 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     direction: null,
     viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 0,
     viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 0,
+    targetScrollY: 0,
+    targetVelocity: 0,
+    smoothScrollY: 0,
+    smoothVelocity: 0,
   })
   const sections = useRef<Map<string, SectionInfo>>(new Map())
   const elements = useRef<Map<string, ElementInfo>>(new Map())
@@ -88,7 +104,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     return () => motionQuery.removeEventListener('change', handleMotionChange)
   }, [])
 
-  // Passive scroll listener
+  // Passive scroll listener with smooth interpolation
   useEffect(() => {
     const handleScroll = () => {
       if (rafRef.current) return
@@ -104,13 +120,10 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           ? (currentScrollY > lastScrollY.current ? 'down' : 'up')
           : null
 
-        scrollState.current = {
-          ...scrollState.current,
-          scrollY: currentScrollY,
-          progress,
-          velocity,
-          direction,
-        }
+        scrollState.current.targetScrollY = currentScrollY
+        scrollState.current.targetVelocity = velocity
+        scrollState.current.progress = progress
+        scrollState.current.direction = direction
 
         lastScrollY.current = currentScrollY
         lastTime.current = now
@@ -150,6 +163,11 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         visibility: 0,
         active: false,
         prevActive: false,
+        depthLayers: {
+          background: el.querySelector('[data-depth="background"]') as HTMLElement | null,
+          content: el.querySelector('[data-depth="content"]') as HTMLElement | null,
+          foreground: el.querySelector('[data-depth="foreground"]') as HTMLElement | null,
+        },
       })
 
       const revealEls = el.querySelectorAll('[data-scroll-reveal], .reveal-up')
@@ -363,7 +381,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     }
   }, [])
 
-  // Animation loop
+  // Animation loop with smooth interpolation
   useEffect(() => {
     let raf: number
 
@@ -374,10 +392,18 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
       const absVelocity = Math.abs(state.velocity)
       const maxVelocity = 25
 
+      // Smooth interpolation for scroll position and velocity
+      state.smoothScrollY += (state.targetScrollY - state.smoothScrollY) * SCROLL_SMOOTHING
+      state.smoothVelocity += (state.targetVelocity - state.smoothVelocity) * VELOCITY_SMOOTHING
+
+      const smoothScrollY = state.smoothScrollY
+      const smoothVelocity = state.smoothVelocity
+      const absSmoothVelocity = Math.abs(smoothVelocity)
+
       // Cinematic scroll physics - reduced if user prefers
-      const velocityFactor = prefersReducedMotion ? 0 : Math.min(absVelocity / maxVelocity, 1)
-      const targetSkew = prefersReducedMotion ? 0 : state.velocity * 0.015
-      const targetDisplacement = prefersReducedMotion ? 0 : state.velocity * 0.4
+      const velocityFactor = prefersReducedMotion ? 0 : Math.min(absSmoothVelocity / maxVelocity, 1)
+      const targetSkew = prefersReducedMotion ? 0 : smoothVelocity * 0.015
+      const targetDisplacement = prefersReducedMotion ? 0 : smoothVelocity * 0.4
       const targetIntensity = prefersReducedMotion ? 1 : 1 + velocityFactor * 0.3
 
       physics.current.skewX += (targetSkew - physics.current.skewX) * 0.05
@@ -394,18 +420,18 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         const sectionBottom = section.bottom
         const sectionHeight = section.height
 
-        const visibleTop = Math.max(scrollY, sectionTop)
-        const visibleBottom = Math.min(scrollY + viewportHeight, sectionBottom)
+        const visibleTop = Math.max(smoothScrollY, sectionTop)
+        const visibleBottom = Math.min(smoothScrollY + viewportHeight, sectionBottom)
         const visibleHeight = Math.max(0, visibleBottom - visibleTop)
         section.visibility = sectionHeight > 0 ? visibleHeight / sectionHeight : 0
         section.active = section.visibility > 0.01
 
-        const distanceFromTop = scrollY - sectionTop
+        const distanceFromTop = smoothScrollY - sectionTop
         const scrollableDistance = sectionHeight + viewportHeight
         section.progress = scrollableDistance > 0 ? Math.max(0, Math.min(1, distanceFromTop / scrollableDistance)) : 0
       })
 
-      // Section transitions: fade/scale adjacent sections based on proximity
+      // Section transitions: cinematic combined properties
       const sortedSections = Array.from(sections.current.values()).sort((a, b) => a.top - b.top)
       sortedSections.forEach((section, index) => {
         const prevSection = sortedSections[index - 1]
@@ -415,15 +441,19 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         // Transition from previous section
         if (prevSection && section.progress < 0.15) {
           const transitionProgress = Math.max(0, 1 - section.progress / 0.15)
-          sectionEl.style.opacity = String(Math.min(1, 0.3 + transitionProgress * 0.7))
-          sectionEl.style.transform = `scale(${0.97 + transitionProgress * 0.03}) translateY(${(1 - transitionProgress) * -20}px)`
+          const easedProgress = 1 - Math.pow(1 - transitionProgress, 3)
+          sectionEl.style.opacity = String(Math.min(1, 0.3 + easedProgress * 0.7))
+          sectionEl.style.transform = `scale(${0.97 + easedProgress * 0.03}) translateY(${(1 - easedProgress) * -20}px)`
+          sectionEl.style.filter = `blur(${(1 - easedProgress) * 2}px)`
         }
 
         // Transition to next section
         if (nextSection && section.progress > 0.85) {
           const transitionProgress = Math.max(0, (section.progress - 0.85) / 0.15)
-          sectionEl.style.opacity = String(Math.max(0, 1 - transitionProgress * 0.5))
-          sectionEl.style.transform = `scale(${1 - transitionProgress * 0.02}) translateY(${transitionProgress * 10}px)`
+          const easedProgress = 1 - Math.pow(1 - transitionProgress, 3)
+          sectionEl.style.opacity = String(Math.max(0, 1 - easedProgress * 0.5))
+          sectionEl.style.transform = `scale(${1 - easedProgress * 0.02}) translateY(${easedProgress * 10}px)`
+          sectionEl.style.filter = `blur(${easedProgress * 2}px)`
         }
 
         // Section-specific background shifts for continuity

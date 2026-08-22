@@ -144,8 +144,17 @@ export default function ContactSection({ email }: ContactSectionProps) {
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
 
+      {/* Background depth - subtle grain */}
+      <div data-depth="background" className="absolute inset-0 pointer-events-none opacity-[0.02]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '256px 256px',
+        }}
+      />
+
       {/* Animated background lines */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div data-depth="background" className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-border-subtle to-transparent opacity-30" />
         <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-border-subtle to-transparent opacity-30" />
       </div>

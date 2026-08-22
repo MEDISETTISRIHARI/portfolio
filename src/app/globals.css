@@ -569,8 +569,81 @@ a, button {
 }
 
 /* ============================================
-   PERFORMANCE HINTS
-   ============================================ */
+    GLOBAL VISUAL LANGUAGE
+    ============================================ */
+
+/* Consistent thin line treatment */
+[data-scroll-section] .h-px {
+  height: 1px;
+}
+
+/* Micro typography rhythm */
+.label {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.caption {
+  font-size: 0.65rem;
+  line-height: 1.35;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* Consistent border treatment */
+[data-scroll-section] {
+  border-color: var(--color-border-subtle);
+}
+
+/* Accent treatment - restrained */
+.text-accent {
+  color: var(--color-accent);
+}
+
+/* Depth layer system */
+[data-depth="background"] {
+  z-index: 0;
+}
+
+[data-depth="content"] {
+  z-index: 1;
+}
+
+[data-depth="foreground"] {
+  z-index: 2;
+}
+
+/* Section spacing rhythm */
+[data-scroll-section] {
+  padding-top: clamp(4rem, 10vw, 8rem);
+  padding-bottom: clamp(4rem, 10vw, 8rem);
+}
+
+/* Consistent container padding */
+[data-scroll-section] .container {
+  padding-left: clamp(1.5rem, 4vw, 4rem);
+  padding-right: clamp(1.5rem, 4vw, 4rem);
+}
+
+/* Atmospheric background continuity */
+body {
+  background-color: var(--color-background);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(125, 211, 252, 0.03), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 50%, rgba(125, 211, 252, 0.015), transparent),
+    radial-gradient(ellipse 50% 30% at 20% 80%, rgba(125, 211, 252, 0.015), transparent);
+  background-attachment: fixed;
+}
+
+/* ============================================
+    PERFORMANCE HINTS
+    ============================================ */
 
 .hero-canvas,
 .scroll-experience,
