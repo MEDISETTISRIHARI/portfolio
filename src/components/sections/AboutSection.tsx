@@ -74,23 +74,6 @@ export default function AboutSection({ data }: AboutSectionProps) {
   }, [])
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsInView(true)
-            observer.disconnect()
-          }
-        })
-      },
-      { threshold: 0.2 }
-    )
-
-    if (sectionRef.current) observer.observe(sectionRef.current)
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     setPrefersReducedMotion(motionQuery.matches)
     const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)

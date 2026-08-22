@@ -205,7 +205,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
         </div>
 
         {/* Large email CTA - magnetic */}
-        <div className="contact-cta mb-12 md:mb-24" data-scroll-reveal>
+        <div className="contact-cta mb-16 md:mb-24" data-scroll-reveal>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
             <a
               ref={magneticRef}
@@ -230,6 +230,24 @@ export default function ContactSection({ email }: ContactSectionProps) {
             <p className="body-sm text-text-muted">
               Or fill out the form below
             </p>
+          </div>
+        </div>
+
+        {/* Contact metadata */}
+        <div className="contact-meta mb-16 md:mb-24" data-scroll-reveal>
+          <div className="flex flex-col md:flex-row gap-8 md:gap-16">
+            <div>
+              <p className="label text-text-muted mb-2">LOCATION</p>
+              <p className="body-md text-text-primary">Worldwide, Remote</p>
+            </div>
+            <div>
+              <p className="label text-text-muted mb-2">AVAILABILITY</p>
+              <p className="body-md text-text-primary">Open for projects</p>
+            </div>
+            <div>
+              <p className="label text-text-muted mb-2">RESPONSE TIME</p>
+              <p className="body-md text-text-primary">Within 24 hours</p>
+            </div>
           </div>
         </div>
 
