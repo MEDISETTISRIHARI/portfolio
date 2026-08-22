@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 type Skill = {
   id: string
@@ -17,13 +17,34 @@ type SkillsSectionProps = {
 
 export default function SkillsSection({ data }: SkillsSectionProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [isInView, setIsInView] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true)
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.2 }
+    )
+
+    if (sectionRef.current) observer.observe(sectionRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <section id="skills" data-scroll-section="skills" className="py-32 md:py-48 border-t border-border-subtle">
+    <section id="skills" data-scroll-section="skills" className="py-32 md:py-48 border-t border-border-subtle" ref={sectionRef}>
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-8">
           {data.map((skill, i) => {
             const isHovered = hoveredIndex === i
+            const isVisible = isInView && hoveredIndex === null ? true : isHovered
+
             return (
               <div
                 key={skill.id}
@@ -63,8 +84,8 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                 <ul
                   className="space-y-3 overflow-hidden transition-all duration-500"
                   style={{
-                    maxHeight: isHovered ? '200px' : '0px',
-                    opacity: isHovered ? 1 : 0,
+                    maxHeight: isVisible ? '200px' : '0px',
+                    opacity: isVisible ? 1 : 0,
                   }}
                 >
                   {skill.items.split('\n').map((item, j) => (
@@ -72,9 +93,9 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                       key={j}
                       className="body-md text-text-primary transition-all duration-300"
                       style={{
-                        transform: isHovered ? 'translateX(0)' : 'translateX(-8px)',
-                        opacity: isHovered ? 1 : 0,
-                        transitionDelay: isHovered ? `${j * 0.05}s` : '0s',
+                        transform: isVisible ? 'translateX(0)' : 'translateX(-8px)',
+                        opacity: isVisible ? 1 : 0,
+                        transitionDelay: isVisible ? `${j * 0.05}s` : '0s',
                       }}
                     >
                       {item}

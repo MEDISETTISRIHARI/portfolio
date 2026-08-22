@@ -240,11 +240,34 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
   // Animation loop
   useEffect(() => {
     let raf: number
+    const physics = useRef({
+      skewX: 0,
+      skewY: 0,
+      displacement: 0,
+      intensity: 1,
+    })
 
     const animate = () => {
       const state = scrollState.current
       const viewportHeight = state.viewportHeight
       const scrollY = state.scrollY
+      const absVelocity = Math.abs(state.velocity)
+      const maxVelocity = 25
+
+      // Cinematic scroll physics
+      const velocityFactor = Math.min(absVelocity / maxVelocity, 1)
+      const targetSkew = state.velocity * 0.03
+      const targetDisplacement = state.velocity * 0.8
+      const targetIntensity = 1 + velocityFactor * 0.6
+
+      physics.current.skewX += (targetSkew - physics.current.skewX) * 0.06
+      physics.current.skewY += (0 - physics.current.skewY) * 0.08
+      physics.current.displacement += (targetDisplacement - physics.current.displacement) * 0.06
+      physics.current.intensity += (targetIntensity - physics.current.intensity) * 0.04
+
+      const skewX = physics.current.skewX
+      const displacement = physics.current.displacement
+      const intensity = physics.current.intensity
 
       sections.current.forEach((section) => {
         const sectionTop = section.top
@@ -287,37 +310,39 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
 
         switch (elInfo.type) {
           case 'reveal': {
-            const targetOpacity = Math.max(0, 1 - Math.abs(clampedDistance) * 1.5)
-            const targetTranslateY = clampedDistance * 60
-            const targetBlur = Math.abs(clampedDistance) * 4
+            const velocityBoost = velocityFactor * 0.3
+            const targetOpacity = Math.max(0, 1 - Math.abs(clampedDistance + velocityBoost) * 1.5)
+            const targetTranslateY = (clampedDistance + velocityBoost * 0.5) * 60 * intensity + displacement * 0.1
+            const targetBlur = Math.abs(clampedDistance + velocityBoost) * 4 * intensity
 
             elInfo.currentValues.opacity += (targetOpacity - elInfo.currentValues.opacity) * SMOOTHING
             elInfo.currentValues.translateY += (targetTranslateY - elInfo.currentValues.translateY) * SMOOTHING
             elInfo.currentValues.blur += (targetBlur - elInfo.currentValues.blur) * SMOOTHING
 
+            el.style.transform = `translateY(${elInfo.currentValues.translateY}px) skewX(${skewX * 0.3}deg)`
             el.style.opacity = String(elInfo.currentValues.opacity)
-            el.style.transform = `translateY(${elInfo.currentValues.translateY}px)`
             el.style.filter = `blur(${elInfo.currentValues.blur}px)`
             break
           }
           case 'parallax': {
             const speed = elInfo.speed || PARALLAX_BASE
-            const targetY = section.progress * viewportHeight * speed * 0.3
+            const velocityParallaxBoost = 1 + velocityFactor * 0.8
+            const targetY = section.progress * viewportHeight * speed * 0.3 * velocityParallaxBoost + displacement * 0.05
             elInfo.currentValues.translateY += (targetY - elInfo.currentValues.translateY) * SMOOTHING
-            el.style.transform = `translateY(${elInfo.currentValues.translateY}px)`
+            el.style.transform = `translateY(${elInfo.currentValues.translateY}px) skewX(${skewX * 0.15}deg)`
             break
           }
           case 'scale': {
-            const targetScale = 0.85 + section.progress * 0.15
-            const targetOpacity = section.progress
+            const targetScale = 0.85 + section.progress * 0.15 * intensity
+            const targetOpacity = Math.min(1, section.progress * 2 * intensity)
             elInfo.currentValues.scale += (targetScale - elInfo.currentValues.scale) * SMOOTHING
             elInfo.currentValues.opacity += (targetOpacity - elInfo.currentValues.opacity) * SMOOTHING
-            el.style.transform = `scale(${elInfo.currentValues.scale})`
+            el.style.transform = `scale(${elInfo.currentValues.scale}) skewX(${skewX * 0.1}deg)`
             el.style.opacity = String(elInfo.currentValues.opacity)
             break
           }
           case 'opacity': {
-            const targetOpacity = Math.min(1, section.progress * 2)
+            const targetOpacity = Math.min(1, section.progress * 2 * intensity)
             elInfo.currentValues.opacity += (targetOpacity - elInfo.currentValues.opacity) * SMOOTHING
             el.style.opacity = String(elInfo.currentValues.opacity)
             break
@@ -325,12 +350,12 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           case 'rotate': {
             const targetRotate = -5 + section.progress * 5
             elInfo.currentValues.rotate += (targetRotate - elInfo.currentValues.rotate) * SMOOTHING
-            el.style.transform = `rotate(${elInfo.currentValues.rotate}deg)`
+            el.style.transform = `rotate(${elInfo.currentValues.rotate}deg) skewX(${skewX * 0.2}deg)`
             break
           }
           case 'blur': {
             const targetBlur = Math.max(0, 8 - section.progress * 8)
-            const targetOpacity = section.progress
+            const targetOpacity = section.progress * intensity
             elInfo.currentValues.blur += (targetBlur - elInfo.currentValues.blur) * SMOOTHING
             elInfo.currentValues.opacity += (targetOpacity - elInfo.currentValues.opacity) * SMOOTHING
             el.style.filter = `blur(${elInfo.currentValues.blur}px)`
