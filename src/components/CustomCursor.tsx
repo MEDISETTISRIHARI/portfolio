@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 
 type CursorState = 'default' | 'project' | 'image' | 'link' | 'cta' | 'nav' | 'object3d' | 'skill'
 
@@ -140,7 +141,7 @@ export default function CustomCursor() {
         }
       case 'skill':
         return {
-          dot: { width: 8, height: 8, backgroundColor: '#7dcffd' },
+          dot: { width: 8, height: 8, backgroundColor: '#7dd3fd' },
           ring: { width: 56, height: 56, borderColor: 'rgba(125, 211, 252, 0.3)', borderWidth: 1 },
         }
       default:

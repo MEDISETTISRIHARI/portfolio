@@ -458,8 +458,8 @@ body::after {
 }
 
 /* ============================================
-    ACCESSIBILITY
-    ============================================ */
+   ACCESSIBILITY
+   ============================================ */
 
 :focus-visible {
   outline: 2px solid var(--color-accent);
@@ -470,6 +470,38 @@ a:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 4px;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-text-primary);
+  color: var(--color-background);
+  padding: 8px 16px;
+  z-index: 10000;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* ============================================
@@ -533,4 +565,23 @@ a, button {
 .group-hover\/link\:translate-x-1 {
   transition-property: transform;
   transition-duration: var(--motion-fast);
+}
+
+/* ============================================
+   PERFORMANCE HINTS
+   ============================================ */
+
+.hero-canvas,
+.scroll-experience,
+.project-visual-container,
+.testimonial-item,
+.project-item,
+.skill-item {
+  will-change: transform;
+}
+
+/* Only apply will-change during active animation */
+.hero-canvas.animating,
+.scroll-experience.animating {
+  will-change: transform, opacity;
 }

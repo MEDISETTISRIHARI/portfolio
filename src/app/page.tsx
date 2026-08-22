@@ -32,7 +32,7 @@ export default async function RootPage() {
       <CustomCursor />
       <Navigation />
       <ScrollExperience>
-        <main>
+        <main id="main-content">
           <Hero
             data={{
               headline: hero.headline,

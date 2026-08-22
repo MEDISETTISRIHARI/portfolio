@@ -3,7 +3,7 @@
 import { Canvas } from '@react-three/fiber'
 import Scene from './Scene'
 import useWebGL from '@/hooks/useWebGL'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 
 type HeroVisualProps = {
   mousePos: { x: number; y: number }
@@ -13,6 +13,24 @@ type HeroVisualProps = {
   image?: string | null
   video?: string | null
   isMobile?: boolean
+}
+
+function SceneContent({ mousePos, scrollProgress, pointerDistance, isMobile, prefersReducedMotion }: {
+  mousePos: { x: number; y: number }
+  scrollProgress: number
+  pointerDistance?: number
+  isMobile: boolean
+  prefersReducedMotion: boolean
+}) {
+  return (
+    <Scene 
+      mousePos={mousePos} 
+      scrollProgress={scrollProgress} 
+      prefersReducedMotion={prefersReducedMotion} 
+      pointerDistance={pointerDistance} 
+      isMobile={isMobile} 
+    />
+  )
 }
 
 export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video, isMobile = false }: HeroVisualProps) {
@@ -64,13 +82,15 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
         camera={{ position: [0, 0, 18], fov: 55 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
-        <Scene 
-          mousePos={mousePos} 
-          scrollProgress={scrollProgress} 
-          prefersReducedMotion={prefersReducedMotion} 
-          pointerDistance={pointerDistance} 
-          isMobile={isMobile} 
-        />
+        <Suspense fallback={null}>
+          <SceneContent 
+            mousePos={mousePos} 
+            scrollProgress={scrollProgress} 
+            pointerDistance={pointerDistance} 
+            isMobile={isMobile} 
+            prefersReducedMotion={prefersReducedMotion}
+          />
+        </Suspense>
       </Canvas>
       {/* Atmospheric overlay - subtle depth gradient */}
       <div
