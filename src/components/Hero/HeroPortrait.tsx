@@ -22,8 +22,12 @@ type TransformState = {
 }
 
 const LERP_SPEED = 0.08
-const MAX_ROTATION = 8
-const MAX_TRANSLATION = 12
+const DESKTOP_MAX_ROTATION_Y = 5
+const DESKTOP_MAX_ROTATION_X = 3
+const DESKTOP_MAX_TRANSLATION = 12
+const MOBILE_MAX_ROTATION_Y = 2
+const MOBILE_MAX_ROTATION_X = 1.5
+const MOBILE_MAX_TRANSLATION = 6
 const MAX_SCALE = 1.05
 const MIN_SCALE = 0.95
 
@@ -78,8 +82,8 @@ export default function HeroPortrait({
 
       // Move light reflection
       if (lightRef.current) {
-        const lightX = 50 + (x / MAX_TRANSLATION) * 30
-        const lightY = 50 + (y / MAX_TRANSLATION) * 30
+        const lightX = 50 + (x / DESKTOP_MAX_TRANSLATION) * 30
+        const lightY = 50 + (y / DESKTOP_MAX_TRANSLATION) * 30
         lightRef.current.style.background = `radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255,255,255,0.08) 0%, transparent 60%)`
       }
 
@@ -98,10 +102,10 @@ export default function HeroPortrait({
       const x = (e.clientX / window.innerWidth - 0.5) * 2
       const y = -(e.clientY / window.innerHeight - 0.5) * 2
 
-      target.current.x = x * MAX_TRANSLATION
-      target.current.y = y * MAX_TRANSLATION
-      target.current.rotY = x * MAX_ROTATION
-      target.current.rotX = y * MAX_ROTATION * 0.6
+      target.current.x = x * DESKTOP_MAX_TRANSLATION
+      target.current.y = y * DESKTOP_MAX_TRANSLATION
+      target.current.rotY = x * DESKTOP_MAX_ROTATION_Y
+      target.current.rotX = y * DESKTOP_MAX_ROTATION_X
       target.current.scale = 1 + Math.abs(x) * 0.02 + Math.abs(y) * 0.02
     }
 
@@ -122,13 +126,17 @@ export default function HeroPortrait({
   useEffect(() => {
     if (!isClient || prefersReducedMotion) return
 
-    const influenceX = Math.max(-MAX_TRANSLATION, Math.min(MAX_TRANSLATION, touchVelocity.x * 2))
-    const influenceY = Math.max(-MAX_TRANSLATION, Math.min(MAX_TRANSLATION, touchVelocity.y * 2))
+    const maxRotY = isMobile ? MOBILE_MAX_ROTATION_Y : DESKTOP_MAX_ROTATION_Y
+    const maxRotX = isMobile ? MOBILE_MAX_ROTATION_X : DESKTOP_MAX_ROTATION_X
+    const maxTrans = isMobile ? MOBILE_MAX_TRANSLATION : DESKTOP_MAX_TRANSLATION
+
+    const influenceX = Math.max(-maxTrans, Math.min(maxTrans, touchVelocity.x * 2))
+    const influenceY = Math.max(-maxTrans, Math.min(maxTrans, touchVelocity.y * 2))
 
     target.current.x = influenceX
     target.current.y = influenceY
-    target.current.rotY = (influenceX / MAX_TRANSLATION) * MAX_ROTATION
-    target.current.rotX = (influenceY / MAX_TRANSLATION) * MAX_ROTATION * 0.6
+    target.current.rotY = (influenceX / maxTrans) * maxRotY
+    target.current.rotX = (influenceY / maxTrans) * maxRotX
 
     // Decay back to center
     const decay = () => {

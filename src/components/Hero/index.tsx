@@ -470,8 +470,8 @@ export default function Hero({ data, role }: HeroProps) {
           <HeroContent headline={data.headline} subtitle={data.subtitle} mousePos={mousePos} />
 
           {/* Portrait - deliberate reserved area */}
-          <div className="my-8 flex justify-center">
-            <div className="relative" style={{ width: 'min(75vw, 280px)' }}>
+          <div className="my-6 flex justify-center">
+            <div className="relative" style={{ width: 'min(65vw, 220px)' }}>
               <HeroPortrait
                 src={data.image}
                 alt={role || 'SRIHARI'}
