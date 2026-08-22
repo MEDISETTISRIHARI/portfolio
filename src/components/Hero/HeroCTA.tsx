@@ -105,11 +105,11 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
   }, [isMobile])
 
   return (
-    <div className="mt-10 md:mt-12 flex items-center gap-5 hero-cta">
+    <div className="mt-10 md:mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 hero-cta">
       <a
         ref={primaryRef}
         href={primaryHref}
-        className="group relative px-7 py-3.5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(125,211,252,0.15)] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
+        className="group relative px-7 py-3.5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(125,211,252,0.15)] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background w-full sm:w-auto text-center"
         style={{ borderRadius: '2px' }}
       >
         <span className="relative z-10 block">{primaryText}</span>
@@ -128,10 +128,10 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
       <a
         ref={secondaryRef}
         href={secondaryHref}
-        className="group relative px-7 py-3.5 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
+        className="group relative px-7 py-3.5 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background w-full sm:w-auto text-center"
         style={{ borderRadius: '2px' }}
       >
-        <span className="relative z-10 flex items-center gap-2">
+        <span className="relative z-10 flex items-center justify-center gap-2">
           {secondaryText}
           <svg
             className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"

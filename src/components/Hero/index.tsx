@@ -383,7 +383,7 @@ export default function Hero({ data, role }: HeroProps) {
       id="hero"
       ref={heroRef}
       data-scroll-section="hero"
-      className="relative min-h-screen flex flex-col overflow-hidden"
+      className="relative min-h-[100dvh] md:min-h-screen flex flex-col overflow-hidden"
     >
       {/* Background depth - 3D environment */}
       <div data-depth="background" className="absolute inset-0 z-0">
@@ -467,7 +467,7 @@ export default function Hero({ data, role }: HeroProps) {
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
 
       {/* Content depth - editorial grid */}
-      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-5 pt-14 pb-20' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
+      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-[20px] pt-12 pb-16' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
 
         {/* Desktop layout */}
         <div className="hidden md:grid md:grid-cols-12 gap-6 lg:gap-8 items-center">

@@ -289,7 +289,12 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
     if (prefersReducedMotion) return
 
     const t = state.clock.getElapsedTime()
-    const motionScale = isMobile ? 0.6 : 1
+    const motionScale = isMobile ? 0.5 : 1
+
+    // Safe zones: content left, portrait right
+    const contentSafeX = isMobile ? -4 : -3.5
+    const portraitSafeX = isMobile ? 2.5 : 2.8
+    const maxOpacityNearContent = isMobile ? 0.25 : 0.4
 
     // Helper: animate a group of depth forms with choreographed movement
     const animateDepthGroup = (group: THREE.Group | null, layerSpeed: number, layerAmplitude: number, scrollInfluence: number, frequency: number) => {
@@ -309,13 +314,18 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
           child.rotation.z += Math.sin(t * frequency * 0.6 + rotOffset) * 0.0001 * layerSpeed * motionScale
 
           // Floating movement with depth-aware amplitude
-          const floatAmp = depthLayer === 'foreground' ? 0.25 : depthLayer === 'background' ? 0.03 : 0.08
+          const floatAmp = depthLayer === 'foreground' ? 0.15 : depthLayer === 'background' ? 0.03 : 0.06
           child.position.y = baseY + Math.sin(t * floatSpeed * frequency + i * 0.5) * floatAmp * layerAmplitude * motionScale
 
           // Subtle orbital drift - independent per layer
-          const orbitRadius = 0.4 * layerSpeed * motionScale
-          child.position.x += Math.sin(t * frequency * 0.4 + i * 0.3) * orbitRadius * 0.012
-          child.position.z += Math.cos(t * frequency * 0.3 + i * 0.2) * orbitRadius * 0.012
+          const orbitRadius = 0.3 * layerSpeed * motionScale
+          child.position.x += Math.sin(t * frequency * 0.4 + i * 0.3) * orbitRadius * 0.008
+          child.position.z += Math.cos(t * frequency * 0.3 + i * 0.2) * orbitRadius * 0.008
+
+          // SAFE ZONE ENFORCEMENT
+          if (depthLayer === 'foreground') {
+            child.position.x = Math.max(contentSafeX, Math.min(portraitSafeX, child.position.x))
+          }
 
           // Scale based on depth
           child.scale.setScalar(baseScale)
@@ -323,14 +333,22 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
           // Pointer interaction with strong depth-based falloff
           if (pointerDistance !== undefined) {
             const strength = Math.max(0, 1 - pointerDistance / 2.5)
-            const proximityBoost = depthLayer === 'foreground' ? 2.2 : depthLayer === 'background' ? 0.3 : 1.0
-            child.rotation.y += strength * 0.004 * layerSpeed * proximityBoost * motionScale
-            child.position.y += strength * 0.05 * layerAmplitude * proximityBoost * motionScale
-            child.scale.setScalar(baseScale + strength * 0.025 * proximityBoost)
+            const proximityBoost = depthLayer === 'foreground' ? 1.5 : depthLayer === 'background' ? 0.3 : 1.0
+            child.rotation.y += strength * 0.003 * layerSpeed * proximityBoost * motionScale
+            child.position.y += strength * 0.03 * layerAmplitude * proximityBoost * motionScale
+            child.scale.setScalar(baseScale + strength * 0.015 * proximityBoost)
+
+            // Reduce opacity when near content
+            if (child.position.x < contentSafeX + 1.5) {
+              const mesh = child as THREE.Mesh
+              const mat = mesh.material as THREE.MeshStandardMaterial
+              mat.opacity = Math.min(mat.opacity, maxOpacityNearContent)
+              mat.transparent = true
+            }
           }
 
           // Scroll-based depth movement
-          child.position.z += scrollProgress * scrollInfluence * 0.15 * motionScale
+          child.position.z += scrollProgress * scrollInfluence * 0.12 * motionScale
 
           // Atmospheric perspective - stronger depth-based contrast
           const dist = child.position.length()
@@ -338,7 +356,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
             const fade = Math.max(0, 1 - (dist - 6) / 10)
             const mesh = child as THREE.Mesh
             const mat = mesh.material as THREE.MeshStandardMaterial
-            const depthFade = depthLayer === 'background' ? 0.3 : depthLayer === 'foreground' ? 0.8 : 0.5
+            const depthFade = depthLayer === 'background' ? 0.25 : depthLayer === 'foreground' ? 0.4 : 0.4
             mat.opacity = fade * depthFade
             mat.transparent = true
           }

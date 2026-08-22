@@ -157,8 +157,8 @@ export default function HeroContent({ headline, subtitle, mousePos = { x: 0, y: 
       <div className="hero-title-wrapper overflow-hidden">
         <h1
           ref={titleRef}
-          className="font-display text-[clamp(3.5rem,8vw,10rem)] text-text-primary hero-title-line leading-[0.82] tracking-[-0.05em]"
-          style={{ lineHeight: '0.82', letterSpacing: '-0.05em' }}
+          className="font-display text-[clamp(3rem,8vw,9rem)] text-text-primary hero-title-line leading-[0.88] tracking-[-0.04em]"
+          style={{ lineHeight: '0.88', letterSpacing: '-0.04em' }}
         >
           {headlineWords.map((word, i) => {
             const style = getWordStyle(i, headlineWords.length, mousePos.x)

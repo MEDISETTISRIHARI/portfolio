@@ -38,6 +38,14 @@ export default function HeroMetadata({ className, onRequestOrientation }: HeroMe
           <span className="caption text-text-muted/80 tracking-widest">2026</span>
         </div>
       </div>
+
+      {/* Scroll indicator */}
+      <div className="hidden md:flex items-center justify-center mt-8">
+        <div className="flex flex-col items-center gap-2">
+          <span className="caption text-text-muted/60 tracking-widest">SCROLL TO EXPLORE</span>
+          <div className="w-px h-8 bg-gradient-to-b from-text-muted/40 to-transparent animate-pulse" />
+        </div>
+      </div>
     </div>
   )
 }
