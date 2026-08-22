@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 
 type ContactSectionProps = {
   email?: string
@@ -9,6 +10,102 @@ type ContactSectionProps = {
 export default function ContactSection({ email }: ContactSectionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [isInView, setIsInView] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+  const magneticRef = useRef<HTMLAnchorElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true)
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.15 }
+    )
+
+    if (sectionRef.current) observer.observe(sectionRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!isInView) return
+
+    const ctx = gsap.context(() => {
+      const header = sectionRef.current?.querySelector('.contact-header')
+      if (header) {
+        gsap.fromTo(header,
+          { opacity: 0, y: 60 },
+          { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out' }
+        )
+      }
+
+      const title = sectionRef.current?.querySelector('.contact-title')
+      if (title) {
+        gsap.fromTo(title,
+          { opacity: 0, y: 80, clipPath: 'inset(0 0 100% 0)' },
+          { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 1.4, ease: 'power3.out', delay: 0.2 }
+        )
+      }
+
+      const cta = sectionRef.current?.querySelector('.contact-cta')
+      if (cta) {
+        gsap.fromTo(cta,
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.4 }
+        )
+      }
+
+      const form = sectionRef.current?.querySelector('.contact-form')
+      if (form) {
+        gsap.fromTo(form,
+          { opacity: 0, y: 60 },
+          { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.6 }
+        )
+      }
+
+      const dividers = sectionRef.current?.querySelectorAll('.contact-divider')
+      if (dividers) {
+        gsap.fromTo(dividers,
+          { scaleX: 0 },
+          { scaleX: 1, duration: 1.4, stagger: 0.1, ease: 'power3.out', delay: 0.3 }
+        )
+      }
+    }, sectionRef)
+
+    return () => ctx.revert()
+  }, [isInView])
+
+  useEffect(() => {
+    if (!magneticRef.current) return
+    const domElement = magneticRef.current
+
+    const xTo = gsap.quickTo(domElement, 'x', { duration: 0.4, ease: 'power2.out' })
+    const yTo = gsap.quickTo(domElement, 'y', { duration: 0.4, ease: 'power2.out' })
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = domElement.getBoundingClientRect()
+      const x = (e.clientX - rect.left - rect.width / 2) * 0.2
+      const y = (e.clientY - rect.top - rect.height / 2) * 0.2
+      xTo(x)
+      yTo(y)
+    }
+
+    const handleMouseLeave = () => {
+      gsap.to(domElement, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)' })
+    }
+
+    domElement.addEventListener('mousemove', handleMouseMove)
+    domElement.addEventListener('mouseleave', handleMouseLeave)
+
+    return () => {
+      domElement.removeEventListener('mousemove', handleMouseMove)
+      domElement.removeEventListener('mouseleave', handleMouseLeave)
+    }
+  }, [isInView])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -43,21 +140,70 @@ export default function ContactSection({ email }: ContactSectionProps) {
   }
 
   return (
-    <section id="contact" data-scroll-section="contact" className="py-32 md:py-48 border-t border-border-subtle relative">
+    <section id="contact" data-scroll-section="contact" className="py-32 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
-      <div className="container mx-auto px-6">
-        <div className="max-w-4xl">
-          <p className="label text-text-muted mb-6" data-scroll-reveal>CONTACT</p>
-          <h2 className="font-display text-display-md text-text-primary mb-8" data-scroll-reveal>
-            HAVE AN IDEA?
-          </h2>
-          <h3 className="font-display text-display-sm text-text-secondary mb-16" data-scroll-reveal>
-            LET'S BUILD SOMETHING<br />WORTH REMEMBERING.
-          </h3>
 
+      {/* Animated background lines */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-border-subtle to-transparent opacity-30" />
+        <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-border-subtle to-transparent opacity-30" />
+      </div>
+
+      <div className="container mx-auto px-6 relative">
+        {/* Header */}
+        <div className="contact-header mb-16 md:mb-24">
+          <p className="label text-text-muted mb-4" data-scroll-reveal>CONTACT</p>
+          <div className="contact-divider h-px bg-accent origin-left" style={{ width: '48px' }} />
+        </div>
+
+        {/* Hero-level typography */}
+        <div className="contact-title mb-16 md:mb-24" data-scroll-reveal>
+          <h2
+            className="font-display text-[clamp(3rem,8vw,8rem)] text-text-primary leading-[0.9]"
+            style={{ letterSpacing: '-0.04em' }}
+          >
+            LET&apos;S TALK
+          </h2>
+          <h3
+            className="font-display text-[clamp(1.5rem,3vw,3rem)] text-text-secondary mt-4"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            HAVE AN IDEA? LET&apos;S BUILD SOMETHING WORTH REMEMBERING.
+          </h3>
+        </div>
+
+        {/* Large email CTA - magnetic */}
+        <div className="contact-cta mb-16 md:mb-24" data-scroll-reveal>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
+            <a
+              ref={magneticRef}
+              href={`mailto:${email || 'hello@example.com'}`}
+              className="group relative px-10 py-5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent"
+              style={{ borderRadius: '2px' }}
+            >
+              <span className="relative z-10 flex items-center gap-3">
+                {email || 'hello@example.com'}
+                <svg
+                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </span>
+            </a>
+            <p className="body-sm text-text-muted">
+              Or fill out the form below
+            </p>
+          </div>
+        </div>
+
+        {/* Contact form */}
+        <div className="contact-form max-w-4xl">
           {status === 'success' && (
-            <p className="body-md text-accent mb-8">Message sent successfully. I'll get back to you soon.</p>
+            <p className="body-md text-accent mb-8">Message sent successfully. I&apos;ll get back to you soon.</p>
           )}
           {status === 'error' && (
             <p className="body-md text-red-400 mb-8">Failed to send message. Please try again.</p>
@@ -122,21 +268,12 @@ export default function ContactSection({ email }: ContactSectionProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-10 py-4 bg-text-primary text-background text-sm font-medium tracking-wide hover:bg-accent transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-10 py-4 bg-text-primary text-background text-sm font-medium tracking-wide hover:bg-accent transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
               >
                 {isSubmitting ? 'SENDING...' : 'START A PROJECT'}
               </button>
             </div>
           </form>
-
-          <div className="mt-24 pt-12 border-t border-border-subtle">
-            <p className="body-sm text-text-muted">
-              Or email directly at{' '}
-              <a href={`mailto:${email || 'hello@example.com'}`} className="text-text-primary hover:text-accent transition-colors duration-300">
-                {email || 'hello@example.com'}
-              </a>
-            </p>
-          </div>
         </div>
       </div>
     </section>
