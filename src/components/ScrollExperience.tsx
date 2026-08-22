@@ -365,10 +365,10 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         const heroContent = containerRef.current?.querySelector('.hero-content-wrapper')
         if (heroContent) {
           wowTimeline.to(heroContent, {
-            opacity: 0.2,
-            scale: 0.97,
-            y: -40,
-            duration: 1,
+            opacity: 0.15,
+            scale: 0.96,
+            y: -50,
+            duration: 1.2,
             ease: 'power2.inOut',
           }, 0)
         }
@@ -376,10 +376,10 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         const portrait = containerRef.current?.querySelector('.hero-portrait')
         if (portrait) {
           wowTimeline.to(portrait, {
-            scale: 0.95,
-            opacity: 0.3,
-            y: 20,
-            duration: 1.2,
+            scale: 0.92,
+            opacity: 0.2,
+            y: 30,
+            duration: 1.4,
             ease: 'power2.inOut',
           }, 0.1)
         }
@@ -387,11 +387,20 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         const heroCanvas = containerRef.current?.querySelector('.hero-canvas')
         if (heroCanvas) {
           wowTimeline.to(heroCanvas, {
-            scale: 1.03,
-            opacity: 0.6,
-            duration: 1.2,
+            scale: 1.06,
+            opacity: 0.5,
+            duration: 1.4,
             ease: 'power2.inOut',
           }, 0)
+        }
+
+        const heroGrid = containerRef.current?.querySelector('.hero-grid-overlay')
+        if (heroGrid) {
+          wowTimeline.to(heroGrid, {
+            opacity: 0.6,
+            duration: 1.6,
+            ease: 'power2.out',
+          }, 0.2)
         }
 
         const aboutSection = containerRef.current?.querySelector('[data-scroll-section="about"]')
@@ -400,7 +409,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           if (divider) {
             wowTimeline.fromTo(divider,
               { scaleX: 0, opacity: 0 },
-              { scaleX: 1, opacity: 0.6, duration: 1, ease: 'power3.out' },
+              { scaleX: 1, opacity: 0.6, duration: 1.2, ease: 'power3.out' },
               0.3
             )
           }
@@ -409,8 +418,8 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         if (aboutSection) {
           wowTimeline.fromTo(aboutSection,
             { opacity: 0, y: 60 },
-            { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out' },
-            0.4
+            { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' },
+            0.5
           )
         }
 
@@ -418,16 +427,16 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         if (aboutLines) {
           wowTimeline.fromTo(aboutLines,
             { clipPath: 'inset(0 100% 0 0)', opacity: 0 },
-            { clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 1.2, stagger: 0.1, ease: 'power3.out' },
-            0.6
+            { clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 1.4, stagger: 0.1, ease: 'power3.out' },
+            0.7
           )
         }
 
         wowTimeline.to('.hero-content-wrapper', {
           opacity: 0,
-          duration: 0.5,
+          duration: 0.6,
           ease: 'power2.inOut',
-        }, 1.4)
+        }, 1.6)
       }
     }
 

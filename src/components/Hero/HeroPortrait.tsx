@@ -246,11 +246,10 @@ export default function HeroPortrait({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-surface via-background to-surface">
             <div className="text-center px-8">
-              <div className="w-16 h-16 mx-auto mb-4 border border-border-subtle rounded-full flex items-center justify-center">
-                <span className="text-text-muted text-xs tracking-widest uppercase">Photo</span>
-              </div>
-              <p className="caption text-text-muted max-w-[200px] mx-auto leading-relaxed">
-                Replace with your portrait at <br />
+              <p className="font-display text-display-sm text-text-primary tracking-widest mb-2">PORTRAIT</p>
+              <p className="caption text-text-muted tracking-widest">SRIHARI</p>
+              <p className="caption text-text-muted/60 mt-4 max-w-[200px] mx-auto leading-relaxed">
+                Add your photo at <br />
                 <span className="text-accent">/images/srihari-portrait.jpg</span>
               </p>
             </div>

@@ -403,6 +403,16 @@ export default function Hero({ data, role }: HeroProps) {
           zIndex: 1,
         }}
       />
+      {/* Grid overlay for depth transition */}
+      <div
+        className="hero-grid-overlay absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-700"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+          zIndex: 1,
+        }}
+        aria-hidden="true"
+      />
 
       {/* Signature wow moment trigger */}
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
