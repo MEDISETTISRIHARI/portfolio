@@ -17,6 +17,7 @@ export default function CinematicIntro() {
 
     if (hasSeenIntro) {
       // Returning visitor: quick fade out to reveal Hero
+      window.dispatchEvent(new CustomEvent('intro-complete'))
       gsap.to(containerRef.current, {
         opacity: 0,
         duration: 0.5,
@@ -25,7 +26,6 @@ export default function CinematicIntro() {
           if (containerRef.current) {
             containerRef.current.style.display = 'none'
           }
-          window.dispatchEvent(new CustomEvent('intro-complete'))
         },
       })
       return
@@ -35,7 +35,6 @@ export default function CinematicIntro() {
       const tl = gsap.timeline({
         onComplete: () => {
           sessionStorage.setItem('srihari-intro-seen', 'true')
-          window.dispatchEvent(new CustomEvent('intro-complete'))
         },
       })
 
@@ -92,13 +91,18 @@ export default function CinematicIntro() {
         ease: 'power1.inOut',
       }, `+=${base * 0.15}`)
 
-      // Seamless reveal: fade out intro to reveal Hero underneath
+      // Seamless reveal: dispatch event first so Hero can start animating
+      // while intro is still fading out
+      .call(() => {
+        window.dispatchEvent(new CustomEvent('intro-complete'))
+      }, null, `+=${base * 0.05}`)
+
       .to(containerRef.current, {
         opacity: 0,
         scale: 1.02,
         duration: base * 0.7,
         ease: 'power2.inOut',
-      }, `+=${base * 0.1}`)
+      }, '<')
 
       .set(containerRef.current, { display: 'none' }, `+=0.1`)
 

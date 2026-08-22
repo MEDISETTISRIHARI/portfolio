@@ -7,6 +7,25 @@ export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
+  const [introComplete, setIntroComplete] = useState(false)
+
+  useEffect(() => {
+    const hasSeenIntro = sessionStorage.getItem('srihari-intro-seen')
+
+    if (hasSeenIntro) {
+      // Returning visitor: show nav immediately
+      setIntroComplete(true)
+      return
+    }
+
+    const handleIntroComplete = () => {
+      setIntroComplete(true)
+      window.removeEventListener('intro-complete', handleIntroComplete)
+    }
+
+    window.addEventListener('intro-complete', handleIntroComplete)
+    return () => window.removeEventListener('intro-complete', handleIntroComplete)
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,7 +48,7 @@ export default function Navigation() {
     if (isMobileOpen) {
       document.body.style.overflow = 'hidden'
       // Animate mobile menu items
-      gsap.fromTo('.mobile-nav-item', 
+      gsap.fromTo('.mobile-nav-item',
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out', delay: 0.2 }
       )
@@ -40,6 +59,24 @@ export default function Navigation() {
       document.body.style.overflow = ''
     }
   }, [isMobileOpen])
+
+  // Entrance animation for nav
+  useEffect(() => {
+    if (!introComplete) return
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo('.nav-item',
+        { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: 'power2.out', delay: 0.3 }
+      )
+      gsap.fromTo('.nav-logo',
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.6, ease: 'power2.out', delay: 0.1 }
+      )
+    })
+
+    return () => ctx.revert()
+  }, [introComplete])
 
   const navItems = [
     { label: 'WORK', href: '#work' },
@@ -58,11 +95,11 @@ export default function Navigation() {
       <nav
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
           isScrolled ? 'bg-background/80 backdrop-blur-md border-b border-border-subtle' : 'bg-transparent'
-        }`}
+        } ${introComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <div className="container mx-auto px-6">
           <div className={`flex items-center justify-between transition-all duration-500 ${isScrolled ? 'h-16' : 'h-20'}`}>
-            <a href="#" className="font-display text-sm tracking-widest text-text-primary hover:text-accent transition-colors duration-300">
+            <a href="#" className="font-display text-sm tracking-widest text-text-primary hover:text-accent transition-colors duration-300 nav-logo">
               SRIHARI
             </a>
 
@@ -71,7 +108,7 @@ export default function Navigation() {
                 <a
                   key={item.label}
                   href={item.href}
-                  className={`caption relative transition-colors duration-300 ${isActive(item.href) ? 'text-text-primary' : 'text-text-muted hover:text-text-primary'}`}
+                  className={`caption relative transition-colors duration-300 nav-item ${isActive(item.href) ? 'text-text-primary' : 'text-text-muted hover:text-text-primary'}`}
                 >
                   {item.label}
                   {isActive(item.href) && (
@@ -81,7 +118,7 @@ export default function Navigation() {
               ))}
               <a
                 href="#contact"
-                className="px-5 py-2 border border-border-default text-text-primary text-xs font-medium tracking-wide hover:border-accent hover:text-accent transition-all duration-300"
+                className="px-5 py-2 border border-border-default text-text-primary text-xs font-medium tracking-wide hover:border-accent hover:text-accent transition-all duration-300 nav-item"
               >
                 LET&apos;S TALK
               </a>
@@ -89,7 +126,7 @@ export default function Navigation() {
 
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5"
+              className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 nav-item"
               aria-label="Toggle menu"
             >
               <span className={`w-6 h-px bg-text-primary transition-all duration-300 ${isMobileOpen ? 'rotate-45 translate-y-2' : ''}`} />

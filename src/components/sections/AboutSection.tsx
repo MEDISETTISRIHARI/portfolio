@@ -1,3 +1,8 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
+
 type Profile = {
   id: string
   name: string
@@ -14,56 +19,142 @@ type AboutSectionProps = {
   data: Profile
 }
 
-export default async function AboutSection({ data }: AboutSectionProps) {
+export default function AboutSection({ data }: AboutSectionProps) {
+  const sectionRef = useRef<HTMLElement>(null)
+  const [isInView, setIsInView] = useState(false)
+  const [hoveredLine, setHoveredLine] = useState<number | null>(null)
+
   const headline = data.tagline || data.name
-  const words = headline.split(' ')
+  // Try to extract "I DESIGN. I BUILD. I EXPERIMENT." pattern from headline
+  const lines = headline.split('.').filter((line) => line.trim().length > 0)
   const capabilities = ['DESIGN', 'DEVELOPMENT', 'MOTION', 'EXPERIENCE']
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true)
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.2 }
+    )
+
+    if (sectionRef.current) observer.observe(sectionRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!isInView) return
+
+    const ctx = gsap.context(() => {
+      // Staggered line reveals with clip-path and blur
+      const lines = sectionRef.current?.querySelectorAll('.about-hero-line')
+      if (lines) {
+        gsap.fromTo(
+          lines,
+          {
+            opacity: 0,
+            y: 80,
+            clipPath: 'inset(0 0 100% 0)',
+            filter: 'blur(8px)',
+          },
+          {
+            opacity: 1,
+            y: 0,
+            clipPath: 'inset(0 0 0% 0)',
+            filter: 'blur(0px)',
+            duration: 1.2,
+            stagger: 0.15,
+            ease: 'power3.out',
+          }
+        )
+      }
+
+      // Supporting text reveal
+      const supporting = sectionRef.current?.querySelector('.about-supporting')
+      if (supporting) {
+        gsap.fromTo(
+          supporting,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 1, ease: 'power2.out', delay: 0.6 }
+        )
+      }
+
+      // Capabilities stagger
+      const caps = sectionRef.current?.querySelectorAll('.about-capability')
+      if (caps) {
+        gsap.fromTo(
+          caps,
+          { opacity: 0, x: -20 },
+          { opacity: 1, x: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out', delay: 0.8 }
+        )
+      }
+    }, sectionRef)
+
+    return () => ctx.revert()
+  }, [isInView])
+
   return (
-    <section id="about" data-scroll-section="about" className="py-32 md:py-48 relative overflow-hidden">
+    <section id="about" data-scroll-section="about" className="py-32 md:py-48 relative overflow-hidden" ref={sectionRef}>
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-16 md:gap-8 items-start">
+          {/* Left column - minimal metadata */}
           <div className="md:col-span-4 relative">
             <p className="label text-text-muted mb-4" data-scroll-reveal data-scroll-parallax="0.1">01 — ABOUT</p>
             <div className="w-16 h-px bg-border-default mb-8" data-scroll-reveal />
             {data.availability && (
               <p className="body-sm text-accent mb-4" data-scroll-reveal>{data.availability}</p>
             )}
-            <div className="space-y-2 mt-8">
+            <div className="space-y-2 mt-8 hidden md:block">
               {capabilities.map((cap, i) => (
                 <p
                   key={cap}
-                  className="caption text-text-muted"
-                  data-scroll-reveal
-                  style={{ animationDelay: `${i * 0.1}s` }}
+                  className="caption text-text-muted about-capability"
+                  style={{ opacity: 0 }}
                 >
                   {cap}
                 </p>
               ))}
             </div>
           </div>
+
+          {/* Right column - editorial centerpiece */}
           <div className="md:col-span-8">
-            <div className="overflow-hidden mb-8">
-              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-                {words.map((word, i) => (
+            {/* Hero text - visual centerpiece */}
+            <div className="mb-16 md:mb-24">
+              {lines.map((line, i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden mb-2"
+                  onMouseEnter={() => setHoveredLine(i)}
+                  onMouseLeave={() => setHoveredLine(null)}
+                >
                   <span
-                    key={i}
-                    className="font-display text-display-md text-text-primary inline-block"
-                    data-scroll-reveal
-                    data-scroll-blur
-                    style={{ animationDelay: `${i * 0.08}s` }}
+                    className="about-hero-line font-display text-[clamp(3rem,7vw,7rem)] text-text-primary inline-block transition-all duration-500"
+                    style={{
+                      lineHeight: '0.9',
+                      letterSpacing: '-0.04em',
+                      transform: hoveredLine === i ? 'translateX(12px)' : 'translateX(0)',
+                      color: hoveredLine === i ? '#7dd3fc' : '#F4F4F0',
+                    }}
                   >
-                    {word}
+                    {line.trim()}
+                    {i < lines.length - 1 && <span className="text-accent">.</span>}
                   </span>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-            <div className="max-w-2xl" data-scroll-reveal data-scroll-parallax="0.2">
-              <p className="body-lg text-text-secondary mb-8" style={{ lineHeight: '1.6' }}>
+
+            {/* Supporting text - appears later */}
+            <div className="max-w-2xl about-supporting" style={{ opacity: 0 }}>
+              <div className="w-24 h-px bg-border-default mb-8" data-scroll-reveal />
+              <p className="body-lg text-text-secondary" style={{ lineHeight: '1.6' }}>
                 {data.bio}
               </p>
             </div>
-            <div className="w-24 h-px bg-border-default mt-12" data-scroll-reveal />
           </div>
         </div>
       </div>
