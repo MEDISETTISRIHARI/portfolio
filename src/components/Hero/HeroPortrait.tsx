@@ -213,8 +213,11 @@ export default function HeroPortrait({
       {/* Atmospheric glow behind portrait */}
       <div
         ref={glowRef}
-        className="hero-portrait-glow absolute -inset-8 bg-accent/10 rounded-full blur-3xl pointer-events-none"
-        style={{ opacity: 0 }}
+        className="hero-portrait-glow absolute -inset-8 rounded-full blur-3xl pointer-events-none"
+        style={{
+          opacity: 0,
+          background: 'radial-gradient(circle, rgba(125,211,252,0.12) 0%, rgba(125,211,252,0.04) 40%, transparent 70%)',
+        }}
       />
 
       {/* Main image container with asymmetric cinematic mask */}
@@ -222,7 +225,7 @@ export default function HeroPortrait({
         ref={imageWrapperRef}
         className="hero-portrait-container relative overflow-hidden"
         style={{
-          width: 'min(70vw, 420px)',
+          width: '100%',
           aspectRatio: '3/4',
           clipPath: 'inset(0% 0% 0% 0%)',
           transform: 'scale(1)',

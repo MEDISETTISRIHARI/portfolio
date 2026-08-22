@@ -42,9 +42,8 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
         xTo(x)
         yTo(y)
 
-        // Subtle scale on hover
         gsap.to(domElement, {
-          scale: 1.02,
+          scale: 1.03,
           duration: 0.3,
           ease: 'power2.out',
         })
@@ -63,11 +62,10 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
       domElement.addEventListener('mousemove', handleMouseMove)
       domElement.addEventListener('mouseleave', handleMouseLeave)
 
-      // Touch feedback
       const handleTouchStart = () => {
         gsap.to(domElement, {
-          scale: 0.98,
-          duration: 0.2,
+          scale: 0.97,
+          duration: 0.15,
           ease: 'power2.out',
         })
       }
@@ -107,22 +105,30 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
   }, [isMobile])
 
   return (
-    <div className="mt-12 flex items-center gap-6 hero-cta">
+    <div className="mt-10 md:mt-12 flex items-center gap-5 hero-cta">
       <a
         ref={primaryRef}
         href={primaryHref}
-        className="group relative px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent hover:text-background hover:shadow-[0_0_30px_rgba(125,211,252,0.15)]"
+        className="group relative px-7 py-3.5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(125,211,252,0.15)] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
         style={{ borderRadius: '2px' }}
       >
         <span className="relative z-10 block">{primaryText}</span>
         <span
           className="absolute inset-0 bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         />
+        <span
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          style={{
+            background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 45%, transparent 50%)',
+            backgroundSize: '200% 100%',
+            transform: 'translateX(-100%)',
+          }}
+        />
       </a>
       <a
         ref={secondaryRef}
         href={secondaryHref}
-        className="group relative px-8 py-4 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent"
+        className="group relative px-7 py-3.5 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
         style={{ borderRadius: '2px' }}
       >
         <span className="relative z-10 flex items-center gap-2">
@@ -141,6 +147,14 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
             />
           </svg>
         </span>
+        <span
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          style={{
+            background: 'linear-gradient(105deg, transparent 40%, rgba(125,211,252,0.08) 45%, transparent 50%)',
+            backgroundSize: '200% 100%',
+            transform: 'translateX(-100%)',
+          }}
+        />
       </a>
     </div>
   )

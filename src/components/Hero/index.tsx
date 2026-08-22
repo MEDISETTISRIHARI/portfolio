@@ -370,22 +370,58 @@ export default function Hero({ data, role }: HeroProps) {
         />
       </div>
 
+      {/* Atmosphere layers - localized focus */}
+      {/* Portrait radial spotlight - desktop only */}
+      <div
+        data-depth="background"
+        className="hidden md:block absolute pointer-events-none"
+        style={{
+          top: '15%',
+          right: '-5%',
+          width: '55%',
+          height: '70%',
+          background: 'radial-gradient(ellipse at center, rgba(125,211,252,0.04) 0%, transparent 70%)',
+          filter: 'blur(60px)',
+          zIndex: 1,
+        }}
+      />
+      {/* Depth haze at bottom */}
+      <div
+        data-depth="background"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(to top, rgba(5,5,5,0.6) 0%, transparent 50%)',
+          zIndex: 1,
+        }}
+      />
+      {/* Soft top vignette */}
+      <div
+        data-depth="background"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(5,5,5,0.3) 0%, transparent 30%)',
+          zIndex: 1,
+        }}
+      />
+
       {/* Signature wow moment trigger */}
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
 
       {/* Content depth - editorial grid */}
-      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-6 pt-16 pb-24' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`}>
-        <div className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-12 items-center">
+      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-5 pt-14 pb-20' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
+
+        {/* Desktop layout */}
+        <div className="hidden md:grid md:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left / Center - editorial headline and identity */}
-          <div className="md:col-span-7 lg:col-span-7 order-2 md:order-1">
-            <div className="mb-8 md:mb-12">
+          <div className="md:col-span-7 lg:col-span-7">
+            <div className="mb-10">
               <HeroIdentity role={role} isInView={isInView} />
             </div>
             <HeroContent headline={data.headline} subtitle={data.subtitle} mousePos={mousePos} />
-            <div className="mt-8 md:mt-12">
+            <div className="mt-10">
               <HeroMeta description={data.description} />
             </div>
-            <div className="mt-8 md:mt-12 hero-cta">
+            <div className="mt-10 hero-cta">
               <HeroCTA
                 primaryText={data.ctaText || 'VIEW SELECTED WORK'}
                 primaryHref={data.ctaLink || '#work'}
@@ -396,8 +432,36 @@ export default function Hero({ data, role }: HeroProps) {
           </div>
 
           {/* Right / Center - portrait composition */}
-          <div className="md:col-span-5 lg:col-span-5 order-1 md:order-2" data-scroll-parallax="0.08">
+          <div className="md:col-span-5 lg:col-span-5" data-scroll-parallax="0.08">
             <div className="relative flex justify-center md:justify-end">
+              <div className="w-full max-w-[420px]">
+                <HeroPortrait
+                  src={data.image}
+                  alt={role || 'SRIHARI'}
+                  isInView={isInView}
+                  mousePos={mousePos}
+                  touchVelocity={touchVelocity}
+                  isMobile={isMobile}
+                  scrollProgress={progress}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile layout - independent composition */}
+        <div className="flex flex-col md:hidden">
+          {/* Small role / identity at top */}
+          <div className="mb-6">
+            <HeroIdentity role={role} isInView={isInView} />
+          </div>
+
+          {/* Large headline */}
+          <HeroContent headline={data.headline} subtitle={data.subtitle} mousePos={mousePos} />
+
+          {/* Portrait - deliberate reserved area */}
+          <div className="my-8 flex justify-center">
+            <div className="relative" style={{ width: 'min(75vw, 280px)' }}>
               <HeroPortrait
                 src={data.image}
                 alt={role || 'SRIHARI'}
@@ -410,26 +474,26 @@ export default function Hero({ data, role }: HeroProps) {
             </div>
           </div>
 
-          {/* Mobile portrait - below content on small screens */}
-          <div className="md:hidden order-3 mt-10" data-scroll-parallax="0.06">
-            <div className="relative mx-auto" style={{ width: 'min(70vw, 320px)' }}>
-              <HeroPortrait
-                src={data.image}
-                alt={role || 'SRIHARI'}
-                isInView={isInView}
-                mousePos={mousePos}
-                touchVelocity={touchVelocity}
-                isMobile={isMobile}
-                scrollProgress={progress}
-              />
-            </div>
+          {/* Supporting description */}
+          <div className="mt-2">
+            <HeroMeta description={data.description} />
+          </div>
+
+          {/* CTA */}
+          <div className="mt-8 hero-cta">
+            <HeroCTA
+              primaryText={data.ctaText || 'VIEW SELECTED WORK'}
+              primaryHref={data.ctaLink || '#work'}
+              secondaryText={data.secondaryCta || "LET'S TALK"}
+              secondaryHref={data.secondaryLink || '#contact'}
+            />
           </div>
         </div>
       </div>
 
       {/* Foreground depth - metadata */}
       <div data-depth="foreground" className="relative z-30">
-        <HeroMetadata className={isMobile ? 'mt-8' : 'mt-auto'} onRequestOrientation={requestOrientation} />
+        <HeroMetadata className={isMobile ? 'mt-6' : 'mt-auto'} onRequestOrientation={requestOrientation} />
       </div>
     </section>
   )
