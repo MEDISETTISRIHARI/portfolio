@@ -54,6 +54,7 @@ export default function HeroPortrait({
   const target = useRef<TransformState>({ x: 0, y: 0, rotY: 0, rotX: 0, scale: 1 })
   const current = useRef<TransformState>({ x: 0, y: 0, rotY: 0, rotX: 0, scale: 1 })
   const lastTime = useRef(Date.now())
+  const floatTime = useRef(0)
 
   useEffect(() => {
     setIsClient(true)
@@ -75,6 +76,7 @@ export default function HeroPortrait({
       const now = Date.now()
       const dt = Math.max(1, now - lastTime.current)
       lastTime.current = now
+      floatTime.current += dt * 0.001
 
       // Lerp current toward target
       current.current.x += (target.current.x - current.current.x) * LERP_SPEED
@@ -85,14 +87,25 @@ export default function HeroPortrait({
 
       const { x, y, rotY, rotX, scale } = current.current
 
+      // Continuous subtle floating micro-motion
+      const floatY = Math.sin(floatTime.current * 0.4) * 4 + Math.cos(floatTime.current * 0.7) * 2
+      const floatX = Math.cos(floatTime.current * 0.35) * 2 + Math.sin(floatTime.current * 0.6) * 1.5
+      const floatRotY = Math.sin(floatTime.current * 0.3) * 1
+      const floatRotX = Math.cos(floatTime.current * 0.4) * 0.6
+
+      const finalX = x + floatX
+      const finalY = y + floatY
+      const finalRotY = rotY + floatRotY
+      const finalRotX = rotX + floatRotX
+
       if (containerRef.current) {
-        containerRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${scale})`
+        containerRef.current.style.transform = `translate3d(${finalX}px, ${finalY}px, 0) rotateY(${finalRotY}deg) rotateX(${finalRotX}deg) scale(${scale})`
       }
 
       // Move light reflection
       if (lightRef.current) {
-        const lightX = 50 + (x / DESKTOP_MAX_TRANSLATION) * 30
-        const lightY = 50 + (y / DESKTOP_MAX_TRANSLATION) * 30
+        const lightX = 50 + (finalX / DESKTOP_MAX_TRANSLATION) * 30
+        const lightY = 50 + (finalY / DESKTOP_MAX_TRANSLATION) * 30
         lightRef.current.style.background = `radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255,255,255,0.08) 0%, transparent 60%)`
       }
 
@@ -222,7 +235,10 @@ export default function HeroPortrait({
     return () => ctx.revert()
   }, [isInView, prefersReducedMotion, isMobile])
 
-  const imageSrc = src || '/images/srihari-portrait.jpg'
+  // Image path: prefer profile image, fallback to portrait image
+  const profileImage = src || '/images/srihari-profile.jpg'
+  const portraitImage = '/images/srihari-portrait.jpg'
+  const imageSrc = profileImage !== '/images/srihari-profile.jpg' ? profileImage : portraitImage
   const showPlaceholder = !src || imageError
 
   return (
@@ -266,6 +282,7 @@ export default function HeroPortrait({
             className="w-full h-full object-cover"
             style={{ objectFit: 'cover', display: 'block' }}
             loading="lazy"
+            onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
           />
         ) : (
@@ -276,7 +293,7 @@ export default function HeroPortrait({
               <div className="w-12 h-px bg-border-default mx-auto mb-4" />
               <p className="caption text-text-muted/70 max-w-[180px] mx-auto leading-relaxed">
                 Drop image at<br />
-                <span className="text-accent">/images/srihari-portrait.jpg</span>
+                <span className="text-accent">/images/srihari-profile.jpg</span>
               </p>
             </div>
           </div>
