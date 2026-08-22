@@ -18,7 +18,6 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
     const setupMagnetic = (ref: React.RefObject<HTMLAnchorElement>) => {
       if (!ref.current) return
 
-      // Store the actual DOM element reference for safe cleanup
       const domElement = ref.current
 
       const xTo = gsap.quickTo(domElement, 'x', {
@@ -69,11 +68,12 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
   }, [])
 
   return (
-    <div className="mt-12 flex items-center gap-6">
+    <div className="mt-12 flex items-center gap-6 hero-cta">
       <a
         ref={primaryRef}
         href={primaryHref}
-        className="group relative px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent hover:text-background"
+        className="group relative px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent hover:text-background hover:shadow-[0_0_30px_rgba(125,211,252,0.15)]"
+        style={{ borderRadius: '2px' }}
       >
         <span className="relative z-10 block">{primaryText}</span>
         <span
@@ -84,6 +84,7 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
         ref={secondaryRef}
         href={secondaryHref}
         className="group relative px-8 py-4 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent"
+        style={{ borderRadius: '2px' }}
       >
         <span className="relative z-10 flex items-center gap-2">
           {secondaryText}

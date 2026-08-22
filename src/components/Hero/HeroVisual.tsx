@@ -8,12 +8,13 @@ import { useState, useEffect } from 'react'
 type HeroVisualProps = {
   mousePos: { x: number; y: number }
   scrollProgress: number
+  pointerDistance?: number
   visualMode?: string
   image?: string | null
   video?: string | null
 }
 
-export default function HeroVisual({ mousePos, scrollProgress, visualMode, image, video }: HeroVisualProps) {
+export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video }: HeroVisualProps) {
   const [mounted, setMounted] = useState(false)
   const isWebGLSupported = useWebGL()
 
@@ -29,7 +30,7 @@ export default function HeroVisual({ mousePos, scrollProgress, visualMode, image
           camera={{ position: [0, 0, 18], fov: 55 }}
           gl={{ antialias: true, alpha: true }}
         >
-          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} />
+          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} pointerDistance={pointerDistance} />
         </Canvas>
       </div>
     )
@@ -53,7 +54,7 @@ export default function HeroVisual({ mousePos, scrollProgress, visualMode, image
         camera={{ position: [0, 0, 18], fov: 55 }}
         gl={{ antialias: true, alpha: true }}
       >
-        <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} />
+        <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} pointerDistance={pointerDistance} />
       </Canvas>
     </div>
   )

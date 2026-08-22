@@ -447,3 +447,7 @@ body::before {
 .animate-slide-up {
   animation: slideUp 0.8s var(--ease-out) forwards;
 }
+
+.text-reveal > * {
+  opacity: 0;
+}

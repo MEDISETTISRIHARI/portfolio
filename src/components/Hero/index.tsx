@@ -30,6 +30,7 @@ type HeroProps = {
 export default function Hero({ data, role }: HeroProps) {
   const heroRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [pointerDistance, setPointerDistance] = useState(0)
   const { scrollY, progress } = useScroll()
 
   // Intro coordination: run entrance animation when intro completes
@@ -109,9 +110,26 @@ export default function Hero({ data, role }: HeroProps) {
       const x = (e.clientX / window.innerWidth) * 2 - 1
       const y = -(e.clientY / window.innerHeight) * 2 + 1
       setMousePos({ x, y })
+      const dist = Math.sqrt(x * x + y * y)
+      setPointerDistance(dist)
     }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const x = (e.touches[0].clientX / window.innerWidth) * 2 - 1
+        const y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1
+        setMousePos({ x, y })
+        const dist = Math.sqrt(x * x + y * y)
+        setPointerDistance(dist)
+      }
+    }
+
     window.addEventListener('mousemove', handleMouseMove, { passive: true })
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchmove', handleTouchMove)
+    }
   }, [])
 
   return (
@@ -124,6 +142,7 @@ export default function Hero({ data, role }: HeroProps) {
       <HeroVisual
         mousePos={mousePos}
         scrollProgress={progress}
+        pointerDistance={pointerDistance}
         visualMode={data.visualMode}
         image={data.image}
         video={data.video}
