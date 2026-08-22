@@ -71,18 +71,18 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
   return (
     <>
       {role && (
-        <p className="text-[clamp(0.75rem,2.5vw,0.875rem)] text-text-muted/70 mb-8 tracking-[0.25em] uppercase hero-role font-medium" style={{ letterSpacing: '0.25em' }}>
+        <p className="text-[clamp(0.7rem,1.2vw,0.8rem)] text-text-muted/60 mb-6 md:mb-8 tracking-[0.3em] uppercase hero-role font-medium" style={{ letterSpacing: '0.3em' }}>
           {role}
         </p>
       )}
       <div className="hero-title-wrapper overflow-hidden">
         <h1
           ref={titleRef}
-          className="font-display text-[clamp(3.5rem,8vw,9rem)] text-text-primary hero-title-line leading-[0.9] tracking-[-0.04em]"
-          style={{ lineHeight: '0.9', letterSpacing: '-0.04em' }}
+          className="font-display text-[clamp(3rem,7vw,8.5rem)] text-text-primary hero-title-line leading-[0.88] tracking-[-0.045em]"
+          style={{ lineHeight: '0.88', letterSpacing: '-0.045em' }}
         >
           {headline.split(' ').map((word, i) => (
-            <span key={i} className="hero-word inline-block" style={{ marginRight: '0.2em' }}>
+            <span key={i} className="hero-word inline-block" style={{ marginRight: '0.15em' }}>
               {word}
             </span>
           ))}
@@ -91,12 +91,12 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
       {subtitleLines.map((line, i) => (
         <div key={i} className="hero-title-wrapper overflow-hidden">
           <h2
-            ref={subtitleRef}
-            className="font-display text-[clamp(3.5rem,8vw,9rem)] text-text-primary hero-title-line leading-[0.9] tracking-[-0.04em]"
-            style={{ lineHeight: '0.9', letterSpacing: '-0.04em' }}
+            ref={i === 0 ? subtitleRef : undefined}
+            className="font-display text-[clamp(2.5rem,6vw,7.5rem)] text-text-primary/90 hero-title-line leading-[0.9] tracking-[-0.035em]"
+            style={{ lineHeight: '0.9', letterSpacing: '-0.035em' }}
           >
             {line.split(' ').map((word, j) => (
-              <span key={j} className="hero-word inline-block" style={{ marginRight: '0.2em' }}>
+              <span key={j} className="hero-word inline-block" style={{ marginRight: '0.15em' }}>
                 {word}
               </span>
             ))}

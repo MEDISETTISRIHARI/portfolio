@@ -7,6 +7,7 @@ import HeroContent from './HeroContent'
 import HeroMeta from './HeroMeta'
 import HeroCTA from './HeroCTA'
 import HeroMetadata from './HeroMetadata'
+import Portrait from './Portrait'
 import { useScroll } from '@/hooks/useScroll'
 
 type HeroData = {
@@ -33,6 +34,7 @@ export default function Hero({ data, role }: HeroProps) {
   const [pointerDistance, setPointerDistance] = useState(0)
   const [touchVelocity, setTouchVelocity] = useState({ x: 0, y: 0 })
   const [isMobile, setIsMobile] = useState(false)
+  const [isInView, setIsInView] = useState(false)
   const { scrollY, progress } = useScroll()
 
   const handleOrientation = (e: DeviceOrientationEvent) => {
@@ -149,6 +151,24 @@ export default function Hero({ data, role }: HeroProps) {
     }
   }, [progress])
 
+  // In-view detection for portrait reveal
+  useEffect(() => {
+    if (!heroRef.current) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true)
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.2 }
+    )
+    observer.observe(heroRef.current)
+    return () => observer.disconnect()
+  }, [])
+
   // Intro coordination: run entrance animation when intro completes
   useEffect(() => {
     const animate = () => {
@@ -214,6 +234,14 @@ export default function Hero({ data, role }: HeroProps) {
         '-=0.3'
       )
 
+      // Portrait: cinematic reveal
+      tl.fromTo(
+        '.hero-portrait',
+        { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0, scale: 1.08, y: 40, rotateY: 8 },
+        { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, scale: 1, y: 0, rotateY: 0, duration: 1.6, ease: 'power3.inOut' },
+        '-=1.2'
+      )
+
       tl.play()
     }
 
@@ -227,6 +255,7 @@ export default function Hero({ data, role }: HeroProps) {
         .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
         .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
         .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
+        .fromTo('.hero-portrait', { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0 }, { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, duration: 1, ease: 'power3.inOut' }, '-=0.6')
       tl.play()
     } else {
       const handleIntroComplete = () => {
@@ -244,7 +273,7 @@ export default function Hero({ data, role }: HeroProps) {
       data-scroll-section="hero"
       className="relative min-h-screen flex flex-col overflow-hidden"
     >
-      {/* 3D Hero Visual - occupies upper portion */}
+      {/* 3D Hero Visual - background layer */}
       <HeroVisual
         mousePos={mousePos}
         scrollProgress={progress}
@@ -258,20 +287,69 @@ export default function Hero({ data, role }: HeroProps) {
       {/* Signature wow moment trigger */}
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
 
-      {/* Content area - positioned in lower third */}
-      <div className={`hero-content-wrapper relative z-20 w-full max-w-2xl mx-auto ${isMobile ? 'pt-16 pb-24 px-6' : 'pb-32 md:pb-40'}`}>
-        <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />
-        <HeroMeta description={data.description} />
-        <HeroCTA
-          primaryText={data.ctaText || 'VIEW SELECTED WORK'}
-          primaryHref={data.ctaLink || '#work'}
-          secondaryText={data.secondaryCta || "LET'S TALK"}
-          secondaryHref={data.secondaryLink || '#contact'}
-        />
+      {/* Hero editorial grid */}
+      <div className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-6 pt-16 pb-24' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`}>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+          {/* Left column - identity metadata */}
+          <div className="md:col-span-3 lg:col-span-3 order-2 md:order-1">
+            <div className="md:sticky md:top-32">
+              {role && (
+                <p className="text-[clamp(0.7rem,1.2vw,0.8rem)] text-text-muted/60 mb-4 tracking-[0.3em] uppercase font-medium hero-role" style={{ letterSpacing: '0.3em' }}>
+                  {role}
+                </p>
+              )}
+              <div className="w-12 h-px bg-border-default mb-6" data-scroll-reveal />
+              <p className="text-meta text-text-muted mb-2" data-scroll-reveal>CREATIVE DEVELOPER</p>
+              <p className="text-meta text-text-muted" data-scroll-reveal>INDIA — 2026</p>
+            </div>
+          </div>
+
+          {/* Center-left column - large typography */}
+          <div className="md:col-span-5 lg:col-span-5 order-1 md:order-2">
+            <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />
+            <div className="mt-8 md:mt-12">
+              <HeroMeta description={data.description} />
+            </div>
+            <div className="mt-8 md:mt-12 hero-cta">
+              <HeroCTA
+                primaryText={data.ctaText || 'VIEW SELECTED WORK'}
+                primaryHref={data.ctaLink || '#work'}
+                secondaryText={data.secondaryCta || "LET'S TALK"}
+                secondaryHref={data.secondaryLink || '#contact'}
+              />
+            </div>
+          </div>
+
+          {/* Right column - portrait composition */}
+          <div className="md:col-span-4 lg:col-span-4 order-3 hidden md:block" data-scroll-parallax="0.08">
+            <div className="relative">
+              <Portrait
+                src={data.image}
+                alt={role || 'SRIHARI'}
+                isInView={isInView}
+                mousePos={mousePos}
+                isMobile={isMobile}
+              />
+            </div>
+          </div>
+
+          {/* Mobile portrait - shown below headline */}
+          <div className="md:hidden order-3 mt-8" data-scroll-parallax="0.06">
+            <div className="relative max-w-xs mx-auto">
+              <Portrait
+                src={data.image}
+                alt={role || 'SRIHARI'}
+                isInView={isInView}
+                mousePos={mousePos}
+                isMobile={isMobile}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Bottom metadata - pinned at bottom */}
-      <HeroMetadata className={isMobile ? 'mt-8' : 'mt-32 md:mt-40'} onRequestOrientation={requestOrientation} />
+      <HeroMetadata className={isMobile ? 'mt-8' : 'mt-auto'} onRequestOrientation={requestOrientation} />
     </section>
   )
 }
