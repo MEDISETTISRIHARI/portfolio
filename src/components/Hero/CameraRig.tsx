@@ -13,8 +13,8 @@ type CameraRigProps = {
   onSectionTransition?: (from: string, to: string, progress: number) => void
 }
 
-const LERP_RELAXED = 0.006
-const SPRING_FREQUENCY = 0.008
+const LERP_RELAXED = 0.005
+const SPRING_FREQUENCY = 0.006
 const SPRING_DAMPING = 0.92
 
 export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false, onSectionTransition }: CameraRigProps) {
@@ -48,9 +48,9 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     const camera = cameraRef.current
 
     if (prefersReducedMotion) {
-      camera.position.x += (mousePos.x * 0.15 - camera.position.x) * 0.004
-      camera.position.y += (mousePos.y * 0.08 - camera.position.y) * 0.004
-      camera.position.z += (18 - scrollProgress * 1 - camera.position.z) * 0.004
+      camera.position.x += (mousePos.x * 0.12 - camera.position.x) * 0.003
+      camera.position.y += (mousePos.y * 0.06 - camera.position.y) * 0.003
+      camera.position.z += (18 - scrollProgress * 1 - camera.position.z) * 0.003
       camera.lookAt(0, 0, 0)
       return
     }
@@ -65,19 +65,19 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
 
     // Animate transition progress
     if (state.current.transitionProgress < 1) {
-      state.current.transitionProgress += 0.02
+      state.current.transitionProgress += 0.015
       if (onSectionTransition && state.current.transitionProgress <= 1) {
         onSectionTransition(state.current.prevSection, currentSection, state.current.transitionProgress)
       }
     }
 
     // Layer 1: Slow idle movement (organic drift using Lissajous-like curves)
-    state.current.idleTick += 0.012
-    const idleX = Math.sin(state.current.idleTick * 0.7) * 0.15 + Math.cos(state.current.idleTick * 0.3) * 0.05
-    const idleY = Math.cos(state.current.idleTick * 0.5) * 0.1 + Math.sin(state.current.idleTick * 0.4) * 0.04
+    state.current.idleTick += 0.008
+    const idleX = Math.sin(state.current.idleTick * 0.7) * 0.2 + Math.cos(state.current.idleTick * 0.3) * 0.08
+    const idleY = Math.cos(state.current.idleTick * 0.5) * 0.12 + Math.sin(state.current.idleTick * 0.4) * 0.05
 
     // Layer 2: Pointer-based parallax with damping (mobile amplitude reduced)
-    const pointerAmp = isMobile ? 0.2 : 0.45
+    const pointerAmp = isMobile ? 0.15 : 0.5
     const pointerFactor = pointerDistance !== undefined ? Math.max(0, 1 - pointerDistance / 12) : 1
     const pointerX = mousePos.x * (pointerAmp * pointerFactor)
     const pointerY = -mousePos.y * (pointerAmp * 0.7 * pointerFactor)
@@ -87,26 +87,25 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     state.current.prevScrollProgress = scrollProgress
 
     // Layer 3: Scroll-based movement (composition change)
-    // Camera pulls back slightly and shifts down as user scrolls
-    const scrollZ = 18 - scrollProgress * 2.5
-    const scrollY = -scrollProgress * 1.5
+    const scrollZ = 18 - scrollProgress * 3
+    const scrollY = -scrollProgress * 2
 
     // Layer 4: Scroll velocity micro response
-    const scrollMicroX = state.current.scrollVelocity * 0.02
+    const scrollMicroX = state.current.scrollVelocity * 0.03
 
     // Layer 5: Scroll-driven subtle scene rotation
-    const scrollRotationY = scrollProgress * 0.3
-    const scrollRotationX = scrollProgress * 0.1
+    const scrollRotationY = scrollProgress * 0.4
+    const scrollRotationX = scrollProgress * 0.15
 
     // Layer 6: Hero-to-About wow moment transition
     const transitionBoost = state.current.transitionProgress > 0 && state.current.transitionProgress < 1
-      ? Math.sin(state.current.transitionProgress * Math.PI) * 0.5
+      ? Math.sin(state.current.transitionProgress * Math.PI) * 0.6
       : 0
 
     // Combine all layers
-    const targetX = pointerX + idleX + scrollMicroX + transitionBoost * Math.sin(scrollRotationY) * 2
-    const targetY = pointerY + idleY + scrollY + transitionBoost * Math.cos(scrollRotationX) * 1.5
-    const targetZ = scrollZ - transitionBoost * 2
+    const targetX = pointerX + idleX + scrollMicroX + transitionBoost * Math.sin(scrollRotationY) * 2.5
+    const targetY = pointerY + idleY + scrollY + transitionBoost * Math.cos(scrollRotationX) * 2
+    const targetZ = scrollZ - transitionBoost * 2.5
 
     // Spring-based damping for smooth motion
     state.current.velocityX += (targetX - state.current.currentX) * SPRING_FREQUENCY
@@ -127,10 +126,10 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     camera.position.z += (state.current.currentZ - camera.position.z) * LERP_RELAXED
 
     // Subtle look-at drift for cinematic feel
-    state.current.targetLookAtX = mousePos.x * 0.3 + scrollRotationY * 0.1
-    state.current.targetLookAtY = -mousePos.y * 0.2 - scrollRotationX * 0.1
-    state.current.lookAtX += (state.current.targetLookAtX - state.current.lookAtX) * 0.02
-    state.current.lookAtY += (state.current.targetLookAtY - state.current.lookAtY) * 0.02
+    state.current.targetLookAtX = mousePos.x * 0.4 + scrollRotationY * 0.15
+    state.current.targetLookAtY = -mousePos.y * 0.25 - scrollRotationX * 0.12
+    state.current.lookAtX += (state.current.targetLookAtX - state.current.lookAtX) * 0.015
+    state.current.lookAtY += (state.current.targetLookAtY - state.current.lookAtY) * 0.015
     camera.lookAt(state.current.lookAtX, state.current.lookAtY, 0)
   })
 

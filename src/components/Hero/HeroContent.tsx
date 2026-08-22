@@ -25,19 +25,19 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
           words,
           {
             opacity: 0,
-            y: 50,
+            y: 60,
             clipPath: 'inset(0 0 100% 0)',
-            filter: 'blur(6px)',
+            filter: 'blur(8px)',
           },
           {
             opacity: 1,
             y: 0,
             clipPath: 'inset(0 0 0% 0)',
             filter: 'blur(0px)',
-            duration: 0.9,
-            stagger: 0.06,
+            duration: 1,
+            stagger: 0.07,
             ease: 'power3.out',
-            delay: 0.3,
+            delay: 0.4,
           }
         )
       }
@@ -49,17 +49,17 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
           subtitleWords,
           {
             opacity: 0,
-            y: 30,
-            filter: 'blur(3px)',
+            y: 40,
+            filter: 'blur(4px)',
           },
           {
             opacity: 1,
             y: 0,
             filter: 'blur(0px)',
-            duration: 0.8,
-            stagger: 0.04,
+            duration: 0.9,
+            stagger: 0.05,
             ease: 'power2.out',
-            delay: 0.6,
+            delay: 0.7,
           }
         )
       }
@@ -71,18 +71,26 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
   return (
     <>
       {role && (
-        <p className="text-[clamp(0.7rem,1.2vw,0.8rem)] text-text-muted/60 mb-6 md:mb-8 tracking-[0.3em] uppercase hero-role font-medium" style={{ letterSpacing: '0.3em' }}>
+        <p className="text-[clamp(0.65rem,1vw,0.75rem)] text-text-muted/50 mb-6 md:mb-8 tracking-[0.35em] uppercase hero-role font-light" style={{ letterSpacing: '0.35em' }}>
           {role}
         </p>
       )}
       <div className="hero-title-wrapper overflow-hidden">
         <h1
           ref={titleRef}
-          className="font-display text-[clamp(3rem,7vw,8.5rem)] text-text-primary hero-title-line leading-[0.88] tracking-[-0.045em]"
-          style={{ lineHeight: '0.88', letterSpacing: '-0.045em' }}
+          className="font-display text-[clamp(3.2rem,7.5vw,9rem)] text-text-primary hero-title-line leading-[0.85] tracking-[-0.05em]"
+          style={{ lineHeight: '0.85', letterSpacing: '-0.05em' }}
         >
           {headline.split(' ').map((word, i) => (
-            <span key={i} className="hero-word inline-block" style={{ marginRight: '0.15em' }}>
+            <span
+              key={i}
+              className="hero-word inline-block"
+              style={{
+                marginRight: '0.12em',
+                fontWeight: i % 3 === 0 ? 300 : 600,
+                transform: `translateX(${i % 5 === 0 ? '-4px' : i % 5 === 2 ? '4px' : '0'})`,
+              }}
+            >
               {word}
             </span>
           ))}
@@ -92,11 +100,18 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
         <div key={i} className="hero-title-wrapper overflow-hidden">
           <h2
             ref={i === 0 ? subtitleRef : undefined}
-            className="font-display text-[clamp(2.5rem,6vw,7.5rem)] text-text-primary/90 hero-title-line leading-[0.9] tracking-[-0.035em]"
-            style={{ lineHeight: '0.9', letterSpacing: '-0.035em' }}
+            className="font-display text-[clamp(2.2rem,5.5vw,7rem)] text-text-primary/85 hero-title-line leading-[0.9] tracking-[-0.04em]"
+            style={{ lineHeight: '0.9', letterSpacing: '-0.04em' }}
           >
             {line.split(' ').map((word, j) => (
-              <span key={j} className="hero-word inline-block" style={{ marginRight: '0.15em' }}>
+              <span
+                key={j}
+                className="hero-word inline-block"
+                style={{
+                  marginRight: '0.12em',
+                  fontWeight: j % 2 === 0 ? 300 : 500,
+                }}
+              >
                 {word}
               </span>
             ))}

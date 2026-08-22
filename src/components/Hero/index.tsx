@@ -149,6 +149,13 @@ export default function Hero({ data, role }: HeroProps) {
         overwrite: true,
       })
     }
+
+    // Scroll-responsive typography movement
+    const heroContent = document.querySelector('.hero-center-column') as HTMLElement | null
+    if (heroContent && progress < 0.15) {
+      const parallax = progress * 30
+      heroContent.style.transform = `translateY(${-parallax}px)`
+    }
   }, [progress])
 
   // In-view detection for portrait reveal
@@ -305,7 +312,7 @@ export default function Hero({ data, role }: HeroProps) {
           </div>
 
           {/* Center-left column - large typography */}
-          <div className="md:col-span-5 lg:col-span-5 order-1 md:order-2">
+          <div className="md:col-span-5 lg:col-span-5 order-1 md:order-2 hero-center-column">
             <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />
             <div className="mt-8 md:mt-12">
               <HeroMeta description={data.description} />
