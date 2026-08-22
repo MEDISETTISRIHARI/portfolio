@@ -29,14 +29,14 @@ type FooterProps = {
 
 export default function Footer({ socials, profile }: FooterProps) {
   return (
-    <footer className="py-16 border-t border-border-subtle">
+    <footer data-scroll-section="footer" className="py-16 border-t border-border-subtle">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           <div>
-            <p className="font-display text-display-sm text-text-primary mb-2">
+            <p className="font-display text-display-sm text-text-primary mb-2" data-scroll-reveal>
               {profile?.name || 'SRIHARI'}
             </p>
-            <p className="body-sm text-text-muted">
+            <p className="body-sm text-text-muted" data-scroll-reveal>
               {profile?.role || 'DIGITAL EXPERIENCES'}
             </p>
           </div>
@@ -48,6 +48,7 @@ export default function Footer({ socials, profile }: FooterProps) {
                   key={social.id}
                   href={social.url}
                   className="body-sm text-text-muted hover:text-text-primary transition-colors duration-300"
+                  data-scroll-reveal
                   {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 >
                   {social.platform}
@@ -55,7 +56,7 @@ export default function Footer({ socials, profile }: FooterProps) {
               )
             })}
           </div>
-          <p className="body-sm text-text-muted">© 2026</p>
+          <p className="body-sm text-text-muted" data-scroll-reveal>© 2026</p>
         </div>
       </div>
     </footer>

@@ -124,11 +124,34 @@ export default function Hero({ data, role }: HeroProps) {
       }
     }
 
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (e.gamma === null || e.beta === null) return
+      const x = Math.max(-1, Math.min(1, e.gamma / 45))
+      const y = Math.max(-1, Math.min(1, (e.beta - 45) / 45))
+      setMousePos({ x, y })
+      const dist = Math.sqrt(x * x + y * y)
+      setPointerDistance(dist)
+    }
+
     window.addEventListener('mousemove', handleMouseMove, { passive: true })
     window.addEventListener('touchmove', handleTouchMove, { passive: true })
+
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then((permissionState) => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation, { passive: true })
+          }
+        })
+        .catch(() => {})
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation, { passive: true })
+    }
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('deviceorientation', handleOrientation)
     }
   }, [])
 
@@ -136,6 +159,7 @@ export default function Hero({ data, role }: HeroProps) {
     <section
       id="hero"
       ref={heroRef}
+      data-scroll-section="hero"
       className="relative min-h-screen flex flex-col overflow-hidden"
     >
       {/* 3D Hero Visual - occupies upper portion */}

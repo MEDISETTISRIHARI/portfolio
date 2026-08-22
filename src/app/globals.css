@@ -365,8 +365,17 @@ body::before {
 }
 
 /* ============================================
-   REVEAL ANIMATIONS
-   ============================================ */
+    SCROLL EXPERIENCE
+    ============================================ */
+
+.scroll-experience [data-scroll-reveal],
+.scroll-experience .reveal-up {
+  transition: none !important;
+}
+
+/* ============================================
+    REVEAL ANIMATIONS
+    ============================================ */
 
 .reveal-up {
   opacity: 0;

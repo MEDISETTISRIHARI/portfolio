@@ -43,27 +43,27 @@ export default function ContactSection({ email }: ContactSectionProps) {
   }
 
   return (
-    <section id="contact" className="py-32 md:py-48 border-t border-border-subtle">
+    <section id="contact" data-scroll-section="contact" className="py-32 md:py-48 border-t border-border-subtle">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl">
-          <p className="label text-text-muted mb-6 reveal-up">CONTACT</p>
-          <h2 className="font-display text-display-md text-text-primary mb-8 reveal-up">
+          <p className="label text-text-muted mb-6" data-scroll-reveal>CONTACT</p>
+          <h2 className="font-display text-display-md text-text-primary mb-8" data-scroll-reveal>
             HAVE AN IDEA?
           </h2>
-          <h3 className="font-display text-display-sm text-text-secondary mb-16 reveal-up">
+          <h3 className="font-display text-display-sm text-text-secondary mb-16" data-scroll-reveal>
             LET'S BUILD SOMETHING<br />WORTH REMEMBERING.
           </h3>
 
           {status === 'success' && (
-            <p className="body-md text-accent mb-8 reveal-up">Message sent successfully. I'll get back to you soon.</p>
+            <p className="body-md text-accent mb-8">Message sent successfully. I'll get back to you soon.</p>
           )}
           {status === 'error' && (
-            <p className="body-md text-red-400 mb-8 reveal-up">Failed to send message. Please try again.</p>
+            <p className="body-md text-red-400 mb-8">Failed to send message. Please try again.</p>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="reveal-up">
+              <div data-scroll-reveal>
                 <label className="label text-text-muted block mb-3">NAME</label>
                 <input
                   type="text"
@@ -73,7 +73,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
                   placeholder="Your name"
                 />
               </div>
-              <div className="reveal-up">
+              <div data-scroll-reveal>
                 <label className="label text-text-muted block mb-3">EMAIL</label>
                 <input
                   type="email"
@@ -85,7 +85,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="reveal-up">
+              <div data-scroll-reveal>
                 <label className="label text-text-muted block mb-3">PROJECT TYPE</label>
                 <select name="projectType" className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300">
                   <option value="">Select project type</option>
@@ -95,7 +95,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
                   <option value="other">Other</option>
                 </select>
               </div>
-              <div className="reveal-up">
+              <div data-scroll-reveal>
                 <label className="label text-text-muted block mb-3">BUDGET</label>
                 <select name="budget" className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300">
                   <option value="">Select budget range</option>
@@ -106,7 +106,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
                 </select>
               </div>
             </div>
-            <div className="reveal-up">
+            <div data-scroll-reveal>
               <label className="label text-text-muted block mb-3">MESSAGE</label>
               <textarea
                 name="message"
@@ -116,7 +116,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
                 placeholder="Tell me about your project..."
               />
             </div>
-            <div className="pt-4 reveal-up">
+            <div className="pt-4" data-scroll-reveal>
               <button
                 type="submit"
                 disabled={isSubmitting}
