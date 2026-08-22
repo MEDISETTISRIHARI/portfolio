@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { gsap } from 'gsap'
 import ProjectVisual from './ProjectVisual'
+import { useScroll } from '@/hooks/useScroll'
 
 type Project = {
   id: string
@@ -31,9 +32,11 @@ type ProjectsSectionProps = {
 export default function ProjectsSection({ data }: ProjectsSectionProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isInView, setIsInView] = useState(false)
+  const [scrollVelocity, setScrollVelocity] = useState(0)
   const sectionRef = useRef<HTMLElement>(null)
   const projectRefs = useRef<(HTMLDivElement | null)[]>([])
   const magneticRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
+  const { scrollY, progress } = useScroll()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -76,8 +79,22 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
     return () => ctx.revert()
   }, [isInView])
 
-  // Scroll progress for this section
-  // Removed to avoid re-renders on every scroll - ProjectVisual handles its own animations
+  // Track scroll velocity for physical scroll response
+  useEffect(() => {
+    let lastY = scrollY
+    let raf: number
+
+    const updateVelocity = () => {
+      const delta = scrollY - lastY
+      const velocity = Math.abs(delta)
+      setScrollVelocity(velocity)
+      lastY = scrollY
+      raf = requestAnimationFrame(updateVelocity)
+    }
+
+    raf = requestAnimationFrame(updateVelocity)
+    return () => cancelAnimationFrame(raf)
+  }, [scrollY])
 
   const handleTouch = useCallback((id: string) => {
     setActiveId(activeId === id ? null : id)
@@ -91,7 +108,7 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
     setActiveId(null)
   }, [])
 
-  // Magnetic button effect
+  // GSAP hover experience
   useEffect(() => {
     const refs = magneticRefs.current
     if (!refs.size) return
@@ -128,6 +145,13 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
     }
   }, [activeId])
 
+  // Scroll velocity effect on projects
+  const getVelocityClass = () => {
+    if (scrollVelocity > 30) return 'translate-x-1 skew-x-1'
+    if (scrollVelocity > 15) return 'translate-x-0.5 skew-x-0.5'
+    return ''
+  }
+
   return (
     <section id="work" data-scroll-section="work" className="relative py-24 md:py-48 border-t border-border-subtle" ref={sectionRef}>
       {/* Section transition line */}
@@ -153,20 +177,21 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
           </div>
         </div>
 
-        {/* Projects list - editorial stacked layout */}
-        <div className="space-y-20 md:space-y-40">
+        {/* Projects list - cinematic editorial stacked layout */}
+        <div className="space-y-24 md:space-y-40">
           {data.map((project, i) => {
             const isActive = activeId === project.id
             const href = project.caseStudy || project.liveUrl || '#'
+            const techList = project.technologies.split(',').slice(0, 4)
 
             return (
               <div
                 key={project.id}
                 ref={(el) => { projectRefs.current[i] = el }}
-                className="project-item group relative"
+                className={`project-item group relative transition-all duration-500 ${getVelocityClass()}`}
                 data-scroll-reveal
               >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
                   {/* Project number - large editorial */}
                   <div className="lg:col-span-1" data-scroll-parallax="0.06">
                     <div className="relative">
@@ -189,7 +214,7 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                   </div>
 
                   {/* Project info - massive typography */}
-                  <div className="lg:col-span-7" data-scroll-parallax="0.1">
+                  <div className="lg:col-span-6" data-scroll-parallax="0.1">
                     <div className="overflow-hidden mb-4">
                       <h3
                         className="font-display text-[clamp(2.5rem,5vw,5.5rem)] text-text-primary transition-all duration-700 leading-[0.9]"
@@ -215,19 +240,11 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                       </span>
                       <span className="w-1 h-1 rounded-full bg-text-muted" />
                       <span className="body-sm text-text-muted">{project.year}</span>
-                      {project.technologies && (
-                        <>
-                          <span className="w-1 h-1 rounded-full bg-text-muted hidden md:block" />
-                          <span className="body-sm text-text-muted hidden md:block">
-                            {project.technologies.split(',').slice(0, 3).join(' / ')}
-                          </span>
-                        </>
-                      )}
                     </div>
 
                     {/* Description */}
                     <p
-                      className="body-lg text-text-secondary max-w-xl transition-all duration-700"
+                      className="body-lg text-text-secondary max-w-xl transition-all duration-700 mb-6"
                       style={{
                         opacity: isActive ? 1 : 0.5,
                         transform: isActive ? 'translateY(0)' : 'translateY(8px)',
@@ -235,10 +252,26 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                     >
                       {project.shortDesc}
                     </p>
+
+                    {/* Technology / capability indicators */}
+                    <div className="flex flex-wrap gap-2">
+                      {techList.map((tech, idx) => (
+                        <span
+                          key={idx}
+                          className="text-[10px] text-text-muted/60 border border-border-subtle px-3 py-1.5 uppercase tracking-widest transition-all duration-500"
+                          style={{
+                            opacity: isActive ? 0.8 : 0.3,
+                            borderColor: isActive ? 'rgba(125,211,252,0.15)' : 'rgba(255,255,255,0.06)',
+                          }}
+                        >
+                          {tech.trim()}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
                   {/* View project - magnetic CTA */}
-                  <div className="lg:col-span-4 hidden lg:flex items-start justify-end" data-scroll-parallax="0.04">
+                  <div className="lg:col-span-5 hidden lg:flex items-start justify-end" data-scroll-parallax="0.04">
                     <a
                       ref={(el) => {
                         if (el) magneticRefs.current.set(project.id, el)

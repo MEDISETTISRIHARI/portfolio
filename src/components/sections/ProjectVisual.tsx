@@ -3,76 +3,33 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
-type VisualStyle = {
-  base: string
-  accent: string
-  shape: string
-  pattern: string
-  movement: string
-}
-
-const VISUAL_STYLES: Record<string, VisualStyle> = {
-  'Insurance': {
-    base: 'linear-gradient(135deg, #0a0a0a 0%, #0f172a 50%, #0a0a0a 100%)',
-    accent: '#7dcffd',
-    shape: 'radial',
-    pattern: 'grid',
-    movement: 'drift',
-  },
-  'Fintech': {
-    base: 'linear-gradient(135deg, #0a0a0a 0%, #0c1929 50%, #0a0a0a 100%)',
-    accent: '#5b8def',
-    shape: 'linear',
-    pattern: 'lines',
-    movement: 'slide',
-  },
-  'Creative Agency': {
-    base: 'linear-gradient(135deg, #0a0a0a 0%, #0f172a 50%, #0a0a0a 100%)',
-    accent: '#7dd3fc',
-    shape: 'conic',
-    pattern: 'dots',
-    movement: 'rotate',
-  },
-  'Architecture': {
-    base: 'linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%)',
-    accent: '#9ca3af',
-    shape: 'grid',
-    pattern: 'structure',
-    movement: 'pulse',
-  },
-  'default': {
-    base: 'linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%)',
-    accent: '#7dcffd',
-    shape: 'radial',
-    pattern: 'grid',
-    movement: 'drift',
-  },
-}
-
-function getVisualStyle(category?: string): VisualStyle {
-  if (!category) return VISUAL_STYLES['default']
-  return VISUAL_STYLES[category] || VISUAL_STYLES['default']
-}
-
 type ProjectVisualProps = {
   category?: string
   title: string
   isActive: boolean
 }
 
+function getCategoryKey(category?: string): string {
+  if (!category) return 'default'
+  const lower = category.toLowerCase()
+  if (lower.includes('insurance')) return 'insurance'
+  if (lower.includes('fintech') || lower.includes('finance')) return 'fintech'
+  if (lower.includes('creative') || lower.includes('agency')) return 'creative'
+  if (lower.includes('architect')) return 'architecture'
+  return 'default'
+}
+
 export default function ProjectVisual({ category, title, isActive }: ProjectVisualProps) {
   const visualRef = useRef<HTMLDivElement>(null)
-  const style = getVisualStyle(category)
+  const categoryKey = getCategoryKey(category)
 
   useEffect(() => {
     if (!visualRef.current) return
     const el = visualRef.current
 
     const ctx = gsap.context(() => {
-      // Initial state
       gsap.set(el, { opacity: 0, scale: 0.98 })
 
-      // Animate in when active
       if (isActive) {
         gsap.to(el, {
           opacity: 1,
@@ -91,10 +48,10 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
     const el = visualRef.current
 
     const ctx = gsap.context(() => {
-      const shapeEl = el.querySelector('.project-visual-shape')
-      const patternEl = el.querySelector('.project-visual-pattern')
-      const lineEl = el.querySelector('.project-visual-line')
-      const titleEl = el.querySelector('.project-visual-title')
+      const shapeEl = el.querySelector('.pv-shape')
+      const patternEl = el.querySelector('.pv-pattern')
+      const lineEl = el.querySelector('.pv-line')
+      const titleEl = el.querySelector('.pv-title')
 
       if (shapeEl) {
         gsap.to(shapeEl, {
@@ -135,97 +92,18 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
     return () => ctx.revert()
   }, [isActive])
 
-  const renderShape = () => {
-    switch (style.shape) {
-      case 'radial':
-        return (
-          <div
-            className="project-visual-shape absolute inset-0 transition-all duration-700"
-            style={{
-              background: `radial-gradient(circle at 30% 30%, ${style.accent}18 0%, transparent 60%)`,
-              transform: isActive ? 'scale(1.1)' : 'scale(1)',
-            }}
-          />
-        )
-      case 'linear':
-        return (
-          <div
-            className="project-visual-shape absolute inset-0 transition-all duration-700"
-            style={{
-              background: `linear-gradient(45deg, transparent 40%, ${style.accent}12 50%, transparent 60%)`,
-              transform: isActive ? 'translateX(10%)' : 'translateX(0)',
-            }}
-          />
-        )
-      case 'conic':
-        return (
-          <div
-            className="project-visual-shape absolute inset-0 transition-all duration-700"
-            style={{
-              background: `conic-gradient(from 45deg at 50% 50%, transparent 0deg, ${style.accent}08 90deg, transparent 180deg)`,
-              transform: isActive ? 'rotate(45deg) scale(1.2)' : 'rotate(0deg) scale(1)',
-            }}
-          />
-        )
-      case 'grid':
-        return (
-          <div
-            className="project-visual-shape absolute inset-0 transition-all duration-700"
-            style={{
-              backgroundImage: `linear-gradient(${style.accent}08 1px, transparent 1px), linear-gradient(90deg, ${style.accent}08 1px, transparent 1px)`,
-              backgroundSize: '40px 40px',
-              transform: isActive ? 'scale(1.1)' : 'scale(1)',
-            }}
-          />
-        )
+  const renderVisual = () => {
+    switch (categoryKey) {
+      case 'insurance':
+        return <InsuranceVisual isActive={isActive} title={title} />
+      case 'fintech':
+        return <FintechVisual isActive={isActive} title={title} />
+      case 'creative':
+        return <CreativeVisual isActive={isActive} title={title} />
+      case 'architecture':
+        return <ArchitectureVisual isActive={isActive} title={title} />
       default:
-        return null
-    }
-  }
-
-  const renderPattern = () => {
-    switch (style.pattern) {
-      case 'grid':
-        return (
-          <div
-            className="project-visual-pattern absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
-              backgroundSize: '60px 60px',
-            }}
-          />
-        )
-      case 'lines':
-        return (
-          <div
-            className="project-visual-pattern absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 40px, ${style.accent}08 40px, ${style.accent}08 41px)`,
-            }}
-          />
-        )
-      case 'dots':
-        return (
-          <div
-            className="project-visual-pattern absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `radial-gradient(circle, ${style.accent}15 1px, transparent 1px)`,
-              backgroundSize: '30px 30px',
-            }}
-          />
-        )
-      case 'structure':
-        return (
-          <div
-            className="project-visual-pattern absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: `linear-gradient(${style.accent}10 1px, transparent 1px), linear-gradient(90deg, ${style.accent}10 1px, transparent 1px)`,
-              backgroundSize: '80px 80px',
-            }}
-          />
-        )
-      default:
-        return null
+        return <DefaultVisual isActive={isActive} title={title} />
     }
   }
 
@@ -234,66 +112,55 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
       ref={visualRef}
       className="project-visual absolute inset-0 overflow-hidden"
       style={{
-        background: style.base,
+        background: '#050505',
       }}
     >
       {/* Depth layer - base */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60" />
 
-      {/* Shape layer */}
-      {renderShape()}
+      {/* Unique visual composition */}
+      {renderVisual()}
 
-      {/* Pattern layer */}
-      {renderPattern()}
-
-      {/* Animated accent line */}
-      <div
-        className="project-visual-line absolute top-0 left-0 h-px origin-left"
+      {/* Animated accent lines */}
+      <div className="pv-line absolute top-0 left-0 h-px origin-left"
         style={{
           width: '100%',
-          background: `linear-gradient(90deg, transparent, ${style.accent}60, transparent)`,
+          background: 'linear-gradient(90deg, transparent, rgba(125,211,252,0.3), transparent)',
           transform: 'scaleX(0)',
         }}
       />
-
-      {/* Bottom accent line */}
-      <div
-        className="project-visual-line absolute bottom-0 left-0 h-px origin-left"
+      <div className="pv-line absolute bottom-0 left-0 h-px origin-left"
         style={{
           width: '100%',
-          background: `linear-gradient(90deg, transparent, ${style.accent}40, transparent)`,
+          background: 'linear-gradient(90deg, transparent, rgba(125,211,252,0.2), transparent)',
           transform: 'scaleX(0)',
         }}
       />
 
       {/* Corner accent */}
-      <div
-        className="absolute top-0 right-0 w-24 h-24 transition-all duration-700"
+      <div className="absolute top-0 right-0 w-24 h-24 transition-all duration-700"
         style={{
           opacity: isActive ? 0.2 : 0,
-          background: `linear-gradient(135deg, transparent 50%, ${style.accent}15 50%)`,
+          background: 'linear-gradient(135deg, transparent 50%, rgba(125,211,252,0.1) 50%)',
         }}
       />
 
       {/* Center glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl transition-all duration-1000"
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl transition-all duration-1000"
         style={{
-          background: `radial-gradient(circle, ${style.accent}10 0%, transparent 70%)`,
+          background: 'radial-gradient(circle, rgba(125,211,252,0.08) 0%, transparent 70%)',
           opacity: isActive ? 0.5 : 0.1,
           transform: `translate(-50%, -50%) scale(${isActive ? 1.5 : 1})`,
         }}
       />
 
       {/* Title watermark */}
-      <div
-        className="project-visual-title absolute inset-0 flex items-center justify-center pointer-events-none"
+      <div className="pv-title absolute inset-0 flex items-center justify-center pointer-events-none"
         style={{ opacity: 0 }}
       >
-        <span
-          className="font-display text-[clamp(2rem,5vw,5rem)] tracking-tight select-none"
+        <span className="font-display text-[clamp(2rem,5vw,5rem)] tracking-tight select-none"
           style={{
-            color: style.accent,
+            color: '#7dcffd',
             opacity: 0.15,
             transform: 'translateY(20px)',
           }}
@@ -301,6 +168,245 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
           {title}
         </span>
       </div>
+    </div>
+  )
+}
+
+function InsuranceVisual({ isActive, title }: { isActive: boolean; title: string }) {
+  return (
+    <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}>
+      {/* Structured grid - architectural interface */}
+      <div className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(125,211,252,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(125,211,252,0.06) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }}
+      />
+
+      {/* Data cards - floating panels */}
+      <div className="absolute top-[15%] left-[10%] w-32 h-20 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+        style={{ transform: `translateY(${isActive ? 0 : 10}px)`, opacity: isActive ? 0.6 : 0.3 }}
+      />
+      <div className="absolute top-[25%] left-[25%] w-40 h-24 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+        style={{ transform: `translateY(${isActive ? 0 : 15}px)`, opacity: isActive ? 0.5 : 0.2, transitionDelay: '0.1s' }}
+      />
+      <div className="absolute top-[18%] right-[15%] w-36 h-16 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+        style={{ transform: `translateY(${isActive ? 0 : 8}px)`, opacity: isActive ? 0.5 : 0.2, transitionDelay: '0.2s' }}
+      />
+
+      {/* Data surface lines */}
+      <div className="absolute top-[45%] left-[8%] right-[8%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
+        style={{ transform: `scaleX(${isActive ? 1 : 0.8})`, opacity: isActive ? 0.4 : 0.1 }}
+      />
+      <div className="absolute top-[55%] left-[12%] right-[12%] h-px bg-gradient-to-r from-transparent via-white/5 to-transparent transition-all duration-1000"
+        style={{ transform: `scaleX(${isActive ? 1 : 0.7})`, opacity: isActive ? 0.3 : 0.1, transitionDelay: '0.1s' }}
+      />
+
+      {/* Center glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-3xl transition-all duration-1000"
+        style={{
+          background: 'radial-gradient(circle, rgba(125,211,252,0.06) 0%, transparent 70%)',
+          opacity: isActive ? 0.4 : 0.1,
+        }}
+      />
+    </div>
+  )
+}
+
+function FintechVisual({ isActive, title }: { isActive: boolean; title: string }) {
+  return (
+    <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'translateX(5%)' : 'translateX(0)' }}>
+      {/* Flowing data lines */}
+      <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 200" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="finGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="50%" stopColor="rgba(91,141,239,0.3)" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+        </defs>
+        <path d={isActive ? 'M0,100 Q100,60 200,100 T400,100' : 'M0,100 Q100,140 200,100 T400,100'}
+          stroke="url(#finGrad)" strokeWidth="1" fill="none" className="transition-all duration-1000" />
+        <path d={isActive ? 'M0,120 Q100,80 200,120 T400,120' : 'M0,120 Q100,160 200,120 T400,120'}
+          stroke="url(#finGrad)" strokeWidth="0.5" fill="none" className="transition-all duration-1000" style={{ transitionDelay: '0.2s' }} />
+      </svg>
+
+      {/* Chart bars */}
+      <div className="absolute bottom-[20%] left-[15%] flex items-end gap-1 h-24">
+        {[40, 65, 45, 80, 55, 70, 50, 85].map((h, i) => (
+          <div key={i} className="w-2 bg-gradient-to-t from-blue-500/20 to-blue-400/40 transition-all duration-500"
+            style={{
+              height: `${h}%`,
+              transform: isActive ? 'scaleY(1)' : 'scaleY(0.8)',
+              opacity: isActive ? 0.6 : 0.2,
+              transitionDelay: `${i * 0.05}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Numerical indicators */}
+      <div className="absolute top-[20%] right-[10%] text-right">
+        <div className="text-[10px] text-blue-300/30 font-mono transition-all duration-500"
+          style={{ opacity: isActive ? 0.6 : 0.2 }}>24.8K</div>
+        <div className="text-[10px] text-blue-300/20 font-mono mt-1 transition-all duration-500"
+          style={{ opacity: isActive ? 0.4 : 0.1, transitionDelay: '0.1s' }}>+12.5%</div>
+      </div>
+
+      {/* Center glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-3xl transition-all duration-1000"
+        style={{
+          background: 'radial-gradient(circle, rgba(91,141,239,0.06) 0%, transparent 70%)',
+          opacity: isActive ? 0.4 : 0.1,
+        }}
+      />
+    </div>
+  )
+}
+
+function CreativeVisual({ isActive, title }: { isActive: boolean; title: string }) {
+  return (
+    <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'rotate(8deg) scale(1.1)' : 'rotate(0deg) scale(1)' }}>
+      {/* Abstract forms */}
+      <div className="absolute top-[20%] left-[15%] w-32 h-32 rounded-full blur-2xl transition-all duration-1000"
+        style={{
+          background: 'radial-gradient(circle, rgba(125,211,252,0.1) 0%, transparent 70%)',
+          opacity: isActive ? 0.5 : 0.2,
+          transform: isActive ? 'scale(1.2)' : 'scale(1)',
+        }}
+      />
+      <div className="absolute bottom-[25%] right-[20%] w-40 h-40 rounded-full blur-3xl transition-all duration-1000"
+        style={{
+          background: 'radial-gradient(circle, rgba(91,141,239,0.08) 0%, transparent 70%)',
+          opacity: isActive ? 0.4 : 0.1,
+          transform: isActive ? 'scale(1.3)' : 'scale(1)',
+          transitionDelay: '0.2s',
+        }}
+      />
+
+      {/* Typography overlay - abstract text */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="relative">
+          <span className="font-display text-[clamp(1.5rem,4vw,3rem)] text-white/5 select-none transition-all duration-700"
+            style={{ transform: isActive ? 'translateY(0)' : 'translateY(20px)' }}>
+            {title.split(' ')[0]}
+          </span>
+          <span className="absolute -top-2 -right-4 text-[10px] text-white/10 font-mono tracking-widest"
+            style={{ opacity: isActive ? 0.3 : 0 }}>
+            CREATE
+          </span>
+        </div>
+      </div>
+
+      {/* Floating geometric shapes */}
+      <div className="absolute top-[30%] right-[25%] w-16 h-16 border border-white/5 rotate-45 transition-all duration-1000"
+        style={{ transform: isActive ? 'rotate(90deg) scale(1.2)' : 'rotate(45deg) scale(1)', opacity: isActive ? 0.3 : 0.1 }}
+      />
+      <div className="absolute bottom-[35%] left-[30%] w-12 h-12 border border-white/5 rounded-full transition-all duration-1000"
+        style={{ transform: isActive ? 'scale(1.3)' : 'scale(1)', opacity: isActive ? 0.3 : 0.1, transitionDelay: '0.15s' }}
+      />
+
+      {/* Center glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-3xl transition-all duration-1000"
+        style={{
+          background: 'radial-gradient(circle, rgba(125,211,252,0.08) 0%, transparent 70%)',
+          opacity: isActive ? 0.4 : 0.1,
+        }}
+      />
+    </div>
+  )
+}
+
+function ArchitectureVisual({ isActive, title }: { isActive: boolean; title: string }) {
+  return (
+    <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}>
+      {/* Perspective planes */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Horizontal planes with perspective */}
+        <div className="absolute top-[20%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0.9)', opacity: isActive ? 0.3 : 0.1 }}
+        />
+        <div className="absolute top-[35%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0.85)', opacity: isActive ? 0.2 : 0.05, transitionDelay: '0.1s' }}
+        />
+        <div className="absolute top-[50%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0.9)', opacity: isActive ? 0.3 : 0.1, transitionDelay: '0.2s' }}
+        />
+        <div className="absolute top-[65%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0.85)', opacity: isActive ? 0.2 : 0.05, transitionDelay: '0.3s' }}
+        />
+        <div className="absolute top-[80%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0.9)', opacity: isActive ? 0.3 : 0.1, transitionDelay: '0.4s' }}
+        />
+
+        {/* Vertical lines - architectural structure */}
+        <div className="absolute top-0 bottom-0 left-[15%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleY(1)' : 'scaleY(0.9)', opacity: isActive ? 0.2 : 0.05 }}
+        />
+        <div className="absolute top-0 bottom-0 left-[35%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleY(1)' : 'scaleY(0.85)', opacity: isActive ? 0.15 : 0.05, transitionDelay: '0.1s' }}
+        />
+        <div className="absolute top-0 bottom-0 right-[25%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleY(1)' : 'scaleY(0.9)', opacity: isActive ? 0.2 : 0.05, transitionDelay: '0.2s' }}
+        />
+        <div className="absolute top-0 bottom-0 right-[10%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent transition-all duration-1000"
+          style={{ transform: isActive ? 'scaleY(1)' : 'scaleY(0.85)', opacity: isActive ? 0.15 : 0.05, transitionDelay: '0.3s' }}
+        />
+      </div>
+
+      {/* Geometric forms - structural elements */}
+      <div className="absolute top-[15%] left-[20%] w-24 h-32 border border-white/5 transition-all duration-1000"
+        style={{
+          transform: isActive ? 'perspective(500px) rotateY(-5deg)' : 'perspective(500px) rotateY(-10deg)',
+          opacity: isActive ? 0.2 : 0.05,
+        }}
+      />
+      <div className="absolute top-[25%] right-[25%] w-20 h-28 border border-white/5 transition-all duration-1000"
+        style={{
+          transform: isActive ? 'perspective(500px) rotateY(5deg)' : 'perspective(500px) rotateY(10deg)',
+          opacity: isActive ? 0.15 : 0.05,
+          transitionDelay: '0.2s',
+        }}
+      />
+
+      {/* Center glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-3xl transition-all duration-1000"
+        style={{
+          background: 'radial-gradient(circle, rgba(156,163,175,0.06) 0%, transparent 70%)',
+          opacity: isActive ? 0.3 : 0.1,
+        }}
+      />
+    </div>
+  )
+}
+
+function DefaultVisual({ isActive, title }: { isActive: boolean; title: string }) {
+  return (
+    <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}>
+      {/* Radial gradient shape */}
+      <div className="absolute inset-0"
+        style={{
+          background: `radial-gradient(circle at 30% 30%, rgba(125,211,252,0.08) 0%, transparent 60%)`,
+          transform: isActive ? 'scale(1.1)' : 'scale(1)',
+        }}
+      />
+
+      {/* Pattern layer */}
+      <div className="pv-pattern absolute inset-0"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+          opacity: isActive ? 0.4 : 0.2,
+        }}
+      />
+
+      {/* Center glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-3xl transition-all duration-1000"
+        style={{
+          background: 'radial-gradient(circle, rgba(125,211,252,0.06) 0%, transparent 70%)',
+          opacity: isActive ? 0.4 : 0.1,
+        }}
+      />
     </div>
   )
 }
