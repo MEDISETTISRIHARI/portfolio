@@ -64,7 +64,7 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
       </div>
       {subtitleLines.map((line, i) => (
         <div key={i} className="hero-title-wrapper overflow-hidden">
-          <h1
+          <h2
             className="font-display text-[clamp(3.5rem,8vw,9rem)] text-text-primary hero-title-line leading-[0.9] tracking-[-0.04em]"
             style={{ lineHeight: '0.9', letterSpacing: '-0.04em' }}
           >
@@ -73,7 +73,7 @@ export default function HeroContent({ headline, subtitle, role }: HeroContentPro
                 {word}
               </span>
             ))}
-          </h1>
+          </h2>
         </div>
       ))}
     </>

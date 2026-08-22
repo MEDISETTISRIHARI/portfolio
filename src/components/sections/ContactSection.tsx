@@ -145,7 +145,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
 
       {/* Animated background lines */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-border-subtle to-transparent opacity-30" />
         <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-border-subtle to-transparent opacity-30" />
       </div>
@@ -179,16 +179,18 @@ export default function ContactSection({ email }: ContactSectionProps) {
             <a
               ref={magneticRef}
               href={`mailto:${email || 'hello@example.com'}`}
-              className="group relative px-8 md:px-10 py-4 md:py-5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent"
+              className="group relative px-8 md:px-10 py-4 md:py-5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background max-w-full"
               style={{ borderRadius: '2px' }}
+              aria-label={`Send email to ${email || 'hello@example.com'}`}
             >
               <span className="relative z-10 flex items-center gap-3">
-                {email || 'hello@example.com'}
+                <span className="truncate">{email || 'hello@example.com'}</span>
                 <svg
-                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
@@ -203,39 +205,43 @@ export default function ContactSection({ email }: ContactSectionProps) {
         {/* Contact form */}
         <div className="contact-form max-w-4xl">
           {status === 'success' && (
-            <p className="body-md text-accent mb-8">Message sent successfully. I&apos;ll get back to you soon.</p>
+            <p className="body-md text-accent mb-8" role="status">Message sent successfully. I&apos;ll get back to you soon.</p>
           )}
           {status === 'error' && (
-            <p className="body-md text-red-400 mb-8">Failed to send message. Please try again.</p>
+            <p className="body-md text-red-400 mb-8" role="alert">Failed to send message. Please try again.</p>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-8" noValidate>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div data-scroll-reveal>
-                <label className="label text-text-muted block mb-3">NAME</label>
+                <label htmlFor="contact-name" className="label text-text-muted block mb-3">NAME</label>
                 <input
+                  id="contact-name"
                   type="text"
                   name="name"
                   required
-                  className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300"
+                  className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors duration-300"
                   placeholder="Your name"
+                  autoComplete="name"
                 />
               </div>
               <div data-scroll-reveal>
-                <label className="label text-text-muted block mb-3">EMAIL</label>
+                <label htmlFor="contact-email" className="label text-text-muted block mb-3">EMAIL</label>
                 <input
+                  id="contact-email"
                   type="email"
                   name="email"
                   required
-                  className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300"
+                  className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors duration-300"
                   placeholder="your@email.com"
+                  autoComplete="email"
                 />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div data-scroll-reveal>
-                <label className="label text-text-muted block mb-3">PROJECT TYPE</label>
-                <select name="projectType" className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300">
+                <label htmlFor="contact-type" className="label text-text-muted block mb-3">PROJECT TYPE</label>
+                <select id="contact-type" name="projectType" className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors duration-300">
                   <option value="">Select project type</option>
                   <option value="website">Website</option>
                   <option value="webapp">Web Application</option>
@@ -244,8 +250,8 @@ export default function ContactSection({ email }: ContactSectionProps) {
                 </select>
               </div>
               <div data-scroll-reveal>
-                <label className="label text-text-muted block mb-3">BUDGET</label>
-                <select name="budget" className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300">
+                <label htmlFor="contact-budget" className="label text-text-muted block mb-3">BUDGET</label>
+                <select id="contact-budget" name="budget" className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors duration-300">
                   <option value="">Select budget range</option>
                   <option value="5k-10k">$5,000 — $10,000</option>
                   <option value="10k-25k">$10,000 — $25,000</option>
@@ -255,12 +261,13 @@ export default function ContactSection({ email }: ContactSectionProps) {
               </div>
             </div>
             <div data-scroll-reveal>
-              <label className="label text-text-muted block mb-3">MESSAGE</label>
+              <label htmlFor="contact-message" className="label text-text-muted block mb-3">MESSAGE</label>
               <textarea
+                id="contact-message"
                 name="message"
                 rows={6}
                 required
-                className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300 resize-none"
+                className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent transition-colors duration-300 resize-none"
                 placeholder="Tell me about your project..."
               />
             </div>

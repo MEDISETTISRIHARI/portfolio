@@ -166,6 +166,7 @@ export default function Footer({ socials, profile }: FooterProps) {
                     className="footer-link group inline-flex items-center gap-3"
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
+                    aria-label={`${social.platform} — ${social.username}`}
                   >
                     <span className="font-display text-display-sm text-text-primary group-hover:text-accent transition-colors duration-300">{social.platform}</span>
                     <span className="w-0 h-px bg-accent transition-all duration-300 group-hover:w-6" />
@@ -175,6 +176,7 @@ export default function Footer({ socials, profile }: FooterProps) {
               <a
                 href={`mailto:${profile?.email || 'hello@example.com'}`}
                 className="footer-link group inline-flex items-center gap-3"
+                aria-label={`Send email to ${profile?.email || 'hello@example.com'}`}
               >
                 <span className="font-display text-display-sm text-text-primary group-hover:text-accent transition-colors duration-300">EMAIL</span>
                 <span className="w-0 h-px bg-accent transition-all duration-300 group-hover:w-6" />

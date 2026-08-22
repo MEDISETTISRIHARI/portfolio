@@ -95,6 +95,7 @@ export default function Navigation() {
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
           isScrolled ? 'bg-background/80 backdrop-blur-md border-b border-border-subtle' : 'bg-transparent'
         } ${introComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        aria-label="Main navigation"
       >
         <div className="container mx-auto px-6">
           <div className={`flex items-center justify-between transition-all duration-500 ${isScrolled ? 'h-16' : 'h-20'}`}>
@@ -108,6 +109,7 @@ export default function Navigation() {
                   key={item.label}
                   href={item.href}
                   className={`caption relative transition-colors duration-300 nav-item ${isActive(item.href) ? 'text-text-primary' : 'text-text-muted hover:text-text-primary'}`}
+                  aria-current={isActive(item.href) ? 'page' : undefined}
                 >
                   {item.label}
                   {isActive(item.href) && (
@@ -127,6 +129,7 @@ export default function Navigation() {
               onClick={() => setIsMobileOpen(!isMobileOpen)}
               className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 nav-item"
               aria-label="Toggle menu"
+              aria-expanded={isMobileOpen}
             >
               <span className={`w-6 h-px bg-text-primary transition-all duration-300 ${isMobileOpen ? 'rotate-45 translate-y-2' : ''}`} />
               <span className={`w-6 h-px bg-text-primary transition-all duration-300 ${isMobileOpen ? 'opacity-0' : ''}`} />
@@ -141,8 +144,9 @@ export default function Navigation() {
         className={`fixed inset-0 z-30 bg-background/98 backdrop-blur-xl flex items-center justify-center transition-all duration-500 md:hidden ${
           isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
+        aria-hidden={!isMobileOpen}
       >
-        <nav className="flex flex-col items-center gap-8">
+        <nav className="flex flex-col items-center gap-8" aria-label="Mobile navigation">
           {navItems.map((item, i) => (
             <a
               key={item.label}

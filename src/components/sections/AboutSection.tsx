@@ -102,7 +102,7 @@ export default function AboutSection({ data }: AboutSectionProps) {
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 items-start">
           {/* Left column - minimal metadata */}
           <div className="md:col-span-4 relative">
             <p className="label text-text-muted mb-4" data-scroll-reveal data-scroll-parallax="0.1">01 — ABOUT</p>

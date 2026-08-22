@@ -160,7 +160,7 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                       {skillItems.map((item, j) => (
                         <li
                           key={j}
-                          className="body-md text-text-primary transition-all duration-300"
+                          className="text-body text-text-primary transition-all duration-300"
                           style={{
                             transform: isActive ? 'translateX(0)' : 'translateX(-12px)',
                             opacity: isActive ? 1 : 0,
