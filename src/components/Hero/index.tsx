@@ -32,6 +32,7 @@ export default function Hero({ data, role }: HeroProps) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [pointerDistance, setPointerDistance] = useState(0)
   const [touchVelocity, setTouchVelocity] = useState({ x: 0, y: 0 })
+  const [isMobile, setIsMobile] = useState(false)
   const { scrollY, progress } = useScroll()
 
   const handleOrientation = (e: DeviceOrientationEvent) => {
@@ -62,6 +63,11 @@ export default function Hero({ data, role }: HeroProps) {
     let lastTouchX = 0
     let lastTouchY = 0
     let lastTouchTime = 0
+
+    // Detect mobile once on mount
+    if (typeof window !== 'undefined') {
+      setIsMobile(window.innerWidth < 768)
+    }
 
     const handleMouseMove = (e: MouseEvent) => {
       const x = (e.clientX / window.innerWidth) * 2 - 1
@@ -246,6 +252,7 @@ export default function Hero({ data, role }: HeroProps) {
         visualMode={data.visualMode}
         image={data.image}
         video={data.video}
+        isMobile={isMobile}
       />
 
       {/* Content area - positioned in lower third */}

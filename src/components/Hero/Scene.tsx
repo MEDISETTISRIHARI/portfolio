@@ -10,6 +10,7 @@ type SceneProps = {
   scrollProgress: number
   prefersReducedMotion: boolean
   pointerDistance?: number
+  isMobile?: boolean
 }
 
 const PRIMARY_COLORS = [0x0d0d0d, 0x1a1a1a, 0x262626, 0x333333, 0x101010]
@@ -77,7 +78,7 @@ function createPrimaryForm(index: number): THREE.Mesh {
   return mesh
 }
 
-export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance }: SceneProps) {
+export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false }: SceneProps) {
   const groupRef = useRef<THREE.Group>(null)
   const particlesRef = useRef<THREE.Points>(null)
   const heroObjectRef = useRef<THREE.Group>(null)
@@ -99,18 +100,19 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
   // A. PRIMARY FORMS - Large architectural geometric forms
   // =============================================
   const primaryForms = useMemo(() => {
+    const count = isMobile ? 5 : 8
     const elements = []
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < count; i++) {
       const mesh = createPrimaryForm(i)
       elements.push(mesh)
     }
     return elements
-  }, [])
+  }, [isMobile])
 
   // =============================================
   // B. SECONDARY PARTICLES - Sparse field of tiny particles
   // =============================================
-  const particleCount = 120
+  const particleCount = isMobile ? 60 : 120
   const particles = useMemo(() => {
     const positions = new Float32Array(particleCount * 3)
     for (let i = 0; i < particleCount; i++) {
@@ -140,7 +142,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
   // C. AMBIENT PARTICLES - Close floating dust
   // =============================================
   const ambientParticles = useMemo(() => {
-    const count = 40
+    const count = isMobile ? 20 : 40
     const positions = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
       positions[i * 3] = (Math.random() - 0.5) * 16
@@ -262,6 +264,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
     if (prefersReducedMotion) return
 
     const t = state.clock.getElapsedTime()
+    const motionScale = isMobile ? 0.6 : 1
 
     // Primary forms - organized rotation with subtle drift
     if (groupRef.current) {
@@ -271,15 +274,15 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
           const rotMult = child.userData.rotMult
           const baseY = child.userData.baseY || child.position.y
 
-          child.rotation.y += 0.0008 * rotMult
-          child.rotation.x += 0.0004 * rotMult
-          child.position.y = baseY + Math.sin(t * floatSpeed + i * 0.5) * 0.15
+          child.rotation.y += 0.0008 * rotMult * motionScale
+          child.rotation.x += 0.0004 * rotMult * motionScale
+          child.position.y = baseY + Math.sin(t * floatSpeed + i * 0.5) * 0.15 * motionScale
 
           // Pointer interaction with proper proximity falloff
           if (pointerDistance !== undefined) {
             const strength = Math.max(0, 1 - pointerDistance / 2.5)
-            child.rotation.y += strength * 0.002
-            child.position.y += strength * 0.03
+            child.rotation.y += strength * 0.002 * motionScale
+            child.position.y += strength * 0.03 * motionScale
             child.scale.setScalar(1 + strength * 0.015)
           } else {
             child.scale.setScalar(1)
@@ -298,8 +301,8 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
 
     // Hero object - slow elegant rotation with pointer response
     if (heroObjectRef.current) {
-      heroObjectRef.current.rotation.y += 0.006
-      heroObjectRef.current.rotation.z = Math.sin(t * 0.2) * 0.05
+      heroObjectRef.current.rotation.y += 0.006 * motionScale
+      heroObjectRef.current.rotation.z = Math.sin(t * 0.2) * 0.05 * motionScale
 
       // Proximity-based interaction
       let proximity = 0
@@ -312,21 +315,21 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
       heroObjectRef.current.scale.lerp(targetScaleVec.current, 0.04)
 
       // Position float with proximity influence
-      heroObjectRef.current.position.y = 1.0 + Math.sin(t * 0.4) * 0.03 + proximity * 0.04
+      heroObjectRef.current.position.y = 1.0 + Math.sin(t * 0.4) * 0.03 * motionScale + proximity * 0.04
 
       // Rotation speedup when pointer is close
-      heroObjectRef.current.rotation.y += proximity * 0.008
-      heroObjectRef.current.rotation.x = Math.sin(t * 0.25) * proximity * 0.1
+      heroObjectRef.current.rotation.y += proximity * 0.008 * motionScale
+      heroObjectRef.current.rotation.x = Math.sin(t * 0.25) * proximity * 0.1 * motionScale
     }
 
     // Secondary particles - subtle rotation and pointer reaction
     if (particlesRef.current) {
-      particlesRef.current.rotation.y = t * 0.008
-      particlesRef.current.rotation.x = t * 0.004
+      particlesRef.current.rotation.y = t * 0.008 * motionScale
+      particlesRef.current.rotation.x = t * 0.004 * motionScale
 
       if (pointerDistance !== undefined) {
         const strength = Math.max(0, 1 - pointerDistance / 4)
-        particlesRef.current.rotation.y += strength * 0.0015
+        particlesRef.current.rotation.y += strength * 0.0015 * motionScale
         const particleScale = 1 + strength * 0.1
         particlesRef.current.scale.setScalar(particleScale)
       } else {
@@ -336,8 +339,8 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
 
     // Ambient particles - gentle floating motion
     if (ambientParticlesRef.current) {
-      ambientParticlesRef.current.rotation.y = t * 0.003
-      ambientParticlesRef.current.position.y = Math.sin(t * 0.3) * 0.1
+      ambientParticlesRef.current.rotation.y = t * 0.003 * motionScale
+      ambientParticlesRef.current.position.y = Math.sin(t * 0.3) * 0.1 * motionScale
     }
   })
 
@@ -371,6 +374,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
         scrollProgress={scrollProgress}
         prefersReducedMotion={prefersReducedMotion}
         pointerDistance={pointerDistance}
+        isMobile={isMobile}
       />
 
       {/* Hero object - centerpiece */}

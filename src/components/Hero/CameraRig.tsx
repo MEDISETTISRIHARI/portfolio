@@ -9,13 +9,14 @@ type CameraRigProps = {
   scrollProgress: number
   prefersReducedMotion: boolean
   pointerDistance?: number
+  isMobile?: boolean
 }
 
 const LERP_RELAXED = 0.006
 const SPRING_FREQUENCY = 0.008
 const SPRING_DAMPING = 0.92
 
-export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance }: CameraRigProps) {
+export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false }: CameraRigProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null)
 
   const state = useRef({
@@ -35,8 +36,6 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     lookAtY: 0,
     lookAtZ: 0,
   })
-
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
 
   useFrame(() => {
     if (!cameraRef.current) return

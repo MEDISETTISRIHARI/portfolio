@@ -12,9 +12,10 @@ type HeroVisualProps = {
   visualMode?: string
   image?: string | null
   video?: string | null
+  isMobile?: boolean
 }
 
-export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video }: HeroVisualProps) {
+export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video, isMobile = false }: HeroVisualProps) {
   const [mounted, setMounted] = useState(false)
   const isWebGLSupported = useWebGL()
   const [isMobile, setIsMobile] = useState(false)
@@ -44,7 +45,7 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
           camera={{ position: [0, 0, 18], fov: 55 }}
           gl={{ antialias: true, alpha: true }}
         >
-          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} pointerDistance={pointerDistance} />
+          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} pointerDistance={pointerDistance} isMobile={false} />
         </Canvas>
       </div>
     )
@@ -64,9 +65,9 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
       <Canvas
         dpr={[1, dpr]}
         camera={{ position: [0, 0, 18], fov: 55 }}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
-        <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} pointerDistance={pointerDistance} />
+        <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} pointerDistance={pointerDistance} isMobile={isMobile} />
       </Canvas>
       {/* Atmospheric overlay - subtle depth gradient */}
       <div
