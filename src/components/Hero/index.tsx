@@ -147,54 +147,49 @@ export default function Hero({ data, role }: HeroProps) {
   useEffect(() => {
     if (prefersReducedMotion) return
 
-    if (progress > 0.12) {
-      const intensity = Math.min(1, (progress - 0.12) * 2)
-      gsap.to('.hero-content-wrapper', {
-        opacity: 1 - intensity,
+    if (progress > 0.1) {
+      const intensity = Math.min(1, (progress - 0.1) * 2.5)
+
+      // Headline moves up and fades
+      gsap.to('.hero-title-line', {
         y: intensity * -40,
-        scale: 1 - intensity * 0.02,
-        duration: 0.4,
+        opacity: 1 - intensity * 0.7,
+        duration: 0.5,
         ease: 'power2.out',
         overwrite: true,
       })
 
-      const headline = document.querySelector('.hero-title-line') as HTMLElement | null
-      if (headline) {
-        gsap.to(headline, {
-          y: intensity * -30,
-          opacity: 1 - intensity * 0.6,
-          duration: 0.4,
-          ease: 'power2.out',
-          overwrite: true,
-        })
-      }
-    } else {
+      // Portrait moves deeper into scene
+      gsap.to('.hero-portrait', {
+        y: intensity * 25,
+        scale: 1 - intensity * 0.06,
+        opacity: 1 - intensity * 0.6,
+        duration: 0.6,
+        ease: 'power2.out',
+        overwrite: true,
+      })
+
+      // Content wrapper subtle shift
       gsap.to('.hero-content-wrapper', {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.4,
+        opacity: 1 - intensity * 0.4,
+        y: intensity * -20,
+        duration: 0.5,
         ease: 'power2.out',
         overwrite: true,
       })
 
-      const headline = document.querySelector('.hero-title-line') as HTMLElement | null
-      if (headline) {
-        gsap.to(headline, {
-          y: 0,
-          opacity: 1,
-          duration: 0.4,
-          ease: 'power2.out',
-          overwrite: true,
-        })
-      }
-    }
-
-    // Scroll-responsive portrait parallax
-    const portrait = document.querySelector('.hero-portrait') as HTMLElement | null
-    if (portrait && progress < 0.15) {
-      const parallax = progress * 30
-      portrait.style.transform = `translateY(${-parallax}px)`
+      // Grid becomes more visible
+      gsap.to('.hero-grid-overlay', {
+        opacity: intensity * 0.6,
+        duration: 0.6,
+        ease: 'power2.out',
+        overwrite: true,
+      })
+    } else {
+      gsap.to('.hero-title-line', { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out', overwrite: true })
+      gsap.to('.hero-portrait', { y: 0, scale: 1, opacity: 1, duration: 0.4, ease: 'power2.out', overwrite: true })
+      gsap.to('.hero-content-wrapper', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', overwrite: true })
+      gsap.to('.hero-grid-overlay', { opacity: 0, duration: 0.4, ease: 'power2.out', overwrite: true })
     }
   }, [progress, prefersReducedMotion])
 
@@ -310,6 +305,14 @@ export default function Hero({ data, role }: HeroProps) {
         '-=0.5'
       )
 
+      // Portrait: emerges from environment
+      tl.fromTo(
+        '.hero-portrait',
+        { opacity: 0, scale: 0.94, y: 30, filter: 'blur(10px)' },
+        { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 1.4, ease: 'power3.out' },
+        '-=0.6'
+      )
+
       // Metadata: fade up delayed
       tl.fromTo(
         '.hero-metadata',
@@ -327,7 +330,7 @@ export default function Hero({ data, role }: HeroProps) {
       // Shortened entrance for returning visitors
       const tl = gsap.timeline()
       if (prefersReducedMotion) {
-        tl.set('.identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-metadata', { opacity: 1, y: 0, x: 0, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
+        tl.set('.identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-portrait, .hero-metadata', { opacity: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
       } else {
         tl.fromTo('.identity-mark', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
           .fromTo('.identity-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.3')
@@ -337,6 +340,7 @@ export default function Hero({ data, role }: HeroProps) {
           .fromTo('.hero-title-line', { opacity: 0, y: 30, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
           .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
           .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
+          .fromTo('.hero-portrait', { opacity: 0, scale: 0.94, y: 30, filter: 'blur(10px)' }, { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 1, ease: 'power3.out' }, '-=0.4')
           .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
       }
       tl.play()
@@ -418,11 +422,11 @@ export default function Hero({ data, role }: HeroProps) {
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
 
       {/* Content depth - editorial grid */}
-      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-5 pt-14 pb-20' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
+      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-5 pt-14 pb-16' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
 
         {/* Desktop layout */}
         <div className="hidden md:grid md:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left / Center - editorial headline and identity */}
+          {/* Left 55% - editorial headline and identity */}
           <div className="md:col-span-7 lg:col-span-7">
             <div className="mb-10">
               <HeroIdentity role={role} isInView={isInView} />
@@ -441,9 +445,9 @@ export default function Hero({ data, role }: HeroProps) {
             </div>
           </div>
 
-          {/* Right / Center - portrait composition */}
-          <div className="md:col-span-5 lg:col-span-5" data-scroll-parallax="0.08">
-            <div className="relative flex justify-center md:justify-end">
+          {/* Right 40% - portrait composition with intentional overlap */}
+          <div className="md:col-span-5 lg:col-span-5 relative">
+            <div className="flex justify-center lg:justify-end lg:-mr-8">
               <div className="w-full max-w-[420px]">
                 <HeroPortrait
                   src={data.image}
@@ -459,19 +463,19 @@ export default function Hero({ data, role }: HeroProps) {
           </div>
         </div>
 
-        {/* Mobile layout - independent composition */}
+        {/* Mobile layout - controlled composition */}
         <div className="flex flex-col md:hidden">
-          {/* Small role / identity at top */}
-          <div className="mb-6">
+          {/* Role / identity */}
+          <div className="mb-4">
             <HeroIdentity role={role} isInView={isInView} />
           </div>
 
-          {/* Large headline */}
+          {/* Headline */}
           <HeroContent headline={data.headline} subtitle={data.subtitle} mousePos={mousePos} />
 
-          {/* Portrait - deliberate reserved area */}
-          <div className="my-6 flex justify-center">
-            <div className="relative" style={{ width: 'min(65vw, 220px)' }}>
+          {/* Portrait - intentional reserved area */}
+          <div className="my-5 flex justify-center">
+            <div className="relative" style={{ width: 'min(60vw, 200px)' }}>
               <HeroPortrait
                 src={data.image}
                 alt={role || 'SRIHARI'}
@@ -484,13 +488,13 @@ export default function Hero({ data, role }: HeroProps) {
             </div>
           </div>
 
-          {/* Supporting description */}
-          <div className="mt-2">
+          {/* Description */}
+          <div className="mt-1">
             <HeroMeta description={data.description} />
           </div>
 
           {/* CTA */}
-          <div className="mt-8 hero-cta">
+          <div className="mt-6 hero-cta">
             <HeroCTA
               primaryText={data.ctaText || 'VIEW SELECTED WORK'}
               primaryHref={data.ctaLink || '#work'}

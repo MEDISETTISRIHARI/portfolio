@@ -123,18 +123,18 @@ export default function HeroContent({ headline, subtitle, mousePos = { x: 0, y: 
     const words = wordsRef.current
     if (!words.length) return
 
-    const subtleX = mousePos.x * 6
-    const subtleY = mousePos.y * 3
+    const subtleX = mousePos.x * 3
+    const subtleY = mousePos.y * 1.5
 
     words.forEach((word, i) => {
       if (!word) return
-      const factor = 1 - (i % 3) * 0.2
+      const factor = 1 - (i % 3) * 0.15
       const x = subtleX * factor
       const y = subtleY * factor
       gsap.to(word, {
         x,
         y,
-        duration: 0.8,
+        duration: 1.2,
         ease: 'power2.out',
         overwrite: 'auto',
       })

@@ -542,6 +542,11 @@ button:focus-visible {
   }
 }
 
+@keyframes lightSweep {
+  0% { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+
 .animate-fade-in {
   animation: fadeIn var(--motion-slow) var(--ease-out) forwards;
 }

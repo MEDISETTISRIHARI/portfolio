@@ -286,11 +286,16 @@ export default function HeroPortrait({
         {/* Moving light reflection */}
         <div
           ref={lightRef}
-          className="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-1000"
+          className="hero-portrait-light absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-1000"
           style={{
-            background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 60%)',
-            opacity: isInView ? 1 : 0,
+            background: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 55%, transparent 65%)',
+            backgroundSize: '200% 100%',
+            backgroundPosition: '150% 0',
+            animation: 'lightSweep 6s ease-in-out infinite',
+            opacity: isInView ? 0.7 : 0,
+            mixBlendMode: 'overlay',
           }}
+          aria-hidden="true"
         />
 
         {/* Top/bottom gradient fades */}
