@@ -45,9 +45,9 @@ export default function Hero({ data, role }: HeroProps) {
   }
 
   const requestOrientation = useCallback(() => {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
-        .then((permissionState) => {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+      (DeviceOrientationEvent as any).requestPermission()
+        .then((permissionState: string) => {
           if (permissionState === 'granted') {
             window.addEventListener('deviceorientation', handleOrientation, { passive: true })
           }

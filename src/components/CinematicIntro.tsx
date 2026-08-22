@@ -95,7 +95,7 @@ export default function CinematicIntro() {
       // while intro is still fading out
       .call(() => {
         window.dispatchEvent(new CustomEvent('intro-complete'))
-      }, null, `+=${base * 0.05}`)
+      }, undefined, `+=${base * 0.05}`)
 
       .to(containerRef.current, {
         opacity: 0,

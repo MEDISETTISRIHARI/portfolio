@@ -9,6 +9,8 @@ const FALLBACK_HERO = {
   ctaLink: '#work',
   secondaryCta: "LET'S TALK",
   secondaryLink: '#contact',
+  image: null,
+  video: null,
 }
 
 const FALLBACK_PROFILE = {

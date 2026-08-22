@@ -43,7 +43,9 @@ export default function ContactSection({ email }: ContactSectionProps) {
   }
 
   return (
-    <section id="contact" data-scroll-section="contact" className="py-32 md:py-48 border-t border-border-subtle">
+    <section id="contact" data-scroll-section="contact" className="py-32 md:py-48 border-t border-border-subtle relative">
+      {/* Section continuity line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
         <div className="max-w-4xl">
           <p className="label text-text-muted mb-6" data-scroll-reveal>CONTACT</p>

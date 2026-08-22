@@ -29,7 +29,9 @@ type FooterProps = {
 
 export default function Footer({ socials, profile }: FooterProps) {
   return (
-    <footer data-scroll-section="footer" className="py-16 border-t border-border-subtle">
+    <footer data-scroll-section="footer" className="py-16 border-t border-border-subtle relative">
+      {/* Section continuity line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           <div>

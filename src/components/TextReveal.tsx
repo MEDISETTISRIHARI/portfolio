@@ -28,7 +28,7 @@ export default function TextReveal({
     if (!containerRef.current) return
 
     const ctx = gsap.context(() => {
-      const elements = containerRef.current.children
+      const elements = containerRef.current!.children
 
       if (variant === 'clip') {
         gsap.fromTo(

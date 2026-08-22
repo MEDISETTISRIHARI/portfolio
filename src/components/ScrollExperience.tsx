@@ -20,6 +20,7 @@ type SectionInfo = {
   progress: number
   visibility: number
   active: boolean
+  prevActive: boolean
 }
 
 type ElementInfo = {
@@ -63,6 +64,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     intensity: 1,
   })
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const sectionDividersRef = useRef<Map<string, HTMLDivElement>>(new Map())
 
   // Resize observer for viewport dimensions
   useEffect(() => {
@@ -128,6 +130,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
 
     sections.current.clear()
     elements.current.clear()
+    sectionDividersRef.current.clear()
 
     const sectionEls = container.querySelectorAll('[data-scroll-section]')
     sectionEls.forEach((el) => {
@@ -144,6 +147,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         progress: 0,
         visibility: 0,
         active: false,
+        prevActive: false,
       })
 
       const revealEls = el.querySelectorAll('[data-scroll-reveal], .reveal-up')
@@ -302,11 +306,11 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
       sortedSections.forEach((section, index) => {
         const prevSection = sortedSections[index - 1]
         const nextSection = sortedSections[index + 1]
+        const sectionEl = section.element
 
         // Transition from previous section
         if (prevSection && section.progress < 0.15) {
           const transitionProgress = Math.max(0, 1 - section.progress / 0.15)
-          const sectionEl = section.element
           sectionEl.style.opacity = String(Math.min(1, 0.3 + transitionProgress * 0.7))
           sectionEl.style.transform = `scale(${0.97 + transitionProgress * 0.03}) translateY(${(1 - transitionProgress) * -20}px)`
         }
@@ -314,12 +318,26 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         // Transition to next section
         if (nextSection && section.progress > 0.85) {
           const transitionProgress = Math.max(0, (section.progress - 0.85) / 0.15)
-          const sectionEl = section.element
           sectionEl.style.opacity = String(Math.max(0, 1 - transitionProgress * 0.5))
           sectionEl.style.transform = `scale(${1 - transitionProgress * 0.02}) translateY(${transitionProgress * 10}px)`
         }
+
+        // Section-specific background shifts for continuity
+        if (section.id === 'about') {
+          const aboutProgress = section.progress
+          sectionEl.style.background = `linear-gradient(to bottom, transparent 0%, rgba(125, 211, 252, ${aboutProgress * 0.02}) 50%, transparent 100%)`
+        }
+        if (section.id === 'skills') {
+          const skillsProgress = section.progress
+          sectionEl.style.background = `linear-gradient(to bottom, transparent 0%, rgba(91, 141, 239, ${skillsProgress * 0.015}) 50%, transparent 100%)`
+        }
+        if (section.id === 'work') {
+          const workProgress = section.progress
+          sectionEl.style.background = `linear-gradient(to bottom, transparent 0%, rgba(125, 211, 252, ${workProgress * 0.02}) 50%, transparent 100%)`
+        }
       })
 
+      // Dispatch section change events
       let maxVisibility = 0
       let mostVisibleId: string | null = null
       sections.current.forEach((section) => {
@@ -334,6 +352,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         window.dispatchEvent(new CustomEvent('scroll-section-change', { detail: { sectionId: mostVisibleId } }))
       }
 
+      // Animate elements
       elements.current.forEach((elInfo) => {
         const section = sections.current.get(elInfo.sectionId)
         if (!section || !section.active) return

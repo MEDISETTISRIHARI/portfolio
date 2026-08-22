@@ -18,7 +18,9 @@ export default function ServicesSection({ data }: ServicesSectionProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   return (
-    <section id="services" data-scroll-section="services" className="py-32 md:py-48 border-t border-border-subtle">
+    <section id="services" data-scroll-section="services" className="py-32 md:py-48 border-t border-border-subtle relative">
+      {/* Section continuity line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
         <p className="label text-text-muted mb-16" data-scroll-reveal>SERVICES</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-8">

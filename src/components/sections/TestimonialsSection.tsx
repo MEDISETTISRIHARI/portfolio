@@ -15,7 +15,9 @@ type TestimonialsSectionProps = {
 
 export default async function TestimonialsSection({ data }: TestimonialsSectionProps) {
   return (
-    <section id="testimonials" data-scroll-section="testimonials" className="py-32 md:py-48 border-t border-border-subtle">
+    <section id="testimonials" data-scroll-section="testimonials" className="py-32 md:py-48 border-t border-border-subtle relative">
+      {/* Section continuity line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
         <p className="label text-text-muted mb-16" data-scroll-reveal>TESTIMONIALS</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">

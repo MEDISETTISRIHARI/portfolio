@@ -319,8 +319,10 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
           const dist = child.position.length()
           if (dist > 8) {
             const fade = Math.max(0, 1 - (dist - 8) / 8)
-            child.material.opacity = fade * 0.9 * (child.userData.depthLayer === 'background' ? 0.5 : 0.7)
-            child.material.transparent = true
+            const mesh = child as THREE.Mesh
+            const mat = mesh.material as THREE.MeshStandardMaterial
+            mat.opacity = fade * 0.9 * (child.userData.depthLayer === 'background' ? 0.5 : 0.7)
+            mat.transparent = true
           }
         }
       })
