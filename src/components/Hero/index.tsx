@@ -7,7 +7,7 @@ import HeroContent from './HeroContent'
 import HeroMeta from './HeroMeta'
 import HeroCTA from './HeroCTA'
 import HeroIdentity from './HeroIdentity'
-import Portrait from './Portrait'
+import HeroPortrait from './HeroPortrait'
 import HeroMetadata from './HeroMetadata'
 import { useScroll } from '@/hooks/useScroll'
 
@@ -168,11 +168,11 @@ export default function Hero({ data, role }: HeroProps) {
       })
     }
 
-    // Scroll-responsive typography movement
-    const heroContent = document.querySelector('.hero-center-column') as HTMLElement | null
-    if (heroContent && progress < 0.15) {
+    // Scroll-responsive portrait parallax
+    const portrait = document.querySelector('.hero-portrait') as HTMLElement | null
+    if (portrait && progress < 0.15) {
       const parallax = progress * 30
-      heroContent.style.transform = `translateY(${-parallax}px)`
+      portrait.style.transform = `translateY(${-parallax}px)`
     }
   }, [progress, prefersReducedMotion])
 
@@ -296,14 +296,6 @@ export default function Hero({ data, role }: HeroProps) {
         '-=0.3'
       )
 
-      // Portrait: cinematic reveal
-      tl.fromTo(
-        '.hero-portrait',
-        { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0, scale: 1.08, y: 40, rotateY: 8 },
-        { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, scale: 1, y: 0, rotateY: 0, duration: 1.6, ease: 'power3.inOut' },
-        '-=1.2'
-      )
-
       tl.play()
     }
 
@@ -313,7 +305,7 @@ export default function Hero({ data, role }: HeroProps) {
       // Shortened entrance for returning visitors
       const tl = gsap.timeline()
       if (prefersReducedMotion) {
-        tl.set('.identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-metadata, .hero-portrait', { opacity: 1, y: 0, x: 0, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
+        tl.set('.identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-metadata', { opacity: 1, y: 0, x: 0, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
       } else {
         tl.fromTo('.identity-mark', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
           .fromTo('.identity-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.3')
@@ -324,7 +316,6 @@ export default function Hero({ data, role }: HeroProps) {
           .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
           .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
           .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
-          .fromTo('.hero-portrait', { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0 }, { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, duration: 1, ease: 'power3.inOut' }, '-=0.6')
       }
       tl.play()
     } else {
@@ -362,15 +353,11 @@ export default function Hero({ data, role }: HeroProps) {
       {/* Content depth - editorial grid */}
       <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-6 pt-16 pb-24' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`}>
         <div className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-12 items-center">
-          {/* Left column - identity system */}
-          <div className="md:col-span-3 lg:col-span-3 order-1">
-            <div className="md:sticky md:top-32">
+          {/* Left / Center - editorial headline and identity */}
+          <div className="md:col-span-7 lg:col-span-7 order-2 md:order-1">
+            <div className="mb-8 md:mb-12">
               <HeroIdentity role={role} isInView={isInView} />
             </div>
-          </div>
-
-          {/* Center column - typography, description, CTA */}
-          <div className="md:col-span-5 lg:col-span-5 order-2 md:order-2 hero-center-column">
             <HeroContent headline={data.headline} subtitle={data.subtitle} />
             <div className="mt-8 md:mt-12">
               <HeroMeta description={data.description} />
@@ -385,30 +372,32 @@ export default function Hero({ data, role }: HeroProps) {
             </div>
           </div>
 
-          {/* Right column - portrait composition */}
-          <div className="md:col-span-4 lg:col-span-4 order-3 hidden md:block" data-scroll-parallax="0.08">
-            <div className="relative">
-              <Portrait
+          {/* Right / Center - portrait composition */}
+          <div className="md:col-span-5 lg:col-span-5 order-1 md:order-2" data-scroll-parallax="0.08">
+            <div className="relative flex justify-center md:justify-end">
+              <HeroPortrait
                 src={data.image}
                 alt={role || 'SRIHARI'}
                 isInView={isInView}
                 mousePos={mousePos}
                 touchVelocity={touchVelocity}
                 isMobile={isMobile}
+                scrollProgress={progress}
               />
             </div>
           </div>
 
-          {/* Mobile portrait - strong crop, centered */}
+          {/* Mobile portrait - below content on small screens */}
           <div className="md:hidden order-3 mt-10" data-scroll-parallax="0.06">
-            <div className="relative mx-auto" style={{ width: 'min(82vw, 320px)' }}>
-              <Portrait
+            <div className="relative mx-auto" style={{ width: 'min(70vw, 320px)' }}>
+              <HeroPortrait
                 src={data.image}
                 alt={role || 'SRIHARI'}
                 isInView={isInView}
                 mousePos={mousePos}
                 touchVelocity={touchVelocity}
                 isMobile={isMobile}
+                scrollProgress={progress}
               />
             </div>
           </div>
