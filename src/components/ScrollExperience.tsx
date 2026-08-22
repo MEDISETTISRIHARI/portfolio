@@ -55,6 +55,12 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
   const lastTime = useRef(Date.now())
   const activeSectionRef = useRef<string | null>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
+  const physics = useRef({
+    skewX: 0,
+    skewY: 0,
+    displacement: 0,
+    intensity: 1,
+  })
 
   // Resize observer for viewport dimensions
   useEffect(() => {
@@ -240,12 +246,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
   // Animation loop
   useEffect(() => {
     let raf: number
-    const physics = useRef({
-      skewX: 0,
-      skewY: 0,
-      displacement: 0,
-      intensity: 1,
-    })
 
     const animate = () => {
       const state = scrollState.current
