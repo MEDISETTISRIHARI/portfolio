@@ -157,15 +157,17 @@ export default function Hero({ data, role }: HeroProps) {
         '.hero-title-line',
         {
           opacity: 0,
-          y: 40,
+          y: 60,
           clipPath: 'inset(0 0 100% 0)',
+          filter: 'blur(4px)',
         },
         {
           opacity: 1,
           y: 0,
           clipPath: 'inset(0 0 0% 0)',
-          duration: 1,
-          stagger: 0.12,
+          filter: 'blur(0px)',
+          duration: 1.2,
+          stagger: 0.15,
           ease: 'power3.out',
         },
         '-=1'
@@ -174,25 +176,33 @@ export default function Hero({ data, role }: HeroProps) {
       // Role text: fade up from muted
       tl.fromTo(
         '.hero-role',
-        { opacity: 0, y: 15, filter: 'blur(2px)' },
-        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: 'power2.out' },
-        '-=0.5'
+        { opacity: 0, y: 20, filter: 'blur(2px)' },
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out' },
+        '-=0.6'
+      )
+
+      // Description: subtle fade
+      tl.fromTo(
+        '.hero-reveal',
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
+        '-=0.4'
       )
 
       // CTA: fade up
       tl.fromTo(
         '.hero-cta',
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' },
-        '-=0.4'
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
+        '-=0.5'
       )
 
       // Metadata: fade up delayed
       tl.fromTo(
         '.hero-metadata',
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' },
-        '-=0.2'
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' },
+        '-=0.3'
       )
 
       tl.play()
@@ -201,7 +211,13 @@ export default function Hero({ data, role }: HeroProps) {
     const hasSeenIntro = sessionStorage.getItem('srihari-intro-seen')
 
     if (hasSeenIntro) {
-      animate()
+      // Shortened entrance for returning visitors
+      const tl = gsap.timeline()
+      tl.fromTo('.hero-title-line', { opacity: 0, y: 30, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, stagger: 0.1, ease: 'power3.out' })
+        .fromTo('.hero-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.4')
+        .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
+        .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
+        .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
     } else {
       const handleIntroComplete = () => {
         animate()

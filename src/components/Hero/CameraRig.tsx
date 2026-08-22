@@ -34,6 +34,8 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     scrollVelocity: 0,
   })
 
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
+
   useFrame(() => {
     if (!cameraRef.current) return
     const camera = cameraRef.current
@@ -48,20 +50,21 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
 
     // Layer 1: Slow idle movement (continuous gentle drift)
     state.current.idleTick += 0.016
-    const idleX = Math.sin(state.current.idleTick) * 0.1
-    const idleY = Math.cos(state.current.idleTick * 0.7) * 0.08
+    const idleX = Math.sin(state.current.idleTick * 0.8) * 0.12
+    const idleY = Math.cos(state.current.idleTick * 0.6) * 0.08
 
-    // Layer 2: Pointer-based parallax with damping
+    // Layer 2: Pointer-based parallax with damping (mobile amplitude reduced)
+    const pointerAmp = isMobile ? 0.25 : 0.5
     const pointerFactor = pointerDistance !== undefined ? Math.max(0, 1 - pointerDistance / 15) : 1
-    const pointerX = mousePos.x * (0.5 * pointerFactor)
-    const pointerY = -mousePos.y * (0.3 * pointerFactor)
+    const pointerX = mousePos.x * (pointerAmp * pointerFactor)
+    const pointerY = -mousePos.y * (pointerAmp * 0.6 * pointerFactor)
 
     // Calculate scroll velocity for Layer 5 micro response
     state.current.scrollVelocity = (scrollProgress - state.current.prevScrollProgress) * 60
     state.current.prevScrollProgress = scrollProgress
 
-    // Layer 3: Scroll-based movement
-    const scrollZ = 18 - scrollProgress * 4
+    // Layer 3: Scroll-based movement (composition change)
+    const scrollZ = 18 - scrollProgress * 3
 
     // Layer 4: Micro response during interaction
     const targetX = pointerX + idleX
