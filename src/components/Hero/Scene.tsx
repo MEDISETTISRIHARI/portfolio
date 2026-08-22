@@ -13,12 +13,10 @@ type SceneProps = {
   isMobile?: boolean
 }
 
-const PRIMARY_COLORS = [0x0d0d0d, 0x1a1a1a, 0x262626, 0x333333, 0x101010]
-const ACCENT_COLOR = 0x7dcffd
 const METALLIC_COLORS = [0x7dcffd, 0x5b8def, 0x3b82f6, 0x06b6d4, 0x0891b2]
 const MATTE_COLORS = [0x0d0d0d, 0x1a1a1a, 0x262626, 0x333333, 0x101010]
 
-function createPrimaryForm(index: number): THREE.Mesh {
+function createPrimaryForm(index: number, depthLayer: 'background' | 'midground' | 'foreground'): THREE.Mesh {
   const isBlock = index % 4 !== 0
   const formIndex = index % 5
 
@@ -45,11 +43,15 @@ function createPrimaryForm(index: number): THREE.Mesh {
     metalness,
     roughness,
     flatShading: isMetallic ? false : true,
+    transparent: true,
+    opacity: depthLayer === 'background' ? 0.5 : depthLayer === 'foreground' ? 0.9 : 0.7,
   })
 
   const mesh = new THREE.Mesh(geometry, material)
 
-  const radius = 6 + (index % 3) * 2.5
+  // Depth-based positioning
+  const depthFactor = depthLayer === 'background' ? 2.5 : depthLayer === 'foreground' ? 0.7 : 1.2
+  const radius = (6 + (index % 3) * 2.5) * depthFactor
   const polarAngle = (index * 0.523) + (Math.random() * 0.3)
   const azimuthalAngle = (index * 0.785) + (Math.random() * 0.3)
   const polarOffset = (index % 2 === 0) ? -1 : 1
@@ -73,13 +75,17 @@ function createPrimaryForm(index: number): THREE.Mesh {
     rotMult: 0.5 + formIndex * 0.2,
     interactionStrength: 0,
     baseY: mesh.position.y,
+    depthLayer,
+    baseScale: depthLayer === 'background' ? 0.7 : depthLayer === 'foreground' ? 1.3 : 1.0,
   }
 
   return mesh
 }
 
 export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false }: SceneProps) {
-  const groupRef = useRef<THREE.Group>(null)
+  const backgroundGroupRef = useRef<THREE.Group>(null)
+  const midgroundGroupRef = useRef<THREE.Group>(null)
+  const foregroundGroupRef = useRef<THREE.Group>(null)
   const particlesRef = useRef<THREE.Points>(null)
   const heroObjectRef = useRef<THREE.Group>(null)
   const targetScaleVec = useRef(new THREE.Vector3(1, 1, 1))
@@ -89,22 +95,39 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
 
   // Setup cinematic tone mapping
   useEffect(() => {
-    gl.toneMapping = THREE.ACESFilmicToneMapping
-    gl.toneMappingExposure = 0.85
+    gl.toneMapping = isMobile ? THREE.ReinhardToneMapping : THREE.ACESFilmicToneMapping
+    gl.toneMappingExposure = isMobile ? 1.1 : 0.85
     gl.outputColorSpace = THREE.SRGBColorSpace
 
-    scene.fog = new THREE.Fog('#050505', 12, 45)
-  }, [gl, scene])
+    scene.fog = new THREE.Fog('#050505', isMobile ? 15 : 12, isMobile ? 50 : 45)
+  }, [gl, scene, isMobile])
 
   // =============================================
-  // A. PRIMARY FORMS - Large architectural geometric forms
+  // A. DEPTH LAYERS - Foreground / Midground / Background
   // =============================================
-  const primaryForms = useMemo(() => {
-    const count = isMobile ? 5 : 8
+  const backgroundForms = useMemo(() => {
+    const count = isMobile ? 2 : 3
     const elements = []
     for (let i = 0; i < count; i++) {
-      const mesh = createPrimaryForm(i)
-      elements.push(mesh)
+      elements.push(createPrimaryForm(i, 'background'))
+    }
+    return elements
+  }, [isMobile])
+
+  const midgroundForms = useMemo(() => {
+    const count = isMobile ? 2 : 3
+    const elements = []
+    for (let i = 0; i < count; i++) {
+      elements.push(createPrimaryForm(i + 3, 'midground'))
+    }
+    return elements
+  }, [isMobile])
+
+  const foregroundForms = useMemo(() => {
+    const count = isMobile ? 1 : 2
+    const elements = []
+    for (let i = 0; i < count; i++) {
+      elements.push(createPrimaryForm(i + 6, 'foreground'))
     }
     return elements
   }, [isMobile])
@@ -266,38 +289,47 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
     const t = state.clock.getElapsedTime()
     const motionScale = isMobile ? 0.6 : 1
 
-    // Primary forms - organized rotation with subtle drift
-    if (groupRef.current) {
-      groupRef.current.children.forEach((child, i) => {
+    // Helper: animate a group of depth forms
+    const animateDepthGroup = (group: THREE.Group | null, layerSpeed: number, layerAmplitude: number) => {
+      if (!group) return
+      group.children.forEach((child, i) => {
         if (child.userData.formIndex !== undefined) {
           const floatSpeed = child.userData.driftSpeed
           const rotMult = child.userData.rotMult
           const baseY = child.userData.baseY || child.position.y
+          const baseScale = child.userData.baseScale || 1
 
-          child.rotation.y += 0.0008 * rotMult * motionScale
-          child.rotation.x += 0.0004 * rotMult * motionScale
-          child.position.y = baseY + Math.sin(t * floatSpeed + i * 0.5) * 0.15 * motionScale
+          // Independent slow rotation per depth layer
+          child.rotation.y += 0.0006 * rotMult * layerSpeed * motionScale
+          child.rotation.x += 0.0003 * rotMult * layerSpeed * motionScale
+          child.position.y = baseY + Math.sin(t * floatSpeed + i * 0.5) * 0.12 * layerAmplitude * motionScale
 
-          // Pointer interaction with proper proximity falloff
+          // Scale based on depth
+          child.scale.setScalar(baseScale)
+
+          // Pointer interaction with proximity falloff
           if (pointerDistance !== undefined) {
             const strength = Math.max(0, 1 - pointerDistance / 2.5)
-            child.rotation.y += strength * 0.002 * motionScale
-            child.position.y += strength * 0.03 * motionScale
-            child.scale.setScalar(1 + strength * 0.015)
-          } else {
-            child.scale.setScalar(1)
+            child.rotation.y += strength * 0.002 * layerSpeed * motionScale
+            child.position.y += strength * 0.03 * layerAmplitude * motionScale
+            child.scale.setScalar(baseScale + strength * 0.015)
           }
 
           // Atmospheric perspective - fade distant objects
           const dist = child.position.length()
           if (dist > 8) {
             const fade = Math.max(0, 1 - (dist - 8) / 8)
-            child.material.opacity = fade * 0.9
+            child.material.opacity = fade * 0.9 * (child.userData.depthLayer === 'background' ? 0.5 : 0.7)
             child.material.transparent = true
           }
         }
       })
     }
+
+    // Animate each depth layer with different speeds
+    animateDepthGroup(backgroundGroupRef.current, 0.5, 0.6)
+    animateDepthGroup(midgroundGroupRef.current, 0.8, 0.8)
+    animateDepthGroup(foregroundGroupRef.current, 1.2, 1.0)
 
     // Hero object - slow elegant rotation with pointer response
     if (heroObjectRef.current) {
@@ -377,16 +409,26 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
         isMobile={isMobile}
       />
 
+      {/* Depth layers */}
+      <group ref={backgroundGroupRef}>
+        {backgroundForms.map((mesh, i) => (
+          <primitive key={`bg-${i}`} object={mesh} />
+        ))}
+      </group>
+      <group ref={midgroundGroupRef}>
+        {midgroundForms.map((mesh, i) => (
+          <primitive key={`mg-${i}`} object={mesh} />
+        ))}
+      </group>
+      <group ref={foregroundGroupRef}>
+        {foregroundForms.map((mesh, i) => (
+          <primitive key={`fg-${i}`} object={mesh} />
+        ))}
+      </group>
+
       {/* Hero object - centerpiece */}
       <group ref={heroObjectRef}>
         {heroObject && <primitive object={heroObject} />}
-      </group>
-
-      {/* Primary forms - organized architectural objects */}
-      <group ref={groupRef}>
-        {primaryForms.map((mesh, i) => (
-          <primitive key={i} object={mesh} />
-        ))}
       </group>
 
       {/* Secondary particles - sparse, depth-aware field */}

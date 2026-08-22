@@ -35,6 +35,9 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     lookAtX: 0,
     lookAtY: 0,
     lookAtZ: 0,
+    targetLookAtX: 0,
+    targetLookAtY: 0,
+    targetLookAtZ: 0,
   })
 
   useFrame(() => {
@@ -72,6 +75,10 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     // Layer 4: Scroll velocity micro response
     const scrollMicroX = state.current.scrollVelocity * 0.02
 
+    // Layer 5: Scroll-driven subtle scene rotation
+    const scrollRotationY = scrollProgress * 0.3
+    const scrollRotationX = scrollProgress * 0.1
+
     // Combine all layers
     const targetX = pointerX + idleX + scrollMicroX
     const targetY = pointerY + idleY + scrollY
@@ -96,8 +103,10 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     camera.position.z += (state.current.currentZ - camera.position.z) * LERP_RELAXED
 
     // Subtle look-at drift for cinematic feel
-    state.current.lookAtX += (mousePos.x * 0.3 - state.current.lookAtX) * 0.02
-    state.current.lookAtY += (-mousePos.y * 0.2 - state.current.lookAtY) * 0.02
+    state.current.targetLookAtX = mousePos.x * 0.3 + scrollRotationY * 0.1
+    state.current.targetLookAtY = -mousePos.y * 0.2 - scrollRotationX * 0.1
+    state.current.lookAtX += (state.current.targetLookAtX - state.current.lookAtX) * 0.02
+    state.current.lookAtY += (state.current.targetLookAtY - state.current.lookAtY) * 0.02
     camera.lookAt(state.current.lookAtX, state.current.lookAtY, 0)
   })
 

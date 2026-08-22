@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 
 type HeroCTAProps = {
@@ -13,6 +13,11 @@ type HeroCTAProps = {
 export default function HeroCTA({ primaryText, primaryHref, secondaryText, secondaryHref }: HeroCTAProps) {
   const primaryRef = useRef<HTMLAnchorElement>(null)
   const secondaryRef = useRef<HTMLAnchorElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
+  }, [])
 
   useEffect(() => {
     const setupMagnetic = (ref: React.RefObject<HTMLAnchorElement>, strength: number) => {
@@ -36,12 +41,20 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
         const y = (e.clientY - rect.top - rect.height / 2) * strength
         xTo(x)
         yTo(y)
+
+        // Subtle scale on hover
+        gsap.to(domElement, {
+          scale: 1.02,
+          duration: 0.3,
+          ease: 'power2.out',
+        })
       }
 
       const handleMouseLeave = () => {
         gsap.to(domElement, {
           x: 0,
           y: 0,
+          scale: 1,
           duration: 0.6,
           ease: 'elastic.out(1, 0.4)',
         })
@@ -50,10 +63,36 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
       domElement.addEventListener('mousemove', handleMouseMove)
       domElement.addEventListener('mouseleave', handleMouseLeave)
 
+      // Touch feedback
+      const handleTouchStart = () => {
+        gsap.to(domElement, {
+          scale: 0.98,
+          duration: 0.2,
+          ease: 'power2.out',
+        })
+      }
+
+      const handleTouchEnd = () => {
+        gsap.to(domElement, {
+          scale: 1,
+          duration: 0.4,
+          ease: 'elastic.out(1, 0.4)',
+        })
+      }
+
+      if (isMobile) {
+        domElement.addEventListener('touchstart', handleTouchStart, { passive: true })
+        domElement.addEventListener('touchend', handleTouchEnd)
+      }
+
       return () => {
         if (domElement) {
           domElement.removeEventListener('mousemove', handleMouseMove)
           domElement.removeEventListener('mouseleave', handleMouseLeave)
+          if (isMobile) {
+            domElement.removeEventListener('touchstart', handleTouchStart)
+            domElement.removeEventListener('touchend', handleTouchEnd)
+          }
         }
       }
     }
@@ -65,7 +104,7 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
       cleanup1?.()
       cleanup2?.()
     }
-  }, [])
+  }, [isMobile])
 
   return (
     <div className="mt-12 flex items-center gap-6 hero-cta">

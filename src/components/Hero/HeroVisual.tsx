@@ -18,13 +18,10 @@ type HeroVisualProps = {
 export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video, isMobile = false }: HeroVisualProps) {
   const [mounted, setMounted] = useState(false)
   const isWebGLSupported = useWebGL()
-  const [isMobile, setIsMobile] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    const mobile = window.innerWidth < 768
-    setIsMobile(mobile)
 
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     setPrefersReducedMotion(motionQuery.matches)
@@ -67,20 +64,26 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
         camera={{ position: [0, 0, 18], fov: 55 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       >
-        <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} pointerDistance={pointerDistance} isMobile={isMobile} />
+        <Scene 
+          mousePos={mousePos} 
+          scrollProgress={scrollProgress} 
+          prefersReducedMotion={prefersReducedMotion} 
+          pointerDistance={pointerDistance} 
+          isMobile={isMobile} 
+        />
       </Canvas>
       {/* Atmospheric overlay - subtle depth gradient */}
       <div
         className="absolute inset-0 pointer-events-none transition-opacity duration-700"
         style={{
-          background: `radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(5,5,5,${0.2 + scrollProgress * 0.3}) 100%)`,
+          background: `radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(5,5,5,${0.15 + scrollProgress * 0.25}) 100%)`,
         }}
       />
       {/* Vignette for cinematic depth */}
       <div
         className="absolute inset-0 pointer-events-none transition-opacity duration-700"
         style={{
-          background: `radial-gradient(ellipse 70% 50% at 50% 50%, transparent 0%, rgba(5,5,5,${0.3 + scrollProgress * 0.4}) 100%)`,
+          background: `radial-gradient(ellipse 70% 50% at 50% 50%, transparent 0%, rgba(5,5,5,${0.25 + scrollProgress * 0.35}) 100%)`,
         }}
       />
     </div>

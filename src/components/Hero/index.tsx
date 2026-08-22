@@ -256,7 +256,7 @@ export default function Hero({ data, role }: HeroProps) {
       />
 
       {/* Content area - positioned in lower third */}
-      <div className="hero-content-wrapper relative z-20 w-full max-w-2xl mx-auto pb-32 md:pb-40">
+      <div className={`hero-content-wrapper relative z-20 w-full max-w-2xl mx-auto ${isMobile ? 'pt-16 pb-24 px-6' : 'pb-32 md:pb-40'}`}>
         <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />
         <HeroMeta description={data.description} />
         <HeroCTA
@@ -268,7 +268,7 @@ export default function Hero({ data, role }: HeroProps) {
       </div>
 
       {/* Bottom metadata - pinned at bottom */}
-      <HeroMetadata className="mt-32 md:mt-40" onRequestOrientation={requestOrientation} />
+      <HeroMetadata className={isMobile ? 'mt-8' : 'mt-32 md:mt-40'} onRequestOrientation={requestOrientation} />
     </section>
   )
 }
