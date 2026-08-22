@@ -98,11 +98,11 @@ export default function AboutSection({ data }: AboutSectionProps) {
   }, [isInView])
 
   return (
-    <section id="about" data-scroll-section="about" className="py-32 md:py-48 relative overflow-hidden" ref={sectionRef}>
+    <section id="about" data-scroll-section="about" className="py-24 md:py-48 relative overflow-hidden" ref={sectionRef}>
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-16 md:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 items-start">
           {/* Left column - minimal metadata */}
           <div className="md:col-span-4 relative">
             <p className="label text-text-muted mb-4" data-scroll-reveal data-scroll-parallax="0.1">01 — ABOUT</p>
@@ -130,12 +130,12 @@ export default function AboutSection({ data }: AboutSectionProps) {
               {lines.map((line, i) => (
                 <div
                   key={i}
-                  className="overflow-hidden mb-2"
+                  className="overflow-hidden mb-1 md:mb-2"
                   onMouseEnter={() => setHoveredLine(i)}
                   onMouseLeave={() => setHoveredLine(null)}
                 >
                   <span
-                    className="about-hero-line font-display text-[clamp(3rem,7vw,7rem)] text-text-primary inline-block transition-all duration-500"
+                    className="about-hero-line font-display text-[clamp(2.5rem,6vw,6rem)] md:text-[clamp(3rem,7vw,7rem)] text-text-primary inline-block transition-all duration-500"
                     style={{
                       lineHeight: '0.9',
                       letterSpacing: '-0.04em',

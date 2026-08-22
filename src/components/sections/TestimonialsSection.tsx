@@ -93,13 +93,13 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
   }
 
   return (
-    <section id="testimonials" data-scroll-section="testimonials" className="py-32 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
+    <section id="testimonials" data-scroll-section="testimonials" className="py-24 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
 
       <div className="container mx-auto px-6">
         {/* Section header */}
-        <div className="testimonials-header mb-24 md:mb-32">
+        <div className="testimonials-header mb-16 md:mb-32">
           <p className="label text-text-muted mb-4" data-scroll-reveal>TESTIMONIALS</p>
           <h2
             className="font-display text-[clamp(2.5rem,5vw,5rem)] text-text-primary"
@@ -111,7 +111,7 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
         </div>
 
         {/* Testimonials list - editorial stacked layout */}
-        <div className="space-y-24 md:space-y-40">
+        <div className="space-y-20 md:space-y-40">
           {data.map((t, i) => {
             const isActive = activeId === t.id
 

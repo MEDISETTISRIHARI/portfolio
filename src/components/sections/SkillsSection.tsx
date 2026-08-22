@@ -87,11 +87,11 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
   }
 
   return (
-    <section id="skills" data-scroll-section="skills" className="py-32 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
+    <section id="skills" data-scroll-section="skills" className="py-24 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
       <div className="container mx-auto px-6">
-        <p className="label text-text-muted mb-16" data-scroll-reveal>CAPABILITIES</p>
+        <p className="label text-text-muted mb-12 md:mb-16" data-scroll-reveal>CAPABILITIES</p>
         <div className="space-y-0">
           {data.map((skill, i) => {
             const isActive = activeIndex === i
@@ -110,7 +110,7 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                 onClick={() => handleTouch(i)}
                 data-cursor="skill"
               >
-                <div className="py-8 md:py-12 grid grid-cols-12 gap-4 md:gap-8 items-center cursor-pointer">
+                <div className="py-6 md:py-12 grid grid-cols-12 gap-4 md:gap-8 items-center cursor-pointer">
                   {/* Index */}
                   <div className="col-span-2 md:col-span-1">
                     <span

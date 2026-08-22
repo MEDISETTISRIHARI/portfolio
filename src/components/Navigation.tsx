@@ -47,7 +47,6 @@ export default function Navigation() {
   useEffect(() => {
     if (isMobileOpen) {
       document.body.style.overflow = 'hidden'
-      // Animate mobile menu items
       gsap.fromTo('.mobile-nav-item',
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out', delay: 0.2 }
@@ -67,11 +66,11 @@ export default function Navigation() {
     const ctx = gsap.context(() => {
       gsap.fromTo('.nav-item',
         { opacity: 0, y: -10 },
-        { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: 'power2.out', delay: 0.3 }
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: 'power3.out', delay: 0.3 }
       )
       gsap.fromTo('.nav-logo',
         { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, duration: 0.6, ease: 'power2.out', delay: 0.1 }
+        { opacity: 1, scale: 1, duration: 0.6, ease: 'power3.out', delay: 0.1 }
       )
     })
 

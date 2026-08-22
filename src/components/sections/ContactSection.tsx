@@ -140,7 +140,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
   }
 
   return (
-    <section id="contact" data-scroll-section="contact" className="py-32 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
+    <section id="contact" data-scroll-section="contact" className="py-24 md:py-48 border-t border-border-subtle relative" ref={sectionRef}>
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
 
@@ -152,21 +152,21 @@ export default function ContactSection({ email }: ContactSectionProps) {
 
       <div className="container mx-auto px-6 relative">
         {/* Header */}
-        <div className="contact-header mb-16 md:mb-24">
+        <div className="contact-header mb-12 md:mb-24">
           <p className="label text-text-muted mb-4" data-scroll-reveal>CONTACT</p>
           <div className="contact-divider h-px bg-accent origin-left" style={{ width: '48px' }} />
         </div>
 
         {/* Hero-level typography */}
-        <div className="contact-title mb-16 md:mb-24" data-scroll-reveal>
+        <div className="contact-title mb-12 md:mb-24" data-scroll-reveal>
           <h2
-            className="font-display text-[clamp(3rem,8vw,8rem)] text-text-primary leading-[0.9]"
+            className="font-display text-[clamp(2.5rem,7vw,7rem)] text-text-primary leading-[0.9]"
             style={{ letterSpacing: '-0.04em' }}
           >
             LET&apos;S TALK
           </h2>
           <h3
-            className="font-display text-[clamp(1.5rem,3vw,3rem)] text-text-secondary mt-4"
+            className="font-display text-[clamp(1.25rem,2.5vw,2.5rem)] text-text-secondary mt-4"
             style={{ letterSpacing: '-0.02em' }}
           >
             HAVE AN IDEA? LET&apos;S BUILD SOMETHING WORTH REMEMBERING.
@@ -174,12 +174,12 @@ export default function ContactSection({ email }: ContactSectionProps) {
         </div>
 
         {/* Large email CTA - magnetic */}
-        <div className="contact-cta mb-16 md:mb-24" data-scroll-reveal>
+        <div className="contact-cta mb-12 md:mb-24" data-scroll-reveal>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
             <a
               ref={magneticRef}
               href={`mailto:${email || 'hello@example.com'}`}
-              className="group relative px-10 py-5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent"
+              className="group relative px-8 md:px-10 py-4 md:py-5 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent"
               style={{ borderRadius: '2px' }}
             >
               <span className="relative z-10 flex items-center gap-3">

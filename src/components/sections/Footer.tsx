@@ -93,16 +93,16 @@ export default function Footer({ socials, profile }: FooterProps) {
   }, [isInView])
 
   return (
-    <footer data-scroll-section="footer" className="py-24 md:py-32 border-t border-border-subtle relative" ref={footerRef}>
+    <footer data-scroll-section="footer" className="py-20 md:py-32 border-t border-border-subtle relative" ref={footerRef}>
       {/* Section continuity line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
 
       {/* Animated divider */}
-      <div className="footer-divider h-px bg-gradient-to-r from-transparent via-accent to-transparent origin-left mb-24 md:mb-32" style={{ transform: 'scaleX(0)' }} />
+      <div className="footer-divider h-px bg-gradient-to-r from-transparent via-accent to-transparent origin-left mb-16 md:mb-32" style={{ transform: 'scaleX(0)' }} />
 
       <div className="container mx-auto px-6">
         {/* Large brand statement */}
-        <div className="footer-brand mb-24 md:mb-32">
+        <div className="footer-brand mb-16 md:mb-32">
           <h2
             className="font-display text-[clamp(2.5rem,5vw,5rem)] text-text-primary leading-[0.9]"
             style={{ letterSpacing: '-0.03em' }}
@@ -129,7 +129,7 @@ export default function Footer({ socials, profile }: FooterProps) {
         </div>
 
         {/* Navigation + Socials */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-24 md:mb-32">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 mb-16 md:mb-32">
           {/* Navigation */}
           <div className="md:col-span-6">
             <p className="label text-text-muted mb-6">NAVIGATION</p>

@@ -9,18 +9,26 @@ export default function CinematicIntro() {
   const skipRef = useRef<HTMLButtonElement>(null)
   const timelineRef = useRef<gsap.core.Timeline | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 768)
 
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
+  }, [])
+
+  useEffect(() => {
     const hasSeenIntro = sessionStorage.getItem('srihari-intro-seen')
 
     if (hasSeenIntro) {
-      // Returning visitor: quick fade out to reveal Hero
       window.dispatchEvent(new CustomEvent('intro-complete'))
       gsap.to(containerRef.current, {
         opacity: 0,
-        duration: 0.5,
+        duration: prefersReducedMotion ? 0.01 : 0.4,
         ease: 'power2.inOut',
         onComplete: () => {
           if (containerRef.current) {
@@ -28,6 +36,14 @@ export default function CinematicIntro() {
           }
         },
       })
+      return
+    }
+
+    if (prefersReducedMotion) {
+      window.dispatchEvent(new CustomEvent('intro-complete'))
+      if (containerRef.current) {
+        containerRef.current.style.display = 'none'
+      }
       return
     }
 
@@ -40,12 +56,12 @@ export default function CinematicIntro() {
 
       timelineRef.current = tl
 
-      const base = isMobile ? 0.5 : 0.8
-      const sub = base * 0.75
-      const overlap = base * 0.4
+      const base = isMobile ? 0.6 : 0.9
+      const sub = base * 0.7
+      const overlap = base * 0.35
 
-      tl.set('.intro-title', { opacity: 0, clipPath: 'inset(0 100% 0 0)' })
-        .set('.intro-subtitle', { opacity: 0, y: 20 })
+      tl.set('.intro-title', { opacity: 0, clipPath: 'inset(0 100% 0 0)', y: 40 })
+        .set('.intro-subtitle', { opacity: 0, y: 30 })
         .set('.intro-tagline', { opacity: 0, y: 20 })
         .set('.intro-divider', { opacity: 0, scaleY: 0 })
         .set(skipRef.current, { opacity: 0 })
@@ -54,6 +70,7 @@ export default function CinematicIntro() {
       .to('.intro-title', {
         opacity: 1,
         clipPath: 'inset(0 0% 0 0)',
+        y: 0,
         duration: base,
         ease: 'power3.out',
       })
@@ -70,46 +87,44 @@ export default function CinematicIntro() {
         y: 0,
         duration: sub,
         ease: 'power2.out',
-      }, `-=${overlap * 0.75}`)
+      }, `-=${overlap * 0.7}`)
 
       .to('.intro-divider', {
-        opacity: 0.5,
+        opacity: 0.6,
         scaleY: 1,
-        duration: sub * 0.6,
+        duration: sub * 0.5,
         ease: 'power2.out',
-      }, '-=0.1')
+      }, '-=0.15')
+
       .to(contentRef.current, {
-        scale: 1.01,
-        duration: base * 0.6,
+        scale: 1.015,
+        duration: base * 0.5,
         ease: 'power1.inOut',
       }, '<')
 
-      // Hold for a moment
       .to(contentRef.current, {
         scale: 1,
-        duration: base * 0.3,
+        duration: base * 0.25,
         ease: 'power1.inOut',
-      }, `+=${base * 0.15}`)
+      }, `+=${base * 0.12}`)
 
-      // Seamless reveal: dispatch event first so Hero can start animating
-      // while intro is still fading out
       .call(() => {
         window.dispatchEvent(new CustomEvent('intro-complete'))
-      }, undefined, `+=${base * 0.05}`)
+      }, undefined, `+=${base * 0.06}`)
 
       .to(containerRef.current, {
         opacity: 0,
-        scale: 1.02,
-        duration: base * 0.7,
+        scale: 1.03,
+        duration: base * 0.65,
         ease: 'power2.inOut',
       }, '<')
 
-      .set(containerRef.current, { display: 'none' }, `+=0.1`)
+      .set(containerRef.current, { display: 'none' }, '+=0.1')
 
     }, containerRef)
 
     return () => ctx.revert()
-  }, [isMobile])
+  }, [isMobile, prefersReducedMotion])
 
   const handleSkip = () => {
     if (timelineRef.current) {

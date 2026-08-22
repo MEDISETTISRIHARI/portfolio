@@ -129,13 +129,13 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
   }, [activeId])
 
   return (
-    <section id="work" data-scroll-section="work" className="relative py-32 md:py-48 border-t border-border-subtle" ref={sectionRef}>
+    <section id="work" data-scroll-section="work" className="relative py-24 md:py-48 border-t border-border-subtle" ref={sectionRef}>
       {/* Section transition line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50" />
 
       <div className="container mx-auto px-6">
         {/* Section header - editorial style */}
-        <div className="projects-header mb-24 md:mb-32">
+        <div className="projects-header mb-16 md:mb-32">
           <div className="flex items-end justify-between">
             <div>
               <p className="label text-text-muted mb-4" data-scroll-reveal>SELECTED WORK</p>
@@ -154,7 +154,7 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
         </div>
 
         {/* Projects list - editorial stacked layout */}
-        <div className="space-y-24 md:space-y-40">
+        <div className="space-y-20 md:space-y-40">
           {data.map((project, i) => {
             const isActive = activeId === project.id
             const href = project.caseStudy || project.liveUrl || '#'
