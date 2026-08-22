@@ -52,6 +52,9 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
       const patternEl = el.querySelector('.pv-pattern')
       const lineEl = el.querySelector('.pv-line')
       const titleEl = el.querySelector('.pv-title')
+      const depthLayer1 = el.querySelector('.pv-depth-1')
+      const depthLayer2 = el.querySelector('.pv-depth-2')
+      const depthLayer3 = el.querySelector('.pv-depth-3')
 
       if (shapeEl) {
         gsap.to(shapeEl, {
@@ -87,6 +90,30 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
           ease: 'power2.out',
         })
       }
+
+      // Depth layers animate at different speeds
+      if (depthLayer1) {
+        gsap.to(depthLayer1, {
+          x: isActive ? '0%' : '-3%',
+          duration: 2,
+          ease: 'power2.out',
+        })
+      }
+      if (depthLayer2) {
+        gsap.to(depthLayer2, {
+          y: isActive ? '0%' : '-2%',
+          duration: 1.8,
+          ease: 'power2.out',
+        })
+      }
+      if (depthLayer3) {
+        gsap.to(depthLayer3, {
+          scale: isActive ? 1 : 0.95,
+          opacity: isActive ? 1 : 0.5,
+          duration: 1.5,
+          ease: 'power2.out',
+        })
+      }
     }, visualRef)
 
     return () => ctx.revert()
@@ -115,8 +142,8 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
         background: '#050505',
       }}
     >
-      {/* Depth layer - base */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60" />
+      {/* Depth layer - base atmosphere */}
+      <div className="pv-depth-1 absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60" />
 
       {/* Unique visual composition */}
       {renderVisual()}
@@ -146,7 +173,7 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
       />
 
       {/* Center glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl transition-all duration-1000"
+      <div className="pv-depth-2 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-3xl transition-all duration-1000"
         style={{
           background: 'radial-gradient(circle, rgba(125,211,252,0.08) 0%, transparent 70%)',
           opacity: isActive ? 0.5 : 0.1,
@@ -175,30 +202,40 @@ export default function ProjectVisual({ category, title, isActive }: ProjectVisu
 function InsuranceVisual({ isActive, title }: { isActive: boolean; title: string }) {
   return (
     <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}>
-      {/* Structured grid - architectural interface */}
-      <div className="absolute inset-0 opacity-20"
+      {/* Depth layer 3 - background texture */}
+      <div className="pv-depth-3 absolute inset-0 opacity-30"
         style={{
-          backgroundImage: 'linear-gradient(rgba(125,211,252,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(125,211,252,0.06) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
+          backgroundImage: 'linear-gradient(rgba(125,211,252,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(125,211,252,0.04) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
         }}
       />
 
-      {/* Data cards - floating panels */}
-      <div className="absolute top-[15%] left-[10%] w-32 h-20 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+      {/* Large structural form - grid */}
+      <div className="pv-depth-2 absolute inset-0 transition-all duration-1000"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(125,211,252,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(125,211,252,0.06) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+          transform: isActive ? 'scale(1.1)' : 'scale(1)',
+          opacity: isActive ? 0.5 : 0.2,
+        }}
+      />
+
+      {/* Interface layer - data cards */}
+      <div className="pv-depth-1 absolute top-[15%] left-[10%] w-32 h-20 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
         style={{ transform: `translateY(${isActive ? 0 : 10}px)`, opacity: isActive ? 0.6 : 0.3 }}
       />
-      <div className="absolute top-[25%] left-[25%] w-40 h-24 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+      <div className="pv-depth-1 absolute top-[25%] left-[25%] w-40 h-24 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
         style={{ transform: `translateY(${isActive ? 0 : 15}px)`, opacity: isActive ? 0.5 : 0.2, transitionDelay: '0.1s' }}
       />
-      <div className="absolute top-[18%] right-[15%] w-36 h-16 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
+      <div className="pv-depth-1 absolute top-[18%] right-[15%] w-36 h-16 border border-white/5 bg-white/[0.02] backdrop-blur-sm transition-all duration-1000"
         style={{ transform: `translateY(${isActive ? 0 : 8}px)`, opacity: isActive ? 0.5 : 0.2, transitionDelay: '0.2s' }}
       />
 
-      {/* Data surface lines */}
-      <div className="absolute top-[45%] left-[8%] right-[8%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
+      {/* Foreground detail - data surface lines */}
+      <div className="pv-depth-3 absolute top-[45%] left-[8%] right-[8%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
         style={{ transform: `scaleX(${isActive ? 1 : 0.8})`, opacity: isActive ? 0.4 : 0.1 }}
       />
-      <div className="absolute top-[55%] left-[12%] right-[12%] h-px bg-gradient-to-r from-transparent via-white/5 to-transparent transition-all duration-1000"
+      <div className="pv-depth-3 absolute top-[55%] left-[12%] right-[12%] h-px bg-gradient-to-r from-transparent via-white/5 to-transparent transition-all duration-1000"
         style={{ transform: `scaleX(${isActive ? 1 : 0.7})`, opacity: isActive ? 0.3 : 0.1, transitionDelay: '0.1s' }}
       />
 
@@ -216,8 +253,17 @@ function InsuranceVisual({ isActive, title }: { isActive: boolean; title: string
 function FintechVisual({ isActive, title }: { isActive: boolean; title: string }) {
   return (
     <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'translateX(5%)' : 'translateX(0)' }}>
-      {/* Flowing data lines */}
-      <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 200" preserveAspectRatio="none">
+      {/* Depth layer 3 - background texture */}
+      <div className="pv-depth-3 absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(91,141,239,0.03) 40px, rgba(91,141,239,0.03) 41px)',
+        }}
+      />
+
+      {/* Large structural form - flowing data lines */}
+      <svg className="pv-depth-2 absolute inset-0 w-full h-full opacity-30 transition-all duration-1000"
+        viewBox="0 0 400 200" preserveAspectRatio="none"
+        style={{ transform: isActive ? 'translateY(0)' : 'translateY(10px)' }}>
         <defs>
           <linearGradient id="finGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="transparent" />
@@ -231,8 +277,8 @@ function FintechVisual({ isActive, title }: { isActive: boolean; title: string }
           stroke="url(#finGrad)" strokeWidth="0.5" fill="none" className="transition-all duration-1000" style={{ transitionDelay: '0.2s' }} />
       </svg>
 
-      {/* Chart bars */}
-      <div className="absolute bottom-[20%] left-[15%] flex items-end gap-1 h-24">
+      {/* Interface layer - chart bars */}
+      <div className="pv-depth-1 absolute bottom-[20%] left-[15%] flex items-end gap-1 h-24">
         {[40, 65, 45, 80, 55, 70, 50, 85].map((h, i) => (
           <div key={i} className="w-2 bg-gradient-to-t from-blue-500/20 to-blue-400/40 transition-all duration-500"
             style={{
@@ -245,8 +291,8 @@ function FintechVisual({ isActive, title }: { isActive: boolean; title: string }
         ))}
       </div>
 
-      {/* Numerical indicators */}
-      <div className="absolute top-[20%] right-[10%] text-right">
+      {/* Foreground detail - numerical indicators */}
+      <div className="pv-depth-3 absolute top-[20%] right-[10%] text-right">
         <div className="text-[10px] text-blue-300/30 font-mono transition-all duration-500"
           style={{ opacity: isActive ? 0.6 : 0.2 }}>24.8K</div>
         <div className="text-[10px] text-blue-300/20 font-mono mt-1 transition-all duration-500"
@@ -267,15 +313,23 @@ function FintechVisual({ isActive, title }: { isActive: boolean; title: string }
 function CreativeVisual({ isActive, title }: { isActive: boolean; title: string }) {
   return (
     <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'rotate(8deg) scale(1.1)' : 'rotate(0deg) scale(1)' }}>
-      {/* Abstract forms */}
-      <div className="absolute top-[20%] left-[15%] w-32 h-32 rounded-full blur-2xl transition-all duration-1000"
+      {/* Depth layer 3 - background texture */}
+      <div className="pv-depth-3 absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(125,211,252,0.05) 1px, transparent 1px)',
+          backgroundSize: '30px 30px',
+        }}
+      />
+
+      {/* Large structural form - abstract orbs */}
+      <div className="pv-depth-2 absolute top-[20%] left-[15%] w-32 h-32 rounded-full blur-2xl transition-all duration-1000"
         style={{
           background: 'radial-gradient(circle, rgba(125,211,252,0.1) 0%, transparent 70%)',
           opacity: isActive ? 0.5 : 0.2,
           transform: isActive ? 'scale(1.2)' : 'scale(1)',
         }}
       />
-      <div className="absolute bottom-[25%] right-[20%] w-40 h-40 rounded-full blur-3xl transition-all duration-1000"
+      <div className="pv-depth-2 absolute bottom-[25%] right-[20%] w-40 h-40 rounded-full blur-3xl transition-all duration-1000"
         style={{
           background: 'radial-gradient(circle, rgba(91,141,239,0.08) 0%, transparent 70%)',
           opacity: isActive ? 0.4 : 0.1,
@@ -284,8 +338,8 @@ function CreativeVisual({ isActive, title }: { isActive: boolean; title: string 
         }}
       />
 
-      {/* Typography overlay - abstract text */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {/* Interface layer - typography overlay */}
+      <div className="pv-depth-1 absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="relative">
           <span className="font-display text-[clamp(1.5rem,4vw,3rem)] text-white/5 select-none transition-all duration-700"
             style={{ transform: isActive ? 'translateY(0)' : 'translateY(20px)' }}>
@@ -298,11 +352,11 @@ function CreativeVisual({ isActive, title }: { isActive: boolean; title: string 
         </div>
       </div>
 
-      {/* Floating geometric shapes */}
-      <div className="absolute top-[30%] right-[25%] w-16 h-16 border border-white/5 rotate-45 transition-all duration-1000"
+      {/* Foreground detail - geometric shapes */}
+      <div className="pv-depth-3 absolute top-[30%] right-[25%] w-16 h-16 border border-white/5 rotate-45 transition-all duration-1000"
         style={{ transform: isActive ? 'rotate(90deg) scale(1.2)' : 'rotate(45deg) scale(1)', opacity: isActive ? 0.3 : 0.1 }}
       />
-      <div className="absolute bottom-[35%] left-[30%] w-12 h-12 border border-white/5 rounded-full transition-all duration-1000"
+      <div className="pv-depth-3 absolute bottom-[35%] left-[30%] w-12 h-12 border border-white/5 rounded-full transition-all duration-1000"
         style={{ transform: isActive ? 'scale(1.3)' : 'scale(1)', opacity: isActive ? 0.3 : 0.1, transitionDelay: '0.15s' }}
       />
 
@@ -320,8 +374,16 @@ function CreativeVisual({ isActive, title }: { isActive: boolean; title: string 
 function ArchitectureVisual({ isActive, title }: { isActive: boolean; title: string }) {
   return (
     <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}>
-      {/* Perspective planes */}
-      <div className="absolute inset-0 overflow-hidden">
+      {/* Depth layer 3 - background texture */}
+      <div className="pv-depth-3 absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(156,163,175,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(156,163,175,0.03) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }}
+      />
+
+      {/* Large structural form - perspective planes */}
+      <div className="pv-depth-2 absolute inset-0 overflow-hidden">
         {/* Horizontal planes with perspective */}
         <div className="absolute top-[20%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
           style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0.9)', opacity: isActive ? 0.3 : 0.1 }}
@@ -354,19 +416,24 @@ function ArchitectureVisual({ isActive, title }: { isActive: boolean; title: str
         />
       </div>
 
-      {/* Geometric forms - structural elements */}
-      <div className="absolute top-[15%] left-[20%] w-24 h-32 border border-white/5 transition-all duration-1000"
+      {/* Interface layer - geometric forms */}
+      <div className="pv-depth-1 absolute top-[15%] left-[20%] w-24 h-32 border border-white/5 transition-all duration-1000"
         style={{
           transform: isActive ? 'perspective(500px) rotateY(-5deg)' : 'perspective(500px) rotateY(-10deg)',
           opacity: isActive ? 0.2 : 0.05,
         }}
       />
-      <div className="absolute top-[25%] right-[25%] w-20 h-28 border border-white/5 transition-all duration-1000"
+      <div className="pv-depth-1 absolute top-[25%] right-[25%] w-20 h-28 border border-white/5 transition-all duration-1000"
         style={{
           transform: isActive ? 'perspective(500px) rotateY(5deg)' : 'perspective(500px) rotateY(10deg)',
           opacity: isActive ? 0.15 : 0.05,
           transitionDelay: '0.2s',
         }}
+      />
+
+      {/* Foreground detail - structural accents */}
+      <div className="pv-depth-3 absolute bottom-[15%] left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent transition-all duration-1000"
+        style={{ transform: isActive ? 'scaleX(1)' : 'scaleX(0.8)', opacity: isActive ? 0.2 : 0.05 }}
       />
 
       {/* Center glow */}
@@ -383,20 +450,19 @@ function ArchitectureVisual({ isActive, title }: { isActive: boolean; title: str
 function DefaultVisual({ isActive, title }: { isActive: boolean; title: string }) {
   return (
     <div className="pv-shape absolute inset-0 transition-all duration-700" style={{ transform: isActive ? 'scale(1.05)' : 'scale(1)' }}>
-      {/* Radial gradient shape */}
-      <div className="absolute inset-0"
-        style={{
-          background: `radial-gradient(circle at 30% 30%, rgba(125,211,252,0.08) 0%, transparent 60%)`,
-          transform: isActive ? 'scale(1.1)' : 'scale(1)',
-        }}
-      />
-
-      {/* Pattern layer */}
-      <div className="pv-pattern absolute inset-0"
+      {/* Depth layer 3 - background texture */}
+      <div className="pv-depth-3 absolute inset-0 opacity-30"
         style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
-          opacity: isActive ? 0.4 : 0.2,
+        }}
+      />
+
+      {/* Large structural form - radial gradient */}
+      <div className="pv-depth-2 absolute inset-0"
+        style={{
+          background: `radial-gradient(circle at 30% 30%, rgba(125,211,252,0.08) 0%, transparent 60%)`,
+          transform: isActive ? 'scale(1.1)' : 'scale(1)',
         }}
       />
 
