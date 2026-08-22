@@ -8,12 +8,12 @@ export default function Navigation() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
   const [introComplete, setIntroComplete] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
   useEffect(() => {
     const hasSeenIntro = sessionStorage.getItem('srihari-intro-seen')
 
     if (hasSeenIntro) {
-      // Returning visitor: show nav immediately
       setIntroComplete(true)
       return
     }
@@ -25,6 +25,14 @@ export default function Navigation() {
 
     window.addEventListener('intro-complete', handleIntroComplete)
     return () => window.removeEventListener('intro-complete', handleIntroComplete)
+  }, [])
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
   }, [])
 
   useEffect(() => {
@@ -64,6 +72,12 @@ export default function Navigation() {
     if (!introComplete) return
 
     const ctx = gsap.context(() => {
+      if (prefersReducedMotion) {
+        gsap.set('.nav-item', { opacity: 1, y: 0 })
+        gsap.set('.nav-logo', { opacity: 1, scale: 1 })
+        return
+      }
+
       gsap.fromTo('.nav-item',
         { opacity: 0, y: -10 },
         { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: 'power3.out', delay: 0.3 }
@@ -75,7 +89,7 @@ export default function Navigation() {
     })
 
     return () => ctx.revert()
-  }, [introComplete])
+  }, [introComplete, prefersReducedMotion])
 
   const navItems = [
     { label: 'WORK', href: '#work' },
@@ -92,7 +106,7 @@ export default function Navigation() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 will-change-transform ${
           isScrolled ? 'bg-background/80 backdrop-blur-md border-b border-border-subtle' : 'bg-transparent'
         } ${introComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         aria-label="Main navigation"

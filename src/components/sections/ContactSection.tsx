@@ -178,6 +178,9 @@ export default function ContactSection({ email }: ContactSectionProps) {
         <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-border-subtle to-transparent opacity-30" />
       </div>
 
+      {/* Architectural line for final wow moment */}
+      <div className="wow-architectural-line absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent origin-left opacity-0" style={{ transform: 'scaleX(0)' }} />
+
       <div className="container mx-auto px-6 relative">
         {/* Header */}
         <div className="contact-header mb-12 md:mb-24">

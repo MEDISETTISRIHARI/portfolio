@@ -22,6 +22,13 @@ export default function CustomCursor() {
   const baseRingSize = 40
 
   useEffect(() => {
+    document.body.style.cursor = 'none'
+    return () => {
+      document.body.style.cursor = ''
+    }
+  }, [])
+
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       target.current = { x: e.clientX, y: e.clientY }
       if (!isVisible) setIsVisible(true)
@@ -48,7 +55,6 @@ export default function CustomCursor() {
       const now = Date.now()
       const dt = Math.max(1, now - lastTime.current)
       
-      // Calculate velocity with time normalization
       const dx = (target.current.x - lastPos.current.x) / dt * 16
       const dy = (target.current.y - lastPos.current.y) / dt * 16
       velocity.current.x += (dx - velocity.current.x) * 0.3
@@ -56,12 +62,10 @@ export default function CustomCursor() {
       lastPos.current = { x: target.current.x, y: target.current.y }
       lastTime.current = now
 
-      // Update dot position (fast follow)
       if (dotRef.current) {
         dotRef.current.style.transform = `translate(${target.current.x - baseDotSize / 2}px, ${target.current.y - baseDotSize / 2}px)`
       }
 
-      // Update ring position (slower follow with lag)
       ringTarget.current.x += (target.current.x - ringTarget.current.x) * 0.12
       ringTarget.current.y += (target.current.y - ringTarget.current.y) * 0.12
       if (ringRef.current) {
@@ -121,33 +125,33 @@ export default function CustomCursor() {
     switch (state) {
       case 'cta':
         return {
-          dot: { width: 12, height: 12, backgroundColor: '#7dd3fc' },
-          ring: { width: 64, height: 64, borderColor: 'rgba(125, 211, 252, 0.4)', borderWidth: 1 },
+          dot: { width: 10, height: 10, backgroundColor: '#7dd3fc' },
+          ring: { width: 56, height: 56, borderColor: 'rgba(125, 211, 252, 0.35)', borderWidth: 1 },
         }
       case 'project':
         return {
           dot: { width: 8, height: 8, backgroundColor: '#ffffff' },
-          ring: { width: 80, height: 80, borderColor: 'rgba(255, 255, 255, 0.3)', borderWidth: 1 },
+          ring: { width: 72, height: 72, borderColor: 'rgba(255, 255, 255, 0.25)', borderWidth: 1 },
         }
       case 'nav':
         return {
           dot: { width: 4, height: 4, backgroundColor: '#ffffff' },
-          ring: { width: 32, height: 32, borderColor: 'rgba(255, 255, 255, 0.2)', borderWidth: 1 },
+          ring: { width: 28, height: 28, borderColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1 },
         }
       case 'object3d':
         return {
-          dot: { width: 10, height: 10, backgroundColor: '#7dcffd' },
-          ring: { width: 50, height: 50, borderColor: 'rgba(125, 211, 252, 0.2)', borderWidth: 1 },
+          dot: { width: 8, height: 8, backgroundColor: '#7dcffd' },
+          ring: { width: 44, height: 44, borderColor: 'rgba(125, 211, 252, 0.2)', borderWidth: 1 },
         }
       case 'skill':
         return {
-          dot: { width: 8, height: 8, backgroundColor: '#7dd3fd' },
-          ring: { width: 56, height: 56, borderColor: 'rgba(125, 211, 252, 0.3)', borderWidth: 1 },
+          dot: { width: 7, height: 7, backgroundColor: '#7dd3fd' },
+          ring: { width: 48, height: 48, borderColor: 'rgba(125, 211, 252, 0.25)', borderWidth: 1 },
         }
       default:
         return {
           dot: { width: baseDotSize, height: baseDotSize, backgroundColor: '#ffffff' },
-          ring: { width: baseRingSize, height: baseRingSize, borderColor: 'rgba(255, 255, 255, 0.15)', borderWidth: 1 },
+          ring: { width: baseRingSize, height: baseRingSize, borderColor: 'rgba(255, 255, 255, 0.12)', borderWidth: 1 },
         }
     }
   }
@@ -172,6 +176,7 @@ export default function CustomCursor() {
           backgroundColor: cursorStyles.dot.backgroundColor,
           transform: `translate(${target.current.x - baseDotSize / 2}px, ${target.current.y - baseDotSize / 2}px)`,
           transition: 'width 0.3s ease, height 0.3s ease, background-color 0.3s ease',
+          willChange: 'transform',
         }}
       />
 
@@ -186,6 +191,7 @@ export default function CustomCursor() {
           borderWidth: cursorStyles.ring.borderWidth,
           transform: `translate(${ringTarget.current.x - baseRingSize / 2}px, ${ringTarget.current.y - baseRingSize / 2}px)`,
           transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, border-width 0.3s ease',
+          willChange: 'transform',
         }}
       />
 

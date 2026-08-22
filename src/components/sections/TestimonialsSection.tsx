@@ -49,38 +49,34 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
     return () => motionQuery.removeEventListener('change', handleMotionChange)
   }, [])
 
+  // Scroll choreography: stagger reveals tied to section progress
   useEffect(() => {
     if (!isInView) return
 
     const ctx = gsap.context(() => {
+      // Heading reveal
       const header = sectionRef.current?.querySelector('.testimonials-header')
-      if (header) {
+      if (header && !prefersReducedMotion) {
         gsap.fromTo(header,
           { opacity: 0, y: 50 },
           { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out' }
         )
+      } else if (header && prefersReducedMotion) {
+        gsap.set(header, { opacity: 1, y: 0 })
       }
 
-      const items = sectionRef.current?.querySelectorAll('.testimonial-item')
-      if (items && !prefersReducedMotion) {
-        gsap.fromTo(items,
-          { opacity: 0, y: 80 },
-          { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'power3.out', delay: 0.2 }
-        )
-      } else if (items && prefersReducedMotion) {
-        gsap.set(items, { opacity: 1, y: 0 })
-      }
-
+      // Divider draws
       const dividers = sectionRef.current?.querySelectorAll('.testimonial-divider')
       if (dividers && !prefersReducedMotion) {
         gsap.fromTo(dividers,
           { scaleX: 0 },
-          { scaleX: 1, duration: 1.4, stagger: 0.1, ease: 'power3.out', delay: 0.4 }
+          { scaleX: 1, duration: 1.4, stagger: 0.1, ease: 'power3.out', delay: 0.3 }
         )
       } else if (dividers && prefersReducedMotion) {
         gsap.set(dividers, { scaleX: 1 })
       }
 
+      // Quote marks move subtly
       const quoteMarks = sectionRef.current?.querySelectorAll('.testimonial-quote-mark')
       if (quoteMarks && !prefersReducedMotion) {
         gsap.fromTo(quoteMarks,
@@ -89,6 +85,17 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
         )
       } else if (quoteMarks && prefersReducedMotion) {
         gsap.set(quoteMarks, { opacity: 0.15, scale: 1, y: 0 })
+      }
+
+      // Testimonial items stagger
+      const items = sectionRef.current?.querySelectorAll('.testimonial-item')
+      if (items && !prefersReducedMotion) {
+        gsap.fromTo(items,
+          { opacity: 0, y: 60 },
+          { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'power3.out', delay: 0.2 }
+        )
+      } else if (items && prefersReducedMotion) {
+        gsap.set(items, { opacity: 1, y: 0 })
       }
     }, sectionRef)
 

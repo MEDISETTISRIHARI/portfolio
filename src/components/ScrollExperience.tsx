@@ -441,6 +441,104 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     }
   }, [])
 
+  // Final wow moment: Contact to Footer architectural transition
+  useEffect(() => {
+    let wowTimeline: gsap.core.Timeline | null = null
+    let hasTriggeredFooterWow = false
+
+    const handleSectionChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ sectionId: string; prevSectionId: string | null }>
+      const newSection = customEvent.detail?.sectionId
+      const prevSection = customEvent.detail?.prevSectionId
+
+      if (newSection === 'footer' && !hasTriggeredFooterWow && prevSection === 'contact') {
+        hasTriggeredFooterWow = true
+
+        wowTimeline = gsap.timeline()
+
+        // Thin architectural line expands across viewport
+        const architecturalLine = containerRef.current?.querySelector('.wow-architectural-line')
+        if (architecturalLine) {
+          wowTimeline.fromTo(architecturalLine,
+            { scaleX: 0, opacity: 0 },
+            { scaleX: 1, opacity: 0.6, duration: 1.8, ease: 'power3.out' },
+            0
+          )
+        }
+
+        // Contact heading subtle echo
+        const contactHeading = containerRef.current?.querySelector('[data-scroll-section="contact"] .contact-title')
+        if (contactHeading) {
+          wowTimeline.to(contactHeading, {
+            opacity: 0.3,
+            scale: 0.98,
+            duration: 1.2,
+            ease: 'power2.inOut',
+          }, 0.1)
+        }
+
+        // Contact CTA emerges
+        const contactCta = containerRef.current?.querySelector('[data-scroll-section="contact"] .contact-cta')
+        if (contactCta) {
+          wowTimeline.to(contactCta, {
+            opacity: 0.4,
+            y: -10,
+            duration: 1,
+            ease: 'power2.inOut',
+          }, 0.2)
+        }
+
+        // Footer brand reveal
+        const footerBrand = containerRef.current?.querySelector('.footer-brand')
+        if (footerBrand) {
+          wowTimeline.fromTo(footerBrand,
+            { opacity: 0, y: 50 },
+            { opacity: 1, y: 0, duration: 1.6, ease: 'power3.out' },
+            0.4
+          )
+        }
+
+        // Footer divider draws
+        const footerDivider = containerRef.current?.querySelector('.footer-divider')
+        if (footerDivider) {
+          wowTimeline.fromTo(footerDivider,
+            { scaleX: 0 },
+            { scaleX: 1, duration: 1.8, ease: 'power3.out' },
+            0.3
+          )
+        }
+
+        // Motif line appears
+        const motif = containerRef.current?.querySelector('.footer-motif')
+        if (motif) {
+          wowTimeline.fromTo(motif,
+            { scaleX: 0, opacity: 0 },
+            { scaleX: 1, opacity: 0.4, duration: 2.5, ease: 'power3.out' },
+            0.5
+          )
+        }
+
+        // Everything settles
+        wowTimeline.to('.contact-title, .contact-cta', {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          duration: 1.2,
+          ease: 'power2.inOut',
+        }, 1.2)
+      }
+    }
+
+    window.addEventListener('scroll-section-change', handleSectionChange as EventListener)
+
+    return () => {
+      window.removeEventListener('scroll-section-change', handleSectionChange as EventListener)
+      if (wowTimeline) {
+        wowTimeline.kill()
+      }
+    }
+  }, [])
+
   // Animation loop with smooth interpolation
   useEffect(() => {
     let raf: number
