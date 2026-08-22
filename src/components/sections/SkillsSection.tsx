@@ -50,6 +50,7 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                 key={skill.id}
                 className="group relative cursor-pointer"
                 data-scroll-reveal
+                data-cursor="skill"
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 style={{ animationDelay: `${i * 0.1}s` }}

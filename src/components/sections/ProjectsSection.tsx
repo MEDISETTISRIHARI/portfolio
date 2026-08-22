@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { gsap } from 'gsap'
 
 type Project = {
   id: string
@@ -24,6 +25,18 @@ type Project = {
 
 type ProjectsSectionProps = {
   data: Project[]
+}
+
+const ABSTRACT_PALETTES: Record<string, { from: string; to: string; accent: string }> = {
+  'Insurance': { from: '#0a0a0a', to: '#1a1a2e', accent: '#7dcffd' },
+  'Fintech': { from: '#0a0a0a', to: '#16213e', accent: '#5b8def' },
+  'Creative Agency': { from: '#0a0a0a', to: '#1a1a2e', accent: '#7dd3fc' },
+  'Architecture': { from: '#0a0a0a', to: '#1a1a1a', accent: '#9ca3af' },
+}
+
+function getAbstractStyle(project: Project) {
+  const palette = ABSTRACT_PALETTES[project.category] || ABSTRACT_PALETTES['Insurance']
+  return palette
 }
 
 export default function ProjectsSection({ data }: ProjectsSectionProps) {
@@ -64,12 +77,14 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
           {data.map((project, i) => {
             const href = project.caseStudy || project.liveUrl || '#'
             const isHovered = hoveredId === project.id
+            const palette = getAbstractStyle(project)
 
             return (
               <div
                 key={project.id}
                 className="group relative"
                 data-scroll-reveal
+                data-scroll-parallax="0.15"
                 onMouseEnter={() => setHoveredId(project.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
@@ -136,23 +151,48 @@ export default function ProjectsSection({ data }: ProjectsSectionProps) {
                     </a>
                   </div>
                 </div>
-                <div className="mt-8 md:mt-12 w-full aspect-video bg-surface-elevated border border-border-subtle overflow-hidden relative">
+                <div
+                  className="mt-8 md:mt-12 w-full aspect-video border border-border-subtle overflow-hidden relative"
+                  style={{
+                    transform: isHovered ? 'scale(1.01)' : 'scale(1)',
+                    transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
+                  }}
+                >
                   <div
-                    className="absolute inset-0 bg-gradient-to-br from-surface-elevated to-foreground transition-all duration-700"
-                    style={{ opacity: isHovered ? 0.3 : 0.5 }}
+                    className="absolute inset-0 transition-all duration-700"
+                    style={{
+                      background: `linear-gradient(135deg, ${palette.from} 0%, ${palette.to} 100%)`,
+                      opacity: isHovered ? 0.95 : 0.6,
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0 transition-all duration-700"
+                    style={{
+                      background: `radial-gradient(circle at 30% 30%, ${palette.accent}15 0%, transparent 60%)`,
+                      opacity: isHovered ? 1 : 0.4,
+                    }}
                   />
                   <div
                     className="absolute inset-0 flex items-center justify-center transition-all duration-500"
                     style={{
-                      transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+                      transform: isHovered ? 'scale(1.05)' : 'scale(1)',
                     }}
                   >
-                    <span className="label text-text-muted">PROJECT VISUAL</span>
+                    <span
+                      className="font-display text-display-sm tracking-tight"
+                      style={{
+                        color: palette.accent,
+                        opacity: isHovered ? 0.9 : 0.3,
+                      }}
+                    >
+                      {project.title}
+                    </span>
                   </div>
                   <div
-                    className="absolute bottom-0 left-0 h-0.5 bg-accent transition-all duration-700"
+                    className="absolute bottom-0 left-0 h-px transition-all duration-700"
                     style={{
                       width: isHovered ? '100%' : '0%',
+                      backgroundColor: palette.accent,
                     }}
                   />
                 </div>

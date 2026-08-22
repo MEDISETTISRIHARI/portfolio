@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
-type CursorState = 'default' | 'project' | 'image' | 'link' | 'cta' | 'nav' | 'object3d'
+type CursorState = 'default' | 'project' | 'image' | 'link' | 'cta' | 'nav' | 'object3d' | 'skill'
 
 export default function CustomCursor() {
   const [isVisible, setIsVisible] = useState(false)
@@ -79,6 +79,7 @@ export default function CustomCursor() {
       const ctaButton = targetEl.closest('button, .cursor-cta')
       const navLink = targetEl.closest('nav a, .nav-link')
       const interactive3D = targetEl.closest('[data-cursor-3d]')
+      const skillCategory = targetEl.closest('[data-cursor="skill"]')
 
       if (projectLink) {
         setState('project')
@@ -98,6 +99,9 @@ export default function CustomCursor() {
       } else if (interactive3D) {
         setState('object3d')
         setText('')
+      } else if (skillCategory) {
+        setState('skill')
+        setText('EXPLORE')
       } else {
         setState('default')
         setText('')
@@ -129,6 +133,11 @@ export default function CustomCursor() {
         return {
           dot: { width: 10, height: 10, backgroundColor: '#7dd3fc' },
           ring: { width: 50, height: 50, borderColor: 'rgba(125, 211, 252, 0.2)', borderWidth: 1 },
+        }
+      case 'skill':
+        return {
+          dot: { width: 8, height: 8, backgroundColor: '#7dd3fc' },
+          ring: { width: 56, height: 56, borderColor: 'rgba(125, 211, 252, 0.3)', borderWidth: 1 },
         }
       default:
         return {

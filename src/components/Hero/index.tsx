@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
 import HeroVisual from './HeroVisual'
 import HeroContent from './HeroContent'
@@ -31,7 +31,114 @@ export default function Hero({ data, role }: HeroProps) {
   const heroRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [pointerDistance, setPointerDistance] = useState(0)
+  const [touchVelocity, setTouchVelocity] = useState({ x: 0, y: 0 })
   const { scrollY, progress } = useScroll()
+
+  const handleOrientation = (e: DeviceOrientationEvent) => {
+    if (e.gamma === null || e.beta === null) return
+    const x = Math.max(-1, Math.min(1, e.gamma / 45))
+    const y = Math.max(-1, Math.min(1, (e.beta - 45) / 45))
+    setMousePos({ x, y })
+    const dist = Math.sqrt(x * x + y * y)
+    setPointerDistance(dist)
+  }
+
+  const requestOrientation = useCallback(() => {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then((permissionState) => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation, { passive: true })
+          }
+        })
+        .catch(() => {})
+    } else if (typeof DeviceOrientationEvent !== 'undefined') {
+      window.addEventListener('deviceorientation', handleOrientation, { passive: true })
+    }
+  }, [])
+
+  // Mouse + touch + orientation tracking
+  useEffect(() => {
+    let lastTouchX = 0
+    let lastTouchY = 0
+    let lastTouchTime = 0
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth) * 2 - 1
+      const y = -(e.clientY / window.innerHeight) * 2 + 1
+      setMousePos({ x, y })
+      const dist = Math.sqrt(x * x + y * y)
+      setPointerDistance(dist)
+    }
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        lastTouchX = e.touches[0].clientX
+        lastTouchY = e.touches[0].clientY
+        lastTouchTime = Date.now()
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const currentX = e.touches[0].clientX
+        const currentY = e.touches[0].clientY
+        const now = Date.now()
+        const dt = Math.max(1, now - lastTouchTime)
+        const dx = (currentX - lastTouchX) / dt * 16
+        const dy = (currentY - lastTouchY) / dt * 16
+
+        setTouchVelocity({ x: dx, y: dy })
+
+        const normalizedX = (currentX / window.innerWidth) * 2 - 1
+        const normalizedY = -(currentY / window.innerHeight) * 2 + 1
+        setMousePos({ x: normalizedX, y: normalizedY })
+        const dist = Math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY)
+        setPointerDistance(dist)
+
+        lastTouchX = currentX
+        lastTouchY = currentY
+        lastTouchTime = now
+      }
+    }
+
+    const handleTouchEnd = () => {
+      setTouchVelocity({ x: 0, y: 0 })
+    }
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [])
+
+  // Scroll exit: fade hero content as user scrolls down
+  useEffect(() => {
+    if (progress > 0.15) {
+      gsap.to('.hero-content-wrapper', {
+        opacity: 1 - (progress - 0.15) * 1.5,
+        y: (progress - 0.15) * -60,
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: true,
+      })
+    } else {
+      gsap.to('.hero-content-wrapper', {
+        opacity: 1,
+        y: 0,
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: true,
+      })
+    }
+  }, [progress])
 
   // Intro coordination: run entrance animation when intro completes
   useEffect(() => {
@@ -104,57 +211,6 @@ export default function Hero({ data, role }: HeroProps) {
     }
   }, [])
 
-  // Mouse tracking for camera parallax
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 2 - 1
-      const y = -(e.clientY / window.innerHeight) * 2 + 1
-      setMousePos({ x, y })
-      const dist = Math.sqrt(x * x + y * y)
-      setPointerDistance(dist)
-    }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const x = (e.touches[0].clientX / window.innerWidth) * 2 - 1
-        const y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1
-        setMousePos({ x, y })
-        const dist = Math.sqrt(x * x + y * y)
-        setPointerDistance(dist)
-      }
-    }
-
-    const handleOrientation = (e: DeviceOrientationEvent) => {
-      if (e.gamma === null || e.beta === null) return
-      const x = Math.max(-1, Math.min(1, e.gamma / 45))
-      const y = Math.max(-1, Math.min(1, (e.beta - 45) / 45))
-      setMousePos({ x, y })
-      const dist = Math.sqrt(x * x + y * y)
-      setPointerDistance(dist)
-    }
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true })
-    window.addEventListener('touchmove', handleTouchMove, { passive: true })
-
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
-        .then((permissionState) => {
-          if (permissionState === 'granted') {
-            window.addEventListener('deviceorientation', handleOrientation, { passive: true })
-          }
-        })
-        .catch(() => {})
-    } else {
-      window.addEventListener('deviceorientation', handleOrientation, { passive: true })
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('deviceorientation', handleOrientation)
-    }
-  }, [])
-
   return (
     <section
       id="hero"
@@ -173,7 +229,7 @@ export default function Hero({ data, role }: HeroProps) {
       />
 
       {/* Content area - positioned in lower third */}
-      <div className="relative z-20 w-full max-w-2xl mx-auto pb-32 md:pb-40">
+      <div className="hero-content-wrapper relative z-20 w-full max-w-2xl mx-auto pb-32 md:pb-40">
         <HeroContent headline={data.headline} subtitle={data.subtitle} role={role} />
         <HeroMeta description={data.description} />
         <HeroCTA
@@ -185,7 +241,7 @@ export default function Hero({ data, role }: HeroProps) {
       </div>
 
       {/* Bottom metadata - pinned at bottom */}
-      <HeroMetadata className="mt-32 md:mt-40" />
+      <HeroMetadata className="mt-32 md:mt-40" onRequestOrientation={requestOrientation} />
     </section>
   )
 }

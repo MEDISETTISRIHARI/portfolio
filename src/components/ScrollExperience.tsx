@@ -19,6 +19,7 @@ type SectionInfo = {
   height: number
   progress: number
   visibility: number
+  active: boolean
 }
 
 type ElementInfo = {
@@ -132,6 +133,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         height: rect.height,
         progress: 0,
         visibility: 0,
+        active: false,
       })
 
       const revealEls = el.querySelectorAll('[data-scroll-reveal], .reveal-up')
@@ -278,6 +280,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         const visibleBottom = Math.min(scrollY + viewportHeight, sectionBottom)
         const visibleHeight = Math.max(0, visibleBottom - visibleTop)
         section.visibility = sectionHeight > 0 ? visibleHeight / sectionHeight : 0
+        section.active = section.visibility > 0.01
 
         const distanceFromTop = scrollY - sectionTop
         const scrollableDistance = sectionHeight + viewportHeight
@@ -299,7 +302,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
 
       elements.current.forEach((elInfo) => {
         const section = sections.current.get(elInfo.sectionId)
-        if (!section) return
+        if (!section || !section.active) return
 
         const el = elInfo.element
         const rect = el.getBoundingClientRect()
