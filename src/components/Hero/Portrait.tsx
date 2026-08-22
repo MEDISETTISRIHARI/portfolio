@@ -30,18 +30,9 @@ export default function Portrait({ src, alt = 'Portrait', isInView = false, mous
 
       // Container cinematic reveal
       tl.fromTo(containerRef.current,
-        { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0 },
-        { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, duration: 1.6, ease: 'power3.inOut' }
+        { clipPath: 'inset(10% 10% 10% 10%)', opacity: 0, scale: 1.08, y: 50, rotateY: 8, filter: 'blur(12px)' },
+        { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, scale: 1, y: 0, rotateY: 0, filter: 'blur(0px)', duration: 1.6, ease: 'power3.inOut' }
       )
-
-      // Image scale choreography with blur
-      if (imageRef.current) {
-        tl.fromTo(imageRef.current,
-          { scale: 1.08, filter: 'blur(4px) grayscale(100%)' },
-          { scale: 1, filter: 'blur(0px) grayscale(100%)', duration: 2, ease: 'power2.out' },
-          '-=1.4'
-        )
-      }
 
       // Frame reveal
       if (frameRef.current) {
