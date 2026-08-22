@@ -15,25 +15,25 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
   const secondaryRef = useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
-    const setupMagnetic = (ref: React.RefObject<HTMLAnchorElement>) => {
+    const setupMagnetic = (ref: React.RefObject<HTMLAnchorElement>, strength: number) => {
       if (!ref.current) return
 
       const domElement = ref.current
 
       const xTo = gsap.quickTo(domElement, 'x', {
-        duration: 0.3,
+        duration: 0.4,
         ease: 'power2.out',
       })
       const yTo = gsap.quickTo(domElement, 'y', {
-        duration: 0.3,
+        duration: 0.4,
         ease: 'power2.out',
       })
 
       const handleMouseMove = (e: MouseEvent) => {
         if (!domElement) return
         const rect = domElement.getBoundingClientRect()
-        const x = (e.clientX - rect.left - rect.width / 2) * 0.12
-        const y = (e.clientY - rect.top - rect.height / 2) * 0.12
+        const x = (e.clientX - rect.left - rect.width / 2) * strength
+        const y = (e.clientY - rect.top - rect.height / 2) * strength
         xTo(x)
         yTo(y)
       }
@@ -42,8 +42,8 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
         gsap.to(domElement, {
           x: 0,
           y: 0,
-          duration: 0.5,
-          ease: 'elastic.out(1, 0.3)',
+          duration: 0.6,
+          ease: 'elastic.out(1, 0.4)',
         })
       }
 
@@ -58,8 +58,8 @@ export default function HeroCTA({ primaryText, primaryHref, secondaryText, secon
       }
     }
 
-    const cleanup1 = setupMagnetic(primaryRef)
-    const cleanup2 = setupMagnetic(secondaryRef)
+    const cleanup1 = setupMagnetic(primaryRef, 0.15)
+    const cleanup2 = setupMagnetic(secondaryRef, 0.1)
 
     return () => {
       cleanup1?.()

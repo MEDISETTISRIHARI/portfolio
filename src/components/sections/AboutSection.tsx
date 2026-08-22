@@ -59,7 +59,7 @@ export default async function AboutSection({ data }: AboutSectionProps) {
               </div>
             </div>
             <div className="max-w-2xl" data-scroll-reveal data-scroll-parallax="0.2">
-              <p className="body-lg text-text-secondary mb-8">
+              <p className="body-lg text-text-secondary mb-8" style={{ lineHeight: '1.6' }}>
                 {data.bio}
               </p>
             </div>

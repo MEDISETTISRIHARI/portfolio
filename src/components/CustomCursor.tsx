@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
 
 type CursorState = 'default' | 'project' | 'image' | 'link' | 'cta' | 'nav' | 'object3d' | 'skill'
 
@@ -16,6 +15,7 @@ export default function CustomCursor() {
   const ringTarget = useRef({ x: 0, y: 0 })
   const velocity = useRef({ x: 0, y: 0 })
   const lastPos = useRef({ x: 0, y: 0 })
+  const lastTime = useRef(Date.now())
 
   const baseDotSize = 6
   const baseRingSize = 40
@@ -44,12 +44,16 @@ export default function CustomCursor() {
     let raf: number
 
     const animate = () => {
-      // Calculate velocity
-      const dx = target.current.x - lastPos.current.x
-      const dy = target.current.y - lastPos.current.y
-      velocity.current.x = dx
-      velocity.current.y = dy
+      const now = Date.now()
+      const dt = Math.max(1, now - lastTime.current)
+      
+      // Calculate velocity with time normalization
+      const dx = (target.current.x - lastPos.current.x) / dt * 16
+      const dy = (target.current.y - lastPos.current.y) / dt * 16
+      velocity.current.x += (dx - velocity.current.x) * 0.3
+      velocity.current.y += (dy - velocity.current.y) * 0.3
       lastPos.current = { x: target.current.x, y: target.current.y }
+      lastTime.current = now
 
       // Update dot position (fast follow)
       if (dotRef.current) {
@@ -131,12 +135,12 @@ export default function CustomCursor() {
         }
       case 'object3d':
         return {
-          dot: { width: 10, height: 10, backgroundColor: '#7dd3fc' },
+          dot: { width: 10, height: 10, backgroundColor: '#7dcffd' },
           ring: { width: 50, height: 50, borderColor: 'rgba(125, 211, 252, 0.2)', borderWidth: 1 },
         }
       case 'skill':
         return {
-          dot: { width: 8, height: 8, backgroundColor: '#7dd3fc' },
+          dot: { width: 8, height: 8, backgroundColor: '#7dcffd' },
           ring: { width: 56, height: 56, borderColor: 'rgba(125, 211, 252, 0.3)', borderWidth: 1 },
         }
       default:

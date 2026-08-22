@@ -121,11 +121,13 @@ export default function Hero({ data, role }: HeroProps) {
 
   // Scroll exit: fade hero content as user scrolls down
   useEffect(() => {
-    if (progress > 0.15) {
+    if (progress > 0.12) {
+      const intensity = Math.min(1, (progress - 0.12) * 2)
       gsap.to('.hero-content-wrapper', {
-        opacity: 1 - (progress - 0.15) * 1.5,
-        y: (progress - 0.15) * -60,
-        duration: 0.3,
+        opacity: 1 - intensity,
+        y: intensity * -40,
+        scale: 1 - intensity * 0.02,
+        duration: 0.4,
         ease: 'power2.out',
         overwrite: true,
       })
@@ -133,7 +135,8 @@ export default function Hero({ data, role }: HeroProps) {
       gsap.to('.hero-content-wrapper', {
         opacity: 1,
         y: 0,
-        duration: 0.3,
+        scale: 1,
+        duration: 0.4,
         ease: 'power2.out',
         overwrite: true,
       })
@@ -218,6 +221,7 @@ export default function Hero({ data, role }: HeroProps) {
         .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
         .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
         .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
+      tl.play()
     } else {
       const handleIntroComplete = () => {
         animate()

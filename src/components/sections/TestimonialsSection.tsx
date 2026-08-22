@@ -21,7 +21,7 @@ export default async function TestimonialsSection({ data }: TestimonialsSectionP
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
           {data.map((t, i) => (
             <div key={t.id} className="surface p-8 md:p-10" data-scroll-reveal>
-              <p className="body-md text-text-secondary mb-8 italic">&ldquo;{t.quote}&rdquo;</p>
+              <p className="body-md text-text-secondary mb-8 italic" style={{ lineHeight: '1.6' }}>&ldquo;{t.quote}&rdquo;</p>
               <div>
                 <p className="body-sm text-text-primary font-medium">{t.name}</p>
                 <p className="body-sm text-text-muted">

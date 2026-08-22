@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { gsap } from 'gsap'
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -27,6 +28,11 @@ export default function Navigation() {
   useEffect(() => {
     if (isMobileOpen) {
       document.body.style.overflow = 'hidden'
+      // Animate mobile menu items
+      gsap.fromTo('.mobile-nav-item', 
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out', delay: 0.2 }
+      )
     } else {
       document.body.style.overflow = ''
     }
@@ -106,8 +112,8 @@ export default function Navigation() {
               key={item.label}
               href={item.href}
               onClick={() => setIsMobileOpen(false)}
-              className="font-display text-display-sm text-text-primary hover:text-accent transition-colors duration-300"
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className="font-display text-display-sm text-text-primary hover:text-accent transition-colors duration-300 mobile-nav-item"
+              style={{ opacity: 0 }}
             >
               {item.label}
             </a>
@@ -115,7 +121,8 @@ export default function Navigation() {
           <a
             href="#contact"
             onClick={() => setIsMobileOpen(false)}
-            className="mt-8 px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide"
+            className="mt-8 px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide mobile-nav-item"
+            style={{ opacity: 0 }}
           >
             LET&apos;S TALK
           </a>

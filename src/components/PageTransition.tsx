@@ -15,8 +15,8 @@ export default function PageTransition({ children, className }: PageTransitionPr
     const ctx = gsap.context(() => {
       gsap.fromTo(
         containerRef.current,
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }
+        { opacity: 0, y: 40, filter: 'blur(4px)' },
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1, ease: 'power2.out' }
       )
     }, containerRef)
 

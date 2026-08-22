@@ -62,6 +62,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     displacement: 0,
     intensity: 1,
   })
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
   // Resize observer for viewport dimensions
   useEffect(() => {
@@ -72,6 +73,15 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     handleResize()
     window.addEventListener('resize', handleResize, { passive: true })
     return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // Check reduced motion preference
+  useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
   }, [])
 
   // Passive scroll listener
@@ -256,11 +266,11 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
       const absVelocity = Math.abs(state.velocity)
       const maxVelocity = 25
 
-      // Cinematic scroll physics
-      const velocityFactor = Math.min(absVelocity / maxVelocity, 1)
-      const targetSkew = state.velocity * 0.03
-      const targetDisplacement = state.velocity * 0.8
-      const targetIntensity = 1 + velocityFactor * 0.6
+      // Cinematic scroll physics - reduced if user prefers
+      const velocityFactor = prefersReducedMotion ? 0 : Math.min(absVelocity / maxVelocity, 1)
+      const targetSkew = prefersReducedMotion ? 0 : state.velocity * 0.02
+      const targetDisplacement = prefersReducedMotion ? 0 : state.velocity * 0.5
+      const targetIntensity = prefersReducedMotion ? 1 : 1 + velocityFactor * 0.4
 
       physics.current.skewX += (targetSkew - physics.current.skewX) * 0.06
       physics.current.skewY += (0 - physics.current.skewY) * 0.08
@@ -374,7 +384,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
 
     raf = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [prefersReducedMotion])
 
   return (
     <div ref={containerRef} className="scroll-experience">

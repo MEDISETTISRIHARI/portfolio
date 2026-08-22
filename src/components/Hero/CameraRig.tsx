@@ -3,7 +3,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { gsap } from 'gsap'
 
 type CameraRigProps = {
   mousePos: { x: number; y: number }
@@ -12,9 +11,9 @@ type CameraRigProps = {
   pointerDistance?: number
 }
 
-const LERP_RELAXED = 0.008
-const SPRING_FREQUENCY = 0.01
-const SPRING_DAMPING = 0.9
+const LERP_RELAXED = 0.006
+const SPRING_FREQUENCY = 0.008
+const SPRING_DAMPING = 0.92
 
 export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance }: CameraRigProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null)
@@ -32,6 +31,9 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     idleTick: 0,
     prevScrollProgress: 0,
     scrollVelocity: 0,
+    lookAtX: 0,
+    lookAtY: 0,
+    lookAtZ: 0,
   })
 
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
@@ -41,34 +43,39 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     const camera = cameraRef.current
 
     if (prefersReducedMotion) {
-      camera.position.x += (mousePos.x * 0.2 - camera.position.x) * 0.005
-      camera.position.y += (mousePos.y * 0.1 - camera.position.y) * 0.005
-      camera.position.z += (18 - scrollProgress * 1 - camera.position.z) * 0.005
+      camera.position.x += (mousePos.x * 0.15 - camera.position.x) * 0.004
+      camera.position.y += (mousePos.y * 0.08 - camera.position.y) * 0.004
+      camera.position.z += (18 - scrollProgress * 1 - camera.position.z) * 0.004
       camera.lookAt(0, 0, 0)
       return
     }
 
-    // Layer 1: Slow idle movement (continuous gentle drift)
-    state.current.idleTick += 0.016
-    const idleX = Math.sin(state.current.idleTick * 0.8) * 0.12
-    const idleY = Math.cos(state.current.idleTick * 0.6) * 0.08
+    // Layer 1: Slow idle movement (organic drift using Lissajous-like curves)
+    state.current.idleTick += 0.012
+    const idleX = Math.sin(state.current.idleTick * 0.7) * 0.15 + Math.cos(state.current.idleTick * 0.3) * 0.05
+    const idleY = Math.cos(state.current.idleTick * 0.5) * 0.1 + Math.sin(state.current.idleTick * 0.4) * 0.04
 
     // Layer 2: Pointer-based parallax with damping (mobile amplitude reduced)
-    const pointerAmp = isMobile ? 0.25 : 0.5
-    const pointerFactor = pointerDistance !== undefined ? Math.max(0, 1 - pointerDistance / 15) : 1
+    const pointerAmp = isMobile ? 0.2 : 0.45
+    const pointerFactor = pointerDistance !== undefined ? Math.max(0, 1 - pointerDistance / 12) : 1
     const pointerX = mousePos.x * (pointerAmp * pointerFactor)
-    const pointerY = -mousePos.y * (pointerAmp * 0.6 * pointerFactor)
+    const pointerY = -mousePos.y * (pointerAmp * 0.7 * pointerFactor)
 
-    // Calculate scroll velocity for Layer 5 micro response
+    // Calculate scroll velocity for micro response
     state.current.scrollVelocity = (scrollProgress - state.current.prevScrollProgress) * 60
     state.current.prevScrollProgress = scrollProgress
 
     // Layer 3: Scroll-based movement (composition change)
-    const scrollZ = 18 - scrollProgress * 3
+    // Camera pulls back slightly and shifts down as user scrolls
+    const scrollZ = 18 - scrollProgress * 2.5
+    const scrollY = -scrollProgress * 1.5
 
-    // Layer 4: Micro response during interaction
-    const targetX = pointerX + idleX
-    const targetY = pointerY + idleY
+    // Layer 4: Scroll velocity micro response
+    const scrollMicroX = state.current.scrollVelocity * 0.02
+
+    // Combine all layers
+    const targetX = pointerX + idleX + scrollMicroX
+    const targetY = pointerY + idleY + scrollY
     const targetZ = scrollZ
 
     // Spring-based damping for smooth motion
@@ -89,7 +96,10 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     camera.position.y += (state.current.currentY - camera.position.y) * LERP_RELAXED
     camera.position.z += (state.current.currentZ - camera.position.z) * LERP_RELAXED
 
-    camera.lookAt(0, 0, 0)
+    // Subtle look-at drift for cinematic feel
+    state.current.lookAtX += (mousePos.x * 0.3 - state.current.lookAtX) * 0.02
+    state.current.lookAtY += (-mousePos.y * 0.2 - state.current.lookAtY) * 0.02
+    camera.lookAt(state.current.lookAtX, state.current.lookAtY, 0)
   })
 
   return <perspectiveCamera ref={cameraRef} fov={55} position={[0, 0, 18]} />

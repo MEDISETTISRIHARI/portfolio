@@ -33,12 +33,12 @@ export default function TextReveal({
       if (variant === 'clip') {
         gsap.fromTo(
           elements,
-          { opacity: 0, y: 40, clipPath: 'inset(0 0 100% 0)' },
+          { opacity: 0, y: 50, clipPath: 'inset(0 0 100% 0)' },
           {
             opacity: 1,
             y: 0,
             clipPath: 'inset(0 0 0% 0)',
-            duration: 1,
+            duration: 1.2,
             stagger,
             ease: 'power3.out',
             delay,
@@ -51,7 +51,7 @@ export default function TextReveal({
           {
             opacity: 1,
             y: 0,
-            duration: 0.8,
+            duration: 0.9,
             stagger,
             ease: 'power2.out',
             delay,
@@ -60,12 +60,12 @@ export default function TextReveal({
       } else if (variant === 'blur') {
         gsap.fromTo(
           elements,
-          { opacity: 0, y: 20, filter: 'blur(4px)' },
+          { opacity: 0, y: 20, filter: 'blur(6px)' },
           {
             opacity: 1,
             y: 0,
             filter: 'blur(0px)',
-            duration: 0.8,
+            duration: 0.9,
             stagger,
             ease: 'power2.out',
             delay,
@@ -78,7 +78,7 @@ export default function TextReveal({
           {
             opacity: 1,
             y: 0,
-            duration: 0.6,
+            duration: 0.7,
             stagger: stagger * 0.5,
             ease: 'power2.out',
             delay,

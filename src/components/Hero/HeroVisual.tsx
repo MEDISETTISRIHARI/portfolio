@@ -68,6 +68,20 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
       >
         <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} pointerDistance={pointerDistance} />
       </Canvas>
+      {/* Atmospheric overlay - subtle depth gradient */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-700"
+        style={{
+          background: `radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(5,5,5,${0.2 + scrollProgress * 0.3}) 100%)`,
+        }}
+      />
+      {/* Vignette for cinematic depth */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-700"
+        style={{
+          background: `radial-gradient(ellipse 70% 50% at 50% 50%, transparent 0%, rgba(5,5,5,${0.3 + scrollProgress * 0.4}) 100%)`,
+        }}
+      />
     </div>
   )
 }

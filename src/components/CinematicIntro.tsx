@@ -16,9 +16,10 @@ export default function CinematicIntro() {
     const hasSeenIntro = sessionStorage.getItem('srihari-intro-seen')
 
     if (hasSeenIntro) {
+      // Returning visitor: quick fade out to reveal Hero
       gsap.to(containerRef.current, {
         opacity: 0,
-        duration: 0.4,
+        duration: 0.5,
         ease: 'power2.inOut',
         onComplete: () => {
           if (containerRef.current) {
@@ -34,7 +35,6 @@ export default function CinematicIntro() {
       const tl = gsap.timeline({
         onComplete: () => {
           sessionStorage.setItem('srihari-intro-seen', 'true')
-          gsap.set(containerRef.current, { display: 'none' })
           window.dispatchEvent(new CustomEvent('intro-complete'))
         },
       })
@@ -50,6 +50,7 @@ export default function CinematicIntro() {
         .set('.intro-tagline', { opacity: 0, y: 20 })
         .set('.intro-divider', { opacity: 0, scaleY: 0 })
         .set(skipRef.current, { opacity: 0 })
+        .set(containerRef.current, { opacity: 1, scale: 1 })
 
       .to('.intro-title', {
         opacity: 1,
@@ -79,23 +80,27 @@ export default function CinematicIntro() {
         ease: 'power2.out',
       }, '-=0.1')
       .to(contentRef.current, {
-        scale: 1.02,
-        duration: base * 0.8,
+        scale: 1.01,
+        duration: base * 0.6,
         ease: 'power1.inOut',
       }, '<')
 
+      // Hold for a moment
       .to(contentRef.current, {
         scale: 1,
-        opacity: 0,
-        duration: sub * 0.6,
-        ease: 'power2.in',
-      }, `+=${base * 0.3}`)
+        duration: base * 0.3,
+        ease: 'power1.inOut',
+      }, `+=${base * 0.15}`)
 
+      // Seamless reveal: fade out intro to reveal Hero underneath
       .to(containerRef.current, {
-        yPercent: -100,
-        duration: base,
-        ease: 'power3.inOut',
-      }, '<')
+        opacity: 0,
+        scale: 1.02,
+        duration: base * 0.7,
+        ease: 'power2.inOut',
+      }, `+=${base * 0.1}`)
+
+      .set(containerRef.current, { display: 'none' }, `+=0.1`)
 
     }, containerRef)
 
