@@ -111,7 +111,7 @@ export default function Navigation() {
         } ${introComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         aria-label="Main navigation"
       >
-        <div className="container mx-auto px-6">
+        <div className="page-container">
           <div className={`flex items-center justify-between transition-all duration-500 ${isScrolled ? 'h-16' : 'h-20'}`}>
             <a href="#" className="font-display text-sm tracking-widest text-text-primary hover:text-accent transition-colors duration-300 nav-logo">
               SRIHARI

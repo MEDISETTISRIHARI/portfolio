@@ -66,6 +66,9 @@
   --space-20: 10rem;
   --space-24: 12rem;
 
+  /* Page padding */
+  --page-padding: clamp(1rem, 4vw, 1.5rem);
+
   /* Radii */
   --radius-xs: 2px;
   --radius-sm: 4px;
@@ -622,6 +625,12 @@ a, button {
 
 [data-depth="foreground"] {
   z-index: 2;
+}
+
+/* Consistent container padding */
+.page-container {
+  padding-left: var(--page-padding);
+  padding-right: var(--page-padding);
 }
 
 /* Section spacing rhythm */

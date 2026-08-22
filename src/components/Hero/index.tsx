@@ -471,12 +471,12 @@ export default function Hero({ data, role }: HeroProps) {
       <div id="wow-moment-trigger" className="hidden" aria-hidden="true" />
 
       {/* Content depth - editorial grid */}
-      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'px-[20px] pt-12 pb-16' : 'px-6 md:px-12 lg:px-24 pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1.25rem, 5vw, 6rem)' }}>
+      <div data-depth="content" className={`hero-content-wrapper relative z-20 w-full ${isMobile ? 'pt-12 pb-16' : 'pt-24 md:pt-32 pb-32 md:pb-40'}`} style={{ paddingInline: 'clamp(1rem, 4vw, 1.5rem)' }}>
 
         {/* Desktop layout */}
-        <div className="hidden md:grid md:grid-cols-12 gap-6 lg:gap-8 items-center">
-          {/* Left 55% - editorial headline and identity */}
-          <div className="md:col-span-7 lg:col-span-7">
+        <div className="hidden md:grid md:grid-cols-8 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+          {/* Left 60% - editorial headline and identity */}
+          <div className="md:col-span-5 lg:col-span-7">
             <div className="mb-10">
               <HeroIdentity role={role} isInView={isInView} />
             </div>
@@ -495,7 +495,7 @@ export default function Hero({ data, role }: HeroProps) {
           </div>
 
           {/* Right 40% - portrait composition with intentional overlap */}
-          <div className="md:col-span-5 lg:col-span-5 relative">
+          <div className="md:col-span-3 lg:col-span-5 relative">
             <div className="flex justify-center lg:justify-end lg:-mr-6">
               <div className="w-full max-w-[420px]">
                 <HeroPortrait
@@ -522,21 +522,6 @@ export default function Hero({ data, role }: HeroProps) {
           {/* Headline */}
           <HeroContent headline={data.headline} subtitle={data.subtitle} mousePos={mousePos} />
 
-          {/* Portrait - larger, more visible */}
-          <div className="my-6 flex justify-center">
-            <div className="relative" style={{ width: 'min(82vw, 360px)' }}>
-              <HeroPortrait
-                src={data.image}
-                alt={role || 'SRIHARI'}
-                isInView={isInView}
-                mousePos={mousePos}
-                touchVelocity={touchVelocity}
-                isMobile={isMobile}
-                scrollProgress={progress}
-              />
-            </div>
-          </div>
-
           {/* Description */}
           <div className="mt-2">
             <HeroMeta description={data.description} />
@@ -550,6 +535,21 @@ export default function Hero({ data, role }: HeroProps) {
               secondaryText={data.secondaryCta || "LET'S TALK"}
               secondaryHref={data.secondaryLink || '#contact'}
             />
+          </div>
+
+          {/* Portrait - major visual element on mobile */}
+          <div className="my-8 flex justify-center">
+            <div className="relative" style={{ width: 'min(85vw, 420px)' }}>
+              <HeroPortrait
+                src={data.image}
+                alt={role || 'SRIHARI'}
+                isInView={isInView}
+                mousePos={mousePos}
+                touchVelocity={touchVelocity}
+                isMobile={isMobile}
+                scrollProgress={progress}
+              />
+            </div>
           </div>
         </div>
       </div>
