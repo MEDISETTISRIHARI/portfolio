@@ -172,6 +172,8 @@ export default function HeroPortrait({
         gsap.set('.hero-portrait-border', { scale: 1, opacity: 0.4 })
         gsap.set('.hero-portrait-glow', { opacity: 0.5 })
         gsap.set('.hero-portrait-meta', { opacity: 1, y: 0 })
+        gsap.set('.hero-portrait-identity', { opacity: 1, y: 0 })
+        gsap.set('.hero-portrait-index', { opacity: 1, y: 0 })
         return
       }
 
@@ -194,10 +196,16 @@ export default function HeroPortrait({
         '-=1'
       )
 
-      tl.fromTo('.hero-portrait-meta',
+      tl.fromTo('.hero-portrait-identity',
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: 'power2.out' },
         '-=0.8'
+      )
+
+      tl.fromTo('.hero-portrait-index',
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.8, ease: 'power2.out' },
+        '-=0.6'
       )
     }, containerRef)
 
@@ -329,17 +337,27 @@ export default function HeroPortrait({
         style={{ borderBottom: '1px solid rgba(125, 211, 252, 0.4)', borderRight: '1px solid rgba(125, 211, 252, 0.4)' }}
       />
 
-      {/* Metadata labels around portrait */}
-      <div className="hero-portrait-meta absolute -right-16 top-1/4 hidden lg:block" style={{ opacity: 0 }}>
-        <p className="caption text-text-muted tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+      {/* Identity details near portrait */}
+      <div className="hero-portrait-identity absolute -right-20 top-1/4 hidden lg:flex flex-col gap-2" style={{ opacity: 0 }}>
+        <p className="caption text-text-primary tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
           SRIHARI
         </p>
-      </div>
-      <div className="hero-portrait-meta absolute -left-16 bottom-1/4 hidden lg:block" style={{ opacity: 0 }}>
-        <p className="caption text-text-muted tracking-widest" style={{ writingMode: 'vertical-rl' }}>
-          CREATIVE DEVELOPER
+        <p className="caption text-text-muted tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+          CREATIVE WEB DESIGNER
+        </p>
+        <p className="caption text-text-muted/60 tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+          DEVELOPER / CREATIVE TECHNOLOGY
         </p>
       </div>
+
+      {/* Section index marker */}
+      <div className="hero-portrait-index absolute -left-16 bottom-1/4 hidden lg:block" style={{ opacity: 0 }}>
+        <p className="caption text-text-muted tracking-widest" style={{ writingMode: 'vertical-rl' }}>
+          01 — INTRODUCTION
+        </p>
+      </div>
+
+      {/* Bottom metadata */}
       <div className="hero-portrait-meta absolute -bottom-12 left-1/2 -translate-x-1/2" style={{ opacity: 0 }}>
         <p className="caption text-text-muted/60 tracking-widest">
           DESIGN &times; CODE &times; MOTION

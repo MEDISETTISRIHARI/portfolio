@@ -215,7 +215,7 @@ export default function Hero({ data, role }: HeroProps) {
   useEffect(() => {
     const animate = () => {
       if (prefersReducedMotion) {
-        gsap.set('.hero-canvas, .identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-metadata, .hero-portrait', { opacity: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
+        gsap.set('.hero-canvas, .identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-portrait, .hero-metadata, .hero-portrait-identity, .hero-portrait-index', { opacity: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
         return
       }
 
@@ -313,6 +313,22 @@ export default function Hero({ data, role }: HeroProps) {
         '-=0.6'
       )
 
+      // Portrait identity details
+      tl.fromTo(
+        '.hero-portrait-identity',
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: 'power2.out' },
+        '-=0.8'
+      )
+
+      // Portrait index marker
+      tl.fromTo(
+        '.hero-portrait-index',
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.8, ease: 'power2.out' },
+        '-=0.6'
+      )
+
       // Metadata: fade up delayed
       tl.fromTo(
         '.hero-metadata',
@@ -330,7 +346,7 @@ export default function Hero({ data, role }: HeroProps) {
       // Shortened entrance for returning visitors
       const tl = gsap.timeline()
       if (prefersReducedMotion) {
-        tl.set('.identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-portrait, .hero-metadata', { opacity: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
+        tl.set('.identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-portrait, .hero-metadata, .hero-portrait-identity, .hero-portrait-index', { opacity: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
       } else {
         tl.fromTo('.identity-mark', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
           .fromTo('.identity-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.3')
@@ -341,6 +357,8 @@ export default function Hero({ data, role }: HeroProps) {
           .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
           .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
           .fromTo('.hero-portrait', { opacity: 0, scale: 0.94, y: 30, filter: 'blur(10px)' }, { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: 1, ease: 'power3.out' }, '-=0.4')
+          .fromTo('.hero-portrait-identity', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.6')
+          .fromTo('.hero-portrait-index', { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.4, ease: 'power2.out' }, '-=0.4')
           .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
       }
       tl.play()
