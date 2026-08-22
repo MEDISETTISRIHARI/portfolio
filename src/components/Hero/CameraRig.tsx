@@ -11,13 +11,14 @@ type CameraRigProps = {
   pointerDistance?: number
   isMobile?: boolean
   onSectionTransition?: (from: string, to: string, progress: number) => void
+  portraitDepth?: number
 }
 
 const LERP_RELAXED = 0.005
 const SPRING_FREQUENCY = 0.006
 const SPRING_DAMPING = 0.92
 
-export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false, onSectionTransition }: CameraRigProps) {
+export default function CameraRig({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false, onSectionTransition, portraitDepth = 0 }: CameraRigProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null)
 
   const state = useRef({
@@ -82,13 +83,16 @@ export default function CameraRig({ mousePos, scrollProgress, prefersReducedMoti
     const pointerX = mousePos.x * (pointerAmp * pointerFactor)
     const pointerY = -mousePos.y * (pointerAmp * 0.7 * pointerFactor)
 
+    // Portrait depth boost - camera responds more when portrait is in view
+    const portraitDepthBoost = Math.max(0, 1 - Math.abs(portraitDepth)) * 0.3
+
     // Calculate scroll velocity for micro response
     state.current.scrollVelocity = (scrollProgress - state.current.prevScrollProgress) * 60
     state.current.prevScrollProgress = scrollProgress
 
     // Layer 3: Scroll-based movement (composition change)
-    const scrollZ = 18 - scrollProgress * 3
-    const scrollY = -scrollProgress * 2
+    const scrollZ = 18 - scrollProgress * 3 - portraitDepthBoost * 2
+    const scrollY = -scrollProgress * 2 + portraitDepthBoost * 0.5
 
     // Layer 4: Scroll velocity micro response
     const scrollMicroX = state.current.scrollVelocity * 0.03

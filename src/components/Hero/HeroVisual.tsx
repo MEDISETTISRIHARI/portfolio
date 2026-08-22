@@ -13,14 +13,16 @@ type HeroVisualProps = {
   image?: string | null
   video?: string | null
   isMobile?: boolean
+  portraitDepth?: number
 }
 
-function SceneContent({ mousePos, scrollProgress, pointerDistance, isMobile, prefersReducedMotion }: {
+function SceneContent({ mousePos, scrollProgress, pointerDistance, isMobile, prefersReducedMotion, portraitDepth }: {
   mousePos: { x: number; y: number }
   scrollProgress: number
   pointerDistance?: number
   isMobile: boolean
   prefersReducedMotion: boolean
+  portraitDepth?: number
 }) {
   return (
     <Scene 
@@ -29,11 +31,12 @@ function SceneContent({ mousePos, scrollProgress, pointerDistance, isMobile, pre
       prefersReducedMotion={prefersReducedMotion} 
       pointerDistance={pointerDistance} 
       isMobile={isMobile} 
+      portraitDepth={portraitDepth}
     />
   )
 }
 
-export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video, isMobile = false }: HeroVisualProps) {
+export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video, isMobile = false, portraitDepth = 0 }: HeroVisualProps) {
   const [mounted, setMounted] = useState(false)
   const isWebGLSupported = useWebGL()
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {

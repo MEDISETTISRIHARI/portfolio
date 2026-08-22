@@ -157,6 +157,17 @@ export default function Hero({ data, role }: HeroProps) {
         ease: 'power2.out',
         overwrite: true,
       })
+
+      const headline = document.querySelector('.hero-title-line') as HTMLElement | null
+      if (headline) {
+        gsap.to(headline, {
+          y: intensity * -30,
+          opacity: 1 - intensity * 0.6,
+          duration: 0.4,
+          ease: 'power2.out',
+          overwrite: true,
+        })
+      }
     } else {
       gsap.to('.hero-content-wrapper', {
         opacity: 1,
@@ -166,6 +177,17 @@ export default function Hero({ data, role }: HeroProps) {
         ease: 'power2.out',
         overwrite: true,
       })
+
+      const headline = document.querySelector('.hero-title-line') as HTMLElement | null
+      if (headline) {
+        gsap.to(headline, {
+          y: 0,
+          opacity: 1,
+          duration: 0.4,
+          ease: 'power2.out',
+          overwrite: true,
+        })
+      }
     }
 
     // Scroll-responsive portrait parallax
@@ -344,6 +366,7 @@ export default function Hero({ data, role }: HeroProps) {
           image={data.image}
           video={data.video}
           isMobile={isMobile}
+          portraitDepth={isInView ? 1 - progress * 5 : 0}
         />
       </div>
 
@@ -358,7 +381,7 @@ export default function Hero({ data, role }: HeroProps) {
             <div className="mb-8 md:mb-12">
               <HeroIdentity role={role} isInView={isInView} />
             </div>
-            <HeroContent headline={data.headline} subtitle={data.subtitle} />
+            <HeroContent headline={data.headline} subtitle={data.subtitle} mousePos={mousePos} />
             <div className="mt-8 md:mt-12">
               <HeroMeta description={data.description} />
             </div>

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
-import HeroPortrait from '@/components/HeroPortrait'
 
 type Profile = {
   id: string

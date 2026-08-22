@@ -11,6 +11,7 @@ type SceneProps = {
   prefersReducedMotion: boolean
   pointerDistance?: number
   isMobile?: boolean
+  portraitDepth?: number
 }
 
 const METALLIC_COLORS = [0x7dcffd, 0x5b8def, 0x3b82f6, 0x06b6d4, 0x0891b2]
@@ -83,7 +84,7 @@ function createPrimaryForm(index: number, depthLayer: 'background' | 'midground'
   return mesh
 }
 
-export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false }: SceneProps) {
+export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, pointerDistance, isMobile = false, portraitDepth = 0 }: SceneProps) {
   const backgroundGroupRef = useRef<THREE.Group>(null)
   const midgroundGroupRef = useRef<THREE.Group>(null)
   const foregroundGroupRef = useRef<THREE.Group>(null)
@@ -291,7 +292,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
     const motionScale = isMobile ? 0.6 : 1
 
     // Helper: animate a group of depth forms with choreographed movement
-    const animateDepthGroup = (group: THREE.Group | null, layerSpeed: number, layerAmplitude: number, scrollInfluence: number) => {
+    const animateDepthGroup = (group: THREE.Group | null, layerSpeed: number, layerAmplitude: number, scrollInfluence: number, frequency: number) => {
       if (!group) return
       group.children.forEach((child, i) => {
         if (child.userData.formIndex !== undefined) {
@@ -301,20 +302,20 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
           const baseScale = child.userData.baseScale || 1
           const depthLayer = child.userData.depthLayer || 'midground'
 
-          // Choreographed orbital-like rotation with depth-based speed
+          // Choreographed orbital-like rotation with explicit frequency control
           const rotOffset = i * 0.7
-          child.rotation.y += (0.0004 + Math.sin(t * 0.1 + rotOffset) * 0.0002) * rotMult * layerSpeed * motionScale
-          child.rotation.x += (0.0002 + Math.cos(t * 0.08 + rotOffset) * 0.0001) * rotMult * layerSpeed * motionScale
-          child.rotation.z += Math.sin(t * 0.06 + rotOffset) * 0.0001 * layerSpeed * motionScale
+          child.rotation.y += (0.0004 + Math.sin(t * frequency + rotOffset) * 0.0002) * rotMult * layerSpeed * motionScale
+          child.rotation.x += (0.0002 + Math.cos(t * frequency * 0.8 + rotOffset) * 0.0001) * rotMult * layerSpeed * motionScale
+          child.rotation.z += Math.sin(t * frequency * 0.6 + rotOffset) * 0.0001 * layerSpeed * motionScale
 
           // Floating movement with depth-aware amplitude
-          const floatAmp = depthLayer === 'foreground' ? 0.2 : depthLayer === 'background' ? 0.04 : 0.1
-          child.position.y = baseY + Math.sin(t * floatSpeed + i * 0.5) * floatAmp * layerAmplitude * motionScale
+          const floatAmp = depthLayer === 'foreground' ? 0.25 : depthLayer === 'background' ? 0.03 : 0.08
+          child.position.y = baseY + Math.sin(t * floatSpeed * frequency + i * 0.5) * floatAmp * layerAmplitude * motionScale
 
           // Subtle orbital drift - independent per layer
           const orbitRadius = 0.4 * layerSpeed * motionScale
-          child.position.x += Math.sin(t * 0.04 + i * 0.3) * orbitRadius * 0.012
-          child.position.z += Math.cos(t * 0.03 + i * 0.2) * orbitRadius * 0.012
+          child.position.x += Math.sin(t * frequency * 0.4 + i * 0.3) * orbitRadius * 0.012
+          child.position.z += Math.cos(t * frequency * 0.3 + i * 0.2) * orbitRadius * 0.012
 
           // Scale based on depth
           child.scale.setScalar(baseScale)
@@ -337,7 +338,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
             const fade = Math.max(0, 1 - (dist - 6) / 10)
             const mesh = child as THREE.Mesh
             const mat = mesh.material as THREE.MeshStandardMaterial
-            const depthFade = depthLayer === 'background' ? 0.35 : depthLayer === 'foreground' ? 0.75 : 0.55
+            const depthFade = depthLayer === 'background' ? 0.3 : depthLayer === 'foreground' ? 0.8 : 0.5
             mat.opacity = fade * depthFade
             mat.transparent = true
           }
@@ -345,12 +346,13 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
       })
     }
 
-    // Animate each depth layer with different speeds and scroll influence
-    animateDepthGroup(backgroundGroupRef.current, 0.25, 0.35, -0.6)
-    animateDepthGroup(midgroundGroupRef.current, 0.55, 0.55, 0.15)
-    animateDepthGroup(foregroundGroupRef.current, 0.9, 0.75, 0.5)
+    // Animate each depth layer with different frequencies
+    // Background: very slow (0.08x), Midground: slow (0.2x), Foreground: slightly faster (0.35x)
+    animateDepthGroup(backgroundGroupRef.current, 0.2, 0.3, -0.6, 0.08)
+    animateDepthGroup(midgroundGroupRef.current, 0.5, 0.5, 0.15, 0.2)
+    animateDepthGroup(foregroundGroupRef.current, 0.8, 0.7, 0.5, 0.35)
 
-    // Hero object - slow elegant rotation with occasional forward drift
+    // Hero object - medium frequency, portrait companion
     if (heroObjectRef.current) {
       heroObjectRef.current.rotation.y += 0.003 * motionScale
       heroObjectRef.current.rotation.z = Math.sin(t * 0.12) * 0.035 * motionScale
@@ -378,7 +380,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
       heroObjectRef.current.rotation.x += scrollProgress * 0.012 * motionScale
     }
 
-    // Secondary particles - subtle rotation and pointer reaction
+    // Secondary particles - continuous subtle drift (medium frequency)
     if (particlesRef.current) {
       particlesRef.current.rotation.y = t * 0.004 * motionScale
       particlesRef.current.rotation.x = t * 0.002 * motionScale
@@ -393,7 +395,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
       }
     }
 
-    // Ambient particles - gentle floating motion
+    // Ambient particles - gentle floating motion (slightly faster than background)
     if (ambientParticlesRef.current) {
       ambientParticlesRef.current.rotation.y = t * 0.0012 * motionScale
       ambientParticlesRef.current.position.y = Math.sin(t * 0.15) * 0.08 * motionScale
@@ -435,6 +437,7 @@ export default function Scene({ mousePos, scrollProgress, prefersReducedMotion, 
         prefersReducedMotion={prefersReducedMotion}
         pointerDistance={pointerDistance}
         isMobile={isMobile}
+        portraitDepth={portraitDepth}
       />
 
       {/* Depth layers */}
