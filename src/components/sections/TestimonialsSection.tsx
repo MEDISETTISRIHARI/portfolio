@@ -21,6 +21,7 @@ type TestimonialsSectionProps = {
 export default function TestimonialsSection({ data }: TestimonialsSectionProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isInView, setIsInView] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -41,6 +42,14 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
   }, [])
 
   useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
+  }, [])
+
+  useEffect(() => {
     if (!isInView) return
 
     const ctx = gsap.context(() => {
@@ -53,32 +62,38 @@ export default function TestimonialsSection({ data }: TestimonialsSectionProps) 
       }
 
       const items = sectionRef.current?.querySelectorAll('.testimonial-item')
-      if (items) {
+      if (items && !prefersReducedMotion) {
         gsap.fromTo(items,
           { opacity: 0, y: 80 },
           { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'power3.out', delay: 0.2 }
         )
+      } else if (items && prefersReducedMotion) {
+        gsap.set(items, { opacity: 1, y: 0 })
       }
 
       const dividers = sectionRef.current?.querySelectorAll('.testimonial-divider')
-      if (dividers) {
+      if (dividers && !prefersReducedMotion) {
         gsap.fromTo(dividers,
           { scaleX: 0 },
           { scaleX: 1, duration: 1.4, stagger: 0.1, ease: 'power3.out', delay: 0.4 }
         )
+      } else if (dividers && prefersReducedMotion) {
+        gsap.set(dividers, { scaleX: 1 })
       }
 
       const quoteMarks = sectionRef.current?.querySelectorAll('.testimonial-quote-mark')
-      if (quoteMarks) {
+      if (quoteMarks && !prefersReducedMotion) {
         gsap.fromTo(quoteMarks,
           { opacity: 0, scale: 0.5, y: 20 },
           { opacity: 0.15, scale: 1, y: 0, duration: 1.4, stagger: 0.1, ease: 'power3.out', delay: 0.3 }
         )
+      } else if (quoteMarks && prefersReducedMotion) {
+        gsap.set(quoteMarks, { opacity: 0.15, scale: 1, y: 0 })
       }
     }, sectionRef)
 
     return () => ctx.revert()
-  }, [isInView])
+  }, [isInView, prefersReducedMotion])
 
   const handleTouch = (id: string) => {
     setActiveId(activeId === id ? null : id)

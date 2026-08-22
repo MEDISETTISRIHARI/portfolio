@@ -36,7 +36,12 @@ function SceneContent({ mousePos, scrollProgress, pointerDistance, isMobile, pre
 export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, visualMode, image, video, isMobile = false }: HeroVisualProps) {
   const [mounted, setMounted] = useState(false)
   const isWebGLSupported = useWebGL()
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    }
+    return false
+  })
 
   useEffect(() => {
     setMounted(true)
@@ -60,7 +65,7 @@ export default function HeroVisual({ mousePos, scrollProgress, pointerDistance, 
           camera={{ position: [0, 0, 18], fov: isMobile ? 60 : 55 }}
           gl={{ antialias: true, alpha: true }}
         >
-          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} pointerDistance={pointerDistance} isMobile={isMobile} />
+          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} pointerDistance={pointerDistance} isMobile={isMobile} />
         </Canvas>
       </div>
     )

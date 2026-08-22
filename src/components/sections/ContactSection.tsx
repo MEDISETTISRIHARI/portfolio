@@ -11,6 +11,7 @@ export default function ContactSection({ email }: ContactSectionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [isInView, setIsInView] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const magneticRef = useRef<HTMLAnchorElement>(null)
 
@@ -32,52 +33,70 @@ export default function ContactSection({ email }: ContactSectionProps) {
   }, [])
 
   useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
+  }, [])
+
+  useEffect(() => {
     if (!isInView) return
 
     const ctx = gsap.context(() => {
       const header = sectionRef.current?.querySelector('.contact-header')
-      if (header) {
+      if (header && !prefersReducedMotion) {
         gsap.fromTo(header,
           { opacity: 0, y: 60 },
           { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out' }
         )
+      } else if (header && prefersReducedMotion) {
+        gsap.set(header, { opacity: 1, y: 0 })
       }
 
       const title = sectionRef.current?.querySelector('.contact-title')
-      if (title) {
+      if (title && !prefersReducedMotion) {
         gsap.fromTo(title,
           { opacity: 0, y: 80, clipPath: 'inset(0 0 100% 0)' },
           { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 1.4, ease: 'power3.out', delay: 0.2 }
         )
+      } else if (title && prefersReducedMotion) {
+        gsap.set(title, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' })
       }
 
       const cta = sectionRef.current?.querySelector('.contact-cta')
-      if (cta) {
+      if (cta && !prefersReducedMotion) {
         gsap.fromTo(cta,
           { opacity: 0, y: 40 },
           { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.4 }
         )
+      } else if (cta && prefersReducedMotion) {
+        gsap.set(cta, { opacity: 1, y: 0 })
       }
 
       const form = sectionRef.current?.querySelector('.contact-form')
-      if (form) {
+      if (form && !prefersReducedMotion) {
         gsap.fromTo(form,
           { opacity: 0, y: 60 },
           { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.6 }
         )
+      } else if (form && prefersReducedMotion) {
+        gsap.set(form, { opacity: 1, y: 0 })
       }
 
       const dividers = sectionRef.current?.querySelectorAll('.contact-divider')
-      if (dividers) {
+      if (dividers && !prefersReducedMotion) {
         gsap.fromTo(dividers,
           { scaleX: 0 },
           { scaleX: 1, duration: 1.4, stagger: 0.1, ease: 'power3.out', delay: 0.3 }
         )
+      } else if (dividers && prefersReducedMotion) {
+        gsap.set(dividers, { scaleX: 1 })
       }
     }, sectionRef)
 
     return () => ctx.revert()
-  }, [isInView])
+  }, [isInView, prefersReducedMotion])
 
   useEffect(() => {
     if (!magneticRef.current) return

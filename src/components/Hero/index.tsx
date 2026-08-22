@@ -36,7 +36,17 @@ export default function Hero({ data, role }: HeroProps) {
   const [touchVelocity, setTouchVelocity] = useState({ x: 0, y: 0 })
   const [isMobile, setIsMobile] = useState(false)
   const [isInView, setIsInView] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const { scrollY, progress } = useScroll()
+
+  // Check reduced motion preference
+  useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
+  }, [])
 
   const handleOrientation = (e: DeviceOrientationEvent) => {
     if (e.gamma === null || e.beta === null) return
@@ -47,16 +57,21 @@ export default function Hero({ data, role }: HeroProps) {
     setPointerDistance(dist)
   }
 
+  const orientationListenerRef = useRef(false)
+
   const requestOrientation = useCallback(() => {
+    if (orientationListenerRef.current) return
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
       (DeviceOrientationEvent as any).requestPermission()
         .then((permissionState: string) => {
           if (permissionState === 'granted') {
+            orientationListenerRef.current = true
             window.addEventListener('deviceorientation', handleOrientation, { passive: true })
           }
         })
         .catch(() => {})
     } else if (typeof DeviceOrientationEvent !== 'undefined') {
+      orientationListenerRef.current = true
       window.addEventListener('deviceorientation', handleOrientation, { passive: true })
     }
   }, [])
@@ -130,6 +145,8 @@ export default function Hero({ data, role }: HeroProps) {
 
   // Scroll exit: fade hero content as user scrolls down
   useEffect(() => {
+    if (prefersReducedMotion) return
+
     if (progress > 0.12) {
       const intensity = Math.min(1, (progress - 0.12) * 2)
       gsap.to('.hero-content-wrapper', {
@@ -157,7 +174,7 @@ export default function Hero({ data, role }: HeroProps) {
       const parallax = progress * 30
       heroContent.style.transform = `translateY(${-parallax}px)`
     }
-  }, [progress])
+  }, [progress, prefersReducedMotion])
 
   // In-view detection for portrait reveal
   useEffect(() => {
@@ -180,6 +197,11 @@ export default function Hero({ data, role }: HeroProps) {
   // Intro coordination: run entrance animation when intro completes
   useEffect(() => {
     const animate = () => {
+      if (prefersReducedMotion) {
+        gsap.set('.hero-canvas, .identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-metadata, .hero-portrait', { opacity: 1, y: 0, x: 0, scale: 1, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
+        return
+      }
+
       const tl = gsap.timeline({ paused: true })
 
       // Visual reveal: scale from 1.03 to 1, fade in
@@ -290,16 +312,20 @@ export default function Hero({ data, role }: HeroProps) {
     if (hasSeenIntro) {
       // Shortened entrance for returning visitors
       const tl = gsap.timeline()
-      tl.fromTo('.identity-mark', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
-        .fromTo('.identity-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.3')
-        .fromTo('.identity-tagline', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2')
-        .fromTo('.identity-divider', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: 'power3.out' }, '-=0.2')
-        .fromTo('.identity-meta', { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, '-=0.3')
-        .fromTo('.hero-title-line', { opacity: 0, y: 30, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
-        .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
-        .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
-        .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
-        .fromTo('.hero-portrait', { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0 }, { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, duration: 1, ease: 'power3.inOut' }, '-=0.6')
+      if (prefersReducedMotion) {
+        tl.set('.identity-mark, .identity-role, .identity-tagline, .identity-divider, .identity-meta, .hero-title-line, .hero-reveal, .hero-cta, .hero-metadata, .hero-portrait', { opacity: 1, y: 0, x: 0, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
+      } else {
+        tl.fromTo('.identity-mark', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+          .fromTo('.identity-role', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.3')
+          .fromTo('.identity-tagline', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2')
+          .fromTo('.identity-divider', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: 'power3.out' }, '-=0.2')
+          .fromTo('.identity-meta', { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, '-=0.3')
+          .fromTo('.hero-title-line', { opacity: 0, y: 30, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.8, stagger: 0.1, ease: 'power3.out' }, '-=0.3')
+          .fromTo('.hero-reveal', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
+          .fromTo('.hero-cta', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
+          .fromTo('.hero-metadata', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.2')
+          .fromTo('.hero-portrait', { clipPath: 'inset(12% 8% 12% 8%)', opacity: 0 }, { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, duration: 1, ease: 'power3.inOut' }, '-=0.6')
+      }
       tl.play()
     } else {
       const handleIntroComplete = () => {
@@ -308,7 +334,7 @@ export default function Hero({ data, role }: HeroProps) {
       }
       window.addEventListener('intro-complete', handleIntroComplete)
     }
-  }, [])
+  }, [prefersReducedMotion])
 
   return (
     <section
@@ -367,6 +393,7 @@ export default function Hero({ data, role }: HeroProps) {
                 alt={role || 'SRIHARI'}
                 isInView={isInView}
                 mousePos={mousePos}
+                touchVelocity={touchVelocity}
                 isMobile={isMobile}
               />
             </div>
@@ -380,6 +407,7 @@ export default function Hero({ data, role }: HeroProps) {
                 alt={role || 'SRIHARI'}
                 isInView={isInView}
                 mousePos={mousePos}
+                touchVelocity={touchVelocity}
                 isMobile={isMobile}
               />
             </div>

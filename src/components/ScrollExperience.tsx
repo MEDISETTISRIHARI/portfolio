@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
 
 type ScrollState = {
@@ -46,12 +46,19 @@ type ElementInfo = {
     rotate: number
     blur: number
   }
+  cachedRect: {
+    top: number
+    bottom: number
+    height: number
+    center: number
+  }
 }
 
 const SMOOTHING = 0.08
 const PARALLAX_BASE = 0.3
 const SCROLL_SMOOTHING = 0.12
 const VELOCITY_SMOOTHING = 0.15
+const RECT_UPDATE_FREQUENCY = 100
 
 export default function ScrollExperience({ children }: { children: React.ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -83,12 +90,14 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const sectionDividersRef = useRef<Map<string, HTMLDivElement>>(new Map())
   const prevSectionRef = useRef<string | null>(null)
+  const lastRectUpdate = useRef(0)
 
   // Resize observer for viewport dimensions
   useEffect(() => {
     const handleResize = () => {
       scrollState.current.viewportHeight = window.innerHeight
       scrollState.current.viewportWidth = window.innerWidth
+      updateElementRects()
     }
     handleResize()
     window.addEventListener('resize', handleResize, { passive: true })
@@ -138,6 +147,22 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     }
   }, [])
 
+  const updateElementRects = useCallback(() => {
+    const now = Date.now()
+    if (now - lastRectUpdate.current < RECT_UPDATE_FREQUENCY) return
+    lastRectUpdate.current = now
+
+    elements.current.forEach((elInfo) => {
+      const rect = elInfo.element.getBoundingClientRect()
+      elInfo.cachedRect = {
+        top: rect.top,
+        bottom: rect.bottom,
+        height: rect.height,
+        center: rect.top + rect.height / 2,
+      }
+    })
+  }, [])
+
   // Register sections and elements
   useEffect(() => {
     const container = containerRef.current
@@ -173,11 +198,18 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
       const revealEls = el.querySelectorAll('[data-scroll-reveal], .reveal-up')
       revealEls.forEach((child, i) => {
         const childId = `${id}-reveal-${i}`
+        const rect = child.getBoundingClientRect()
         elements.current.set(childId, {
           element: child as HTMLElement,
           sectionId: id,
           type: 'reveal',
           currentValues: { translateY: 40, scale: 1, opacity: 0, rotate: 0, blur: 4 },
+          cachedRect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            height: rect.height,
+            center: rect.top + rect.height / 2,
+          },
         })
       })
 
@@ -185,61 +217,97 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
       parallaxEls.forEach((child, i) => {
         const childId = `${id}-parallax-${i}`
         const speed = parseFloat(child.getAttribute('data-scroll-parallax') || '0.5')
+        const rect = child.getBoundingClientRect()
         elements.current.set(childId, {
           element: child as HTMLElement,
           sectionId: id,
           type: 'parallax',
           speed,
           currentValues: { translateY: 0, scale: 1, opacity: 1, rotate: 0, blur: 0 },
+          cachedRect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            height: rect.height,
+            center: rect.top + rect.height / 2,
+          },
         })
       })
 
       const scaleEls = el.querySelectorAll('[data-scroll-scale]')
       scaleEls.forEach((child, i) => {
         const childId = `${id}-scale-${i}`
+        const rect = child.getBoundingClientRect()
         elements.current.set(childId, {
           element: child as HTMLElement,
           sectionId: id,
           type: 'scale',
           currentValues: { translateY: 0, scale: 0.9, opacity: 0, rotate: 0, blur: 0 },
+          cachedRect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            height: rect.height,
+            center: rect.top + rect.height / 2,
+          },
         })
       })
 
       const opacityEls = el.querySelectorAll('[data-scroll-opacity]')
       opacityEls.forEach((child, i) => {
         const childId = `${id}-opacity-${i}`
+        const rect = child.getBoundingClientRect()
         elements.current.set(childId, {
           element: child as HTMLElement,
           sectionId: id,
           type: 'opacity',
           currentValues: { translateY: 0, scale: 1, opacity: 0, rotate: 0, blur: 0 },
+          cachedRect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            height: rect.height,
+            center: rect.top + rect.height / 2,
+          },
         })
       })
 
       const rotateEls = el.querySelectorAll('[data-scroll-rotate]')
       rotateEls.forEach((child, i) => {
         const childId = `${id}-rotate-${i}`
+        const rect = child.getBoundingClientRect()
         elements.current.set(childId, {
           element: child as HTMLElement,
           sectionId: id,
           type: 'rotate',
           currentValues: { translateY: 0, scale: 1, opacity: 1, rotate: -5, blur: 0 },
+          cachedRect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            height: rect.height,
+            center: rect.top + rect.height / 2,
+          },
         })
       })
 
       const blurEls = el.querySelectorAll('[data-scroll-blur]')
       blurEls.forEach((child, i) => {
         const childId = `${id}-blur-${i}`
+        const rect = child.getBoundingClientRect()
         elements.current.set(childId, {
           element: child as HTMLElement,
           sectionId: id,
           type: 'blur',
           currentValues: { translateY: 0, scale: 1, opacity: 0, rotate: 0, blur: 8 },
+          cachedRect: {
+            top: rect.top,
+            bottom: rect.bottom,
+            height: rect.height,
+            center: rect.top + rect.height / 2,
+          },
         })
       })
     })
 
     const resizeObserver = new ResizeObserver(() => {
+      updateElementRects()
       sections.current.forEach((section) => {
         const rect = section.element.getBoundingClientRect()
         section.top = rect.top + scrollState.current.scrollY
@@ -253,7 +321,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     return () => {
       resizeObserver.disconnect()
     }
-  }, [children])
+  }, [children, updateElementRects])
 
   // IntersectionObserver for active section detection
   useEffect(() => {
@@ -292,10 +360,8 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
       if (newSection === 'about' && !hasTriggeredWow && prevSection === 'hero') {
         hasTriggeredWow = true
 
-        // Create cinematic wow moment
         wowTimeline = gsap.timeline()
 
-        // 1. Hero typography moves away
         const heroContent = containerRef.current?.querySelector('.hero-content-wrapper')
         if (heroContent) {
           wowTimeline.to(heroContent, {
@@ -307,7 +373,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           }, 0)
         }
 
-        // 2. Portrait subtly shifts
         const portrait = containerRef.current?.querySelector('.hero-portrait')
         if (portrait) {
           wowTimeline.to(portrait, {
@@ -319,7 +384,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           }, 0.1)
         }
 
-        // 3. 3D canvas subtle pulse
         const heroCanvas = containerRef.current?.querySelector('.hero-canvas')
         if (heroCanvas) {
           wowTimeline.to(heroCanvas, {
@@ -330,7 +394,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           }, 0)
         }
 
-        // 4. Atmospheric divider line appears
         const aboutSection = containerRef.current?.querySelector('[data-scroll-section="about"]')
         if (aboutSection) {
           const divider = aboutSection.querySelector('.section-continuity-line')
@@ -343,7 +406,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           }
         }
 
-        // 5. About section dramatic entrance
         if (aboutSection) {
           wowTimeline.fromTo(aboutSection,
             { opacity: 0, y: 60 },
@@ -352,7 +414,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           )
         }
 
-        // 6. About headline clip-path reveal
         const aboutLines = containerRef.current?.querySelectorAll('.about-hero-line')
         if (aboutLines) {
           wowTimeline.fromTo(aboutLines,
@@ -362,7 +423,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
           )
         }
 
-        // 7. Clean up hero after transition
         wowTimeline.to('.hero-content-wrapper', {
           opacity: 0,
           duration: 0.5,
@@ -388,19 +448,19 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
     const animate = () => {
       const state = scrollState.current
       const viewportHeight = state.viewportHeight
-      const scrollY = state.scrollY
-      const absVelocity = Math.abs(state.velocity)
-      const maxVelocity = 25
+      const smoothScrollY = state.smoothScrollY
+      const absSmoothVelocity = Math.abs(state.smoothVelocity)
 
-      // Smooth interpolation for scroll position and velocity
       state.smoothScrollY += (state.targetScrollY - state.smoothScrollY) * SCROLL_SMOOTHING
       state.smoothVelocity += (state.targetVelocity - state.smoothVelocity) * VELOCITY_SMOOTHING
 
-      const smoothScrollY = state.smoothScrollY
+      const scrollY = state.smoothScrollY
       const smoothVelocity = state.smoothVelocity
-      const absSmoothVelocity = Math.abs(smoothVelocity)
 
-      // Cinematic scroll physics - reduced if user prefers
+      // Update element rects at throttled frequency
+      updateElementRects()
+
+      const maxVelocity = 25
       const velocityFactor = prefersReducedMotion ? 0 : Math.min(absSmoothVelocity / maxVelocity, 1)
       const targetSkew = prefersReducedMotion ? 0 : smoothVelocity * 0.015
       const targetDisplacement = prefersReducedMotion ? 0 : smoothVelocity * 0.4
@@ -420,43 +480,43 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         const sectionBottom = section.bottom
         const sectionHeight = section.height
 
-        const visibleTop = Math.max(smoothScrollY, sectionTop)
-        const visibleBottom = Math.min(smoothScrollY + viewportHeight, sectionBottom)
+        const visibleTop = Math.max(scrollY, sectionTop)
+        const visibleBottom = Math.min(scrollY + viewportHeight, sectionBottom)
         const visibleHeight = Math.max(0, visibleBottom - visibleTop)
         section.visibility = sectionHeight > 0 ? visibleHeight / sectionHeight : 0
         section.active = section.visibility > 0.01
 
-        const distanceFromTop = smoothScrollY - sectionTop
+        const distanceFromTop = scrollY - sectionTop
         const scrollableDistance = sectionHeight + viewportHeight
         section.progress = scrollableDistance > 0 ? Math.max(0, Math.min(1, distanceFromTop / scrollableDistance)) : 0
       })
 
-      // Section transitions: cinematic combined properties
       const sortedSections = Array.from(sections.current.values()).sort((a, b) => a.top - b.top)
       sortedSections.forEach((section, index) => {
         const prevSection = sortedSections[index - 1]
         const nextSection = sortedSections[index + 1]
         const sectionEl = section.element
 
-        // Transition from previous section
         if (prevSection && section.progress < 0.15) {
           const transitionProgress = Math.max(0, 1 - section.progress / 0.15)
           const easedProgress = 1 - Math.pow(1 - transitionProgress, 3)
           sectionEl.style.opacity = String(Math.min(1, 0.3 + easedProgress * 0.7))
           sectionEl.style.transform = `scale(${0.97 + easedProgress * 0.03}) translateY(${(1 - easedProgress) * -20}px)`
-          sectionEl.style.filter = `blur(${(1 - easedProgress) * 2}px)`
+          if (!prefersReducedMotion) {
+            sectionEl.style.filter = `blur(${(1 - easedProgress) * 2}px)`
+          }
         }
 
-        // Transition to next section
         if (nextSection && section.progress > 0.85) {
           const transitionProgress = Math.max(0, (section.progress - 0.85) / 0.15)
           const easedProgress = 1 - Math.pow(1 - transitionProgress, 3)
           sectionEl.style.opacity = String(Math.max(0, 1 - easedProgress * 0.5))
           sectionEl.style.transform = `scale(${1 - easedProgress * 0.02}) translateY(${easedProgress * 10}px)`
-          sectionEl.style.filter = `blur(${easedProgress * 2}px)`
+          if (!prefersReducedMotion) {
+            sectionEl.style.filter = `blur(${easedProgress * 2}px)`
+          }
         }
 
-        // Section-specific background shifts for continuity
         if (section.id === 'about') {
           const aboutProgress = section.progress
           sectionEl.style.background = `linear-gradient(to bottom, transparent 0%, rgba(125, 211, 252, ${aboutProgress * 0.02}) 50%, transparent 100%)`
@@ -475,7 +535,6 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         }
       })
 
-      // Dispatch section change events
       let maxVisibility = 0
       let mostVisibleId: string | null = null
       sections.current.forEach((section) => {
@@ -491,14 +550,14 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
         window.dispatchEvent(new CustomEvent('scroll-section-change', { detail: { sectionId: mostVisibleId, prevSectionId: prevSection } }))
       }
 
-      // Animate elements
+      // Animate elements using cached rects
       elements.current.forEach((elInfo) => {
         const section = sections.current.get(elInfo.sectionId)
         if (!section || !section.active) return
 
         const el = elInfo.element
-        const rect = el.getBoundingClientRect()
-        const elCenter = rect.top + rect.height / 2
+        const rect = elInfo.cachedRect
+        const elCenter = rect.center
         const viewportCenter = viewportHeight / 2
         const distanceFromCenter = (elCenter - viewportCenter) / viewportHeight
         const clampedDistance = Math.max(-1, Math.min(1, distanceFromCenter))
@@ -508,7 +567,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
             const velocityBoost = velocityFactor * 0.2
             const targetOpacity = Math.max(0, 1 - Math.abs(clampedDistance + velocityBoost) * 1.5)
             const targetTranslateY = (clampedDistance + velocityBoost * 0.5) * 60 * intensity + displacement * 0.1
-            const targetBlur = Math.abs(clampedDistance + velocityBoost) * 3 * intensity
+            const targetBlur = prefersReducedMotion ? 0 : Math.abs(clampedDistance + velocityBoost) * 3 * intensity
 
             elInfo.currentValues.opacity += (targetOpacity - elInfo.currentValues.opacity) * SMOOTHING
             elInfo.currentValues.translateY += (targetTranslateY - elInfo.currentValues.translateY) * SMOOTHING
@@ -516,7 +575,9 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
 
             el.style.transform = `translateY(${elInfo.currentValues.translateY}px) skewX(${skewX * 0.2}deg)`
             el.style.opacity = String(elInfo.currentValues.opacity)
-            el.style.filter = `blur(${elInfo.currentValues.blur}px)`
+            if (!prefersReducedMotion) {
+              el.style.filter = `blur(${elInfo.currentValues.blur}px)`
+            }
             break
           }
           case 'parallax': {
@@ -549,11 +610,13 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
             break
           }
           case 'blur': {
-            const targetBlur = Math.max(0, 6 - section.progress * 6)
+            const targetBlur = prefersReducedMotion ? 0 : Math.max(0, 6 - section.progress * 6)
             const targetOpacity = section.progress * intensity
             elInfo.currentValues.blur += (targetBlur - elInfo.currentValues.blur) * SMOOTHING
             elInfo.currentValues.opacity += (targetOpacity - elInfo.currentValues.opacity) * SMOOTHING
-            el.style.filter = `blur(${elInfo.currentValues.blur}px)`
+            if (!prefersReducedMotion) {
+              el.style.filter = `blur(${elInfo.currentValues.blur}px)`
+            }
             el.style.opacity = String(elInfo.currentValues.opacity)
             break
           }
@@ -565,7 +628,7 @@ export default function ScrollExperience({ children }: { children: React.ReactNo
 
     raf = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(raf)
-  }, [prefersReducedMotion])
+  }, [prefersReducedMotion, updateElementRects])
 
   return (
     <div ref={containerRef} className="scroll-experience">

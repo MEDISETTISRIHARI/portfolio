@@ -24,6 +24,7 @@ export default function AboutSection({ data }: AboutSectionProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const [isInView, setIsInView] = useState(false)
   const [hoveredLine, setHoveredLine] = useState<number | null>(null)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
   const headline = data.tagline || data.name
   const lines = headline.split('.').filter((line) => line.trim().length > 0)
@@ -73,15 +74,39 @@ export default function AboutSection({ data }: AboutSectionProps) {
   }, [])
 
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true)
+            observer.disconnect()
+          }
+        })
+      },
+      { threshold: 0.2 }
+    )
+
+    if (sectionRef.current) observer.observe(sectionRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
+  }, [])
+
+  useEffect(() => {
     if (!isInView) return
 
     const ctx = gsap.context(() => {
       const section = sectionRef.current
       if (!section) return
 
-      // Staggered line reveals with clip-path and blur
       const aboutLines = section.querySelectorAll('.about-hero-line')
-      if (aboutLines) {
+      if (aboutLines && !prefersReducedMotion) {
         gsap.fromTo(
           aboutLines,
           {
@@ -100,59 +125,66 @@ export default function AboutSection({ data }: AboutSectionProps) {
             ease: 'power3.out',
           }
         )
+      } else if (aboutLines && prefersReducedMotion) {
+        gsap.set(aboutLines, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', filter: 'blur(0px)' })
       }
 
-      // Portrait signature reveal - small crop from hero
       const portraitSignature = section.querySelector('.about-portrait-signature')
-      if (portraitSignature) {
+      if (portraitSignature && !prefersReducedMotion) {
         gsap.fromTo(portraitSignature,
           { clipPath: 'inset(0 100% 0 0)', opacity: 0, scale: 0.95 },
           { clipPath: 'inset(0 0% 0 0)', opacity: 1, scale: 1, duration: 1.4, ease: 'power3.inOut', delay: 0.4 }
         )
+      } else if (portraitSignature && prefersReducedMotion) {
+        gsap.set(portraitSignature, { clipPath: 'inset(0 0% 0 0)', opacity: 1, scale: 1 })
       }
 
-      // Portrait frame reveal
       const portraitFrame = section.querySelector('.about-portrait-frame')
-      if (portraitFrame) {
+      if (portraitFrame && !prefersReducedMotion) {
         gsap.fromTo(portraitFrame,
           { scaleX: 0, opacity: 0 },
           { scaleX: 1, opacity: 0.3, duration: 1.2, ease: 'power3.out', delay: 0.6 }
         )
+      } else if (portraitFrame && prefersReducedMotion) {
+        gsap.set(portraitFrame, { scaleX: 1, opacity: 0.3 })
       }
 
-      // Supporting text reveal
       const supporting = section.querySelector('.about-supporting')
-      if (supporting) {
+      if (supporting && !prefersReducedMotion) {
         gsap.fromTo(
           supporting,
           { opacity: 0, y: 30 },
           { opacity: 1, y: 0, duration: 1, ease: 'power2.out', delay: 0.8 }
         )
+      } else if (supporting && prefersReducedMotion) {
+        gsap.set(supporting, { opacity: 1, y: 0 })
       }
 
-      // Capabilities stagger
       const caps = section.querySelectorAll('.about-capability')
-      if (caps) {
+      if (caps && !prefersReducedMotion) {
         gsap.fromTo(
           caps,
           { opacity: 0, x: -20 },
           { opacity: 1, x: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out', delay: 1 }
         )
+      } else if (caps && prefersReducedMotion) {
+        gsap.set(caps, { opacity: 1, x: 0 })
       }
 
-      // Editorial capabilities list stagger
       const capItems = section.querySelectorAll('.capability-item')
-      if (capItems) {
+      if (capItems && !prefersReducedMotion) {
         gsap.fromTo(
           capItems,
           { opacity: 0, y: 30 },
           { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power2.out', delay: 1.2 }
         )
+      } else if (capItems && prefersReducedMotion) {
+        gsap.set(capItems, { opacity: 1, y: 0 })
       }
     }, sectionRef)
 
     return () => ctx.revert()
-  }, [isInView])
+  }, [isInView, prefersReducedMotion])
 
   return (
     <section id="about" data-scroll-section="about" className="py-24 md:py-48 relative overflow-hidden" ref={sectionRef}>

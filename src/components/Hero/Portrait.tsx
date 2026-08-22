@@ -8,15 +8,17 @@ type PortraitProps = {
   alt?: string
   isInView?: boolean
   mousePos?: { x: number; y: number }
+  touchVelocity?: { x: number; y: number }
   isMobile?: boolean
 }
 
-export default function Portrait({ src, alt = 'Portrait', isInView = false, mousePos = { x: 0, y: 0 }, isMobile = false }: PortraitProps) {
+export default function Portrait({ src, alt = 'Portrait', isInView = false, mousePos = { x: 0, y: 0 }, touchVelocity = { x: 0, y: 0 }, isMobile = false }: PortraitProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const [isClient, setIsClient] = useState(false)
   const floatRef = useRef({ x: 0, y: 0, rotY: 0, rotX: 0 })
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => {
     setIsClient(true)
@@ -53,10 +55,19 @@ export default function Portrait({ src, alt = 'Portrait', isInView = false, mous
 
     const animate = () => {
       const t = Date.now() * 0.001
-      floatRef.current.x = Math.sin(t * 0.5) * 3
-      floatRef.current.y = Math.cos(t * 0.4) * 2
-      floatRef.current.rotY = Math.sin(t * 0.3) * 1.5
-      floatRef.current.rotX = Math.cos(t * 0.35) * 0.8
+      const baseX = Math.sin(t * 0.5) * 3
+      const baseY = Math.cos(t * 0.4) * 2
+      const baseRotY = Math.sin(t * 0.3) * 1.5
+      const baseRotX = Math.cos(t * 0.35) * 0.8
+
+      // Subtle touch velocity influence
+      const touchInfluenceX = Math.max(-8, Math.min(8, touchVelocity.x * 0.5))
+      const touchInfluenceY = Math.max(-8, Math.min(8, touchVelocity.y * 0.5))
+
+      floatRef.current.x = baseX + touchInfluenceX
+      floatRef.current.y = baseY + touchInfluenceY
+      floatRef.current.rotY = baseRotY + touchInfluenceX * 0.1
+      floatRef.current.rotX = baseRotX + touchInfluenceY * 0.1
 
       if (containerRef.current) {
         containerRef.current.style.transform = `translate(${floatRef.current.x}px, ${floatRef.current.y}px) rotateY(${floatRef.current.rotY}deg) rotateX(${floatRef.current.rotX}deg)`
@@ -67,7 +78,7 @@ export default function Portrait({ src, alt = 'Portrait', isInView = false, mous
 
     const raf = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(raf)
-  }, [isClient])
+  }, [isClient, prefersReducedMotion, touchVelocity])
 
   // Pointer/touch influence
   useEffect(() => {
@@ -85,8 +96,6 @@ export default function Portrait({ src, alt = 'Portrait', isInView = false, mous
     window.addEventListener('mousemove', handleMouseMove, { passive: true })
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [isClient, isMobile])
-
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   // Placeholder or real image
   const imageSrc = src || '/images/srihari.jpg'

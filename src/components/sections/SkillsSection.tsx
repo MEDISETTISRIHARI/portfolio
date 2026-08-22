@@ -19,6 +19,7 @@ type SkillsSectionProps = {
 export default function SkillsSection({ data }: SkillsSectionProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [isInView, setIsInView] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 
@@ -40,23 +41,34 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
   }, [])
 
   useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+    const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => motionQuery.removeEventListener('change', handleMotionChange)
+  }, [])
+
+  useEffect(() => {
     if (!isInView) return
 
     const ctx = gsap.context(() => {
       const items = sectionRef.current?.querySelectorAll('.skill-item')
-      if (items) {
+      if (items && !prefersReducedMotion) {
         gsap.fromTo(
           items,
           { opacity: 0, y: 40 },
           { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power2.out' }
         )
+      } else if (items && prefersReducedMotion) {
+        gsap.set(items, { opacity: 1, y: 0 })
       }
     }, sectionRef)
 
     return () => ctx.revert()
-  }, [isInView])
+  }, [isInView, prefersReducedMotion])
 
   const handleMouseEnter = (index: number) => {
+    if (prefersReducedMotion) return
     setActiveIndex(index)
     itemRefs.current.forEach((ref, i) => {
       if (!ref) return
@@ -70,6 +82,7 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
   }
 
   const handleMouseLeave = () => {
+    if (prefersReducedMotion) return
     setActiveIndex(null)
     itemRefs.current.forEach((ref) => {
       if (!ref) return
