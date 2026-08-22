@@ -27,7 +27,33 @@ export default function AboutSection({ data }: AboutSectionProps) {
 
   const headline = data.tagline || data.name
   const lines = headline.split('.').filter((line) => line.trim().length > 0)
-  const capabilities = ['DESIGN', 'DEVELOPMENT', 'MOTION', 'EXPERIENCE']
+  
+  const capabilities = [
+    {
+      id: '01',
+      category: 'DESIGN',
+      statement: 'Interfaces, visual systems, interaction and art direction',
+      items: ['UI/UX Design', 'Brand Identity', 'Motion Design', '3D Visualization', 'Art Direction']
+    },
+    {
+      id: '02', 
+      category: 'DEVELOPMENT',
+      statement: 'React, TypeScript, creative development and performance',
+      items: ['React / Next.js', 'TypeScript', 'Three.js / WebGL', 'Node.js', 'Performance']
+    },
+    {
+      id: '03',
+      category: 'MOTION',
+      statement: 'GSAP, interaction, scroll systems and cinematic transitions',
+      items: ['GSAP', 'Framer Motion', 'Scroll Interactions', 'Cinematic Animation', 'Micro-interactions']
+    },
+    {
+      id: '04',
+      category: 'EXPERIENCE',
+      statement: 'Digital products, storytelling and immersive interfaces',
+      items: ['WebGL', 'Interactive Design', 'Creative Direction', 'Prototyping', 'Storytelling']
+    }
+  ]
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -76,12 +102,21 @@ export default function AboutSection({ data }: AboutSectionProps) {
         )
       }
 
-      // Portrait reveal
-      const portrait = section.querySelector('.hero-portrait')
-      if (portrait) {
-        gsap.fromTo(portrait,
-          { clipPath: 'inset(0 100% 0 0)', opacity: 0 },
-          { clipPath: 'inset(0 0% 0 0)', opacity: 1, duration: 1.4, ease: 'power3.inOut', delay: 0.4 }
+      // Portrait signature reveal - small crop from hero
+      const portraitSignature = section.querySelector('.about-portrait-signature')
+      if (portraitSignature) {
+        gsap.fromTo(portraitSignature,
+          { clipPath: 'inset(0 100% 0 0)', opacity: 0, scale: 0.95 },
+          { clipPath: 'inset(0 0% 0 0)', opacity: 1, scale: 1, duration: 1.4, ease: 'power3.inOut', delay: 0.4 }
+        )
+      }
+
+      // Portrait frame reveal
+      const portraitFrame = section.querySelector('.about-portrait-frame')
+      if (portraitFrame) {
+        gsap.fromTo(portraitFrame,
+          { scaleX: 0, opacity: 0 },
+          { scaleX: 1, opacity: 0.3, duration: 1.2, ease: 'power3.out', delay: 0.6 }
         )
       }
 
@@ -102,6 +137,16 @@ export default function AboutSection({ data }: AboutSectionProps) {
           caps,
           { opacity: 0, x: -20 },
           { opacity: 1, x: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out', delay: 1 }
+        )
+      }
+
+      // Editorial capabilities list stagger
+      const capItems = section.querySelectorAll('.capability-item')
+      if (capItems) {
+        gsap.fromTo(
+          capItems,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power2.out', delay: 1.2 }
         )
       }
     }, sectionRef)
@@ -128,29 +173,53 @@ export default function AboutSection({ data }: AboutSectionProps) {
 
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 items-start">
-          {/* Left column - minimal metadata + portrait */}
+          {/* Left column - portrait signature + metadata */}
           <div className="md:col-span-4 relative">
+            {/* Portrait signature - visual echo of hero */}
+            <div className="relative mb-8 md:mb-12">
+              {data.image && (
+                <div className="about-portrait-signature relative" data-scroll-parallax="0.1">
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 overflow-hidden"
+                    style={{
+                      clipPath: 'inset(0 0 0 0)',
+                      filter: 'grayscale(100%) contrast(1.1) brightness(0.9)',
+                    }}
+                  >
+                    <img
+                      src={data.image}
+                      alt={data.name}
+                      className="w-full h-full object-cover"
+                      style={{ objectFit: 'cover' }}
+                      loading="lazy"
+                    />
+                  </div>
+                  {/* Corner accent frame */}
+                  <div className="about-portrait-frame absolute -inset-2 border border-accent/20 pointer-events-none origin-left"
+                    style={{ transform: 'scaleX(0)' }}
+                  />
+                </div>
+              )}
+              
+              {/* Visual signature - abstract portrait shadow */}
+              <div className="absolute -bottom-2 -right-2 w-16 h-16 md:w-24 md:h-24 bg-accent/5 rounded-full blur-2xl pointer-events-none"
+                style={{ opacity: isInView ? 0.6 : 0 }}
+              />
+            </div>
+
             <p className="label text-text-muted mb-4" data-scroll-reveal data-scroll-parallax="0.1">01 — ABOUT</p>
             <div className="w-16 h-px bg-border-default mb-8" data-scroll-reveal />
             {data.availability && (
               <p className="body-sm text-accent mb-4" data-scroll-reveal>{data.availability}</p>
             )}
 
-            {/* Portrait - masked reveal with editorial treatment */}
-            {data.image && (
-              <div className="hidden md:block mb-8" data-scroll-parallax="0.15">
-                <HeroPortrait src={data.image} alt={data.name} isInView={isInView} />
-              </div>
-            )}
-
             <div className="space-y-2 mt-8 hidden md:block">
               {capabilities.map((cap, i) => (
                 <p
-                  key={cap}
+                  key={cap.id}
                   className="caption text-text-muted about-capability"
                   style={{ opacity: 0 }}
                 >
-                  {cap}
+                  {cap.category}
                 </p>
               ))}
             </div>
@@ -159,7 +228,7 @@ export default function AboutSection({ data }: AboutSectionProps) {
           {/* Right column - editorial centerpiece */}
           <div className="md:col-span-8">
             {/* Hero text - visual centerpiece */}
-            <div className="mb-16 md:mb-24">
+            <div className="mb-16 md:mb-24" data-scroll-reveal>
               {lines.map((line, i) => (
                 <div
                   key={i}
@@ -175,6 +244,7 @@ export default function AboutSection({ data }: AboutSectionProps) {
                       transform: hoveredLine === i ? 'translateX(12px)' : 'translateX(0)',
                       color: hoveredLine === i ? '#7dd3fc' : '#F4F4F0',
                     }}
+                    data-scroll-parallax="0.08"
                   >
                     {line.trim()}
                     {i < lines.length - 1 && <span className="text-accent">.</span>}
@@ -189,6 +259,72 @@ export default function AboutSection({ data }: AboutSectionProps) {
               <p className="body-lg text-text-secondary" style={{ lineHeight: '1.6' }}>
                 {data.bio}
               </p>
+            </div>
+
+            {/* Editorial capabilities - stacked list */}
+            <div className="mt-16 md:mt-24 space-y-0">
+              {capabilities.map((cap, i) => (
+                <div
+                  key={cap.id}
+                  className="capability-item group relative border-t border-border-subtle py-6 md:py-8 cursor-pointer"
+                  style={{
+                    borderColor: 'rgba(255, 255, 255, 0.06)',
+                  }}
+                >
+                  <div className="grid grid-cols-12 gap-4 md:gap-8 items-start">
+                    {/* Number */}
+                    <div className="col-span-1 md:col-span-1">
+                      <span
+                        className="font-display text-display-sm transition-all duration-500 block"
+                        style={{
+                          color: '#626262',
+                          transform: 'translateX(0)',
+                        }}
+                      >
+                        {cap.id}
+                      </span>
+                    </div>
+
+                    {/* Category + Statement */}
+                    <div className="col-span-11 md:col-span-4">
+                      <p
+                        className="label text-text-muted transition-all duration-500 mb-2"
+                        style={{
+                          letterSpacing: '0.15em',
+                          color: '#626262',
+                        }}
+                      >
+                        {cap.category}
+                      </p>
+                      <p className="text-body-sm text-text-secondary transition-all duration-500"
+                        style={{
+                          opacity: 0.6,
+                        }}
+                      >
+                        {cap.statement}
+                      </p>
+                    </div>
+
+                    {/* Skill details */}
+                    <div className="col-span-12 md:col-span-6 mt-4 md:mt-0">
+                      <div className="flex flex-wrap gap-2">
+                        {cap.items.map((item, j) => (
+                          <span
+                            key={j}
+                            className="text-[10px] text-text-muted/50 border border-border-subtle px-3 py-1.5 uppercase tracking-widest transition-all duration-500"
+                            style={{
+                              opacity: 0.4,
+                              borderColor: 'rgba(255,255,255,0.06)',
+                            }}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

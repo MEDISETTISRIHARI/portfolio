@@ -58,10 +58,9 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
 
   const handleMouseEnter = (index: number) => {
     setActiveIndex(index)
-    // Slightly shift surrounding items
     itemRefs.current.forEach((ref, i) => {
       if (!ref) return
-      const offset = i < index ? -8 : i > index ? 8 : 0
+      const offset = i < index ? -6 : i > index ? 6 : 0
       gsap.to(ref, {
         x: offset,
         duration: 0.4,
@@ -119,6 +118,7 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                 onMouseLeave={handleMouseLeave}
                 onClick={() => handleTouch(i)}
                 data-cursor="skill"
+                data-scroll-parallax="0.06"
               >
                 <div className="py-6 md:py-12 grid grid-cols-12 gap-4 md:gap-8 items-center cursor-pointer">
                   {/* Index */}
@@ -145,7 +145,7 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                     />
                   </div>
 
-                  {/* Title */}
+                  {/* Category */}
                   <div className="col-span-10 md:col-span-4">
                     <p
                       className="label text-text-muted transition-all duration-500"
@@ -156,31 +156,33 @@ export default function SkillsSection({ data }: SkillsSectionProps) {
                     >
                       {skill.category}
                     </p>
-                  </div>
-
-                  {/* Skill list */}
-                  <div className="col-span-12 md:col-span-6">
-                    <ul
-                      className="space-y-1 overflow-hidden transition-all duration-500"
+                    <p className="text-body-sm text-text-secondary mt-1 transition-all duration-500"
                       style={{
-                        maxHeight: isActive ? '300px' : '0px',
-                        opacity: isActive ? 1 : 0,
+                        opacity: isActive ? 0.7 : 0,
+                        maxHeight: isActive ? '60px' : '0px',
+                        overflow: 'hidden',
                       }}
                     >
+                      {skill.title}
+                    </p>
+                  </div>
+
+                  {/* Skill items - qualitative labels */}
+                  <div className="col-span-12 md:col-span-6">
+                    <div className="flex flex-wrap gap-2">
                       {skillItems.map((item, j) => (
-                        <li
+                        <span
                           key={j}
-                          className="text-body text-text-primary transition-all duration-300"
+                          className="text-[10px] text-text-muted/60 border border-border-subtle px-3 py-1.5 uppercase tracking-widest transition-all duration-500"
                           style={{
-                            transform: isActive ? 'translateX(0)' : 'translateX(-12px)',
-                            opacity: isActive ? 1 : 0,
-                            transitionDelay: isActive ? `${j * 0.05}s` : '0s',
+                            opacity: isActive ? 0.8 : 0.3,
+                            borderColor: isActive ? 'rgba(125,211,252,0.15)' : 'rgba(255,255,255,0.06)',
                           }}
                         >
-                          {item}
-                        </li>
+                          {item.trim()}
+                        </span>
                       ))}
-                    </ul>
+                    </div>
                   </div>
 
                   {/* Expand indicator */}
