@@ -7,113 +7,107 @@ import HeroContent from './HeroContent'
 import HeroMeta from './HeroMeta'
 import HeroCTA from './HeroCTA'
 import HeroMetadata from './HeroMetadata'
+import HeroPortrait from './HeroPortrait'
 import { useScroll } from '@/hooks/useScroll'
 
 export default function Hero() {
   const heroRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const { scrollY, progress } = useScroll()
+  const { progress } = useScroll()
 
-  // Intro coordination: run entrance animation when intro completes
   useEffect(() => {
     const animate = () => {
-      const tl = gsap.timeline({ paused: true })
+      const tl = gsap.timeline()
 
-      // Visual reveal: scale from 1.03 to 1, fade in
-      tl.fromTo(
-        '.hero-canvas',
+      tl.fromTo('.hero-canvas',
         { opacity: 0, scale: 1.03 },
         { opacity: 1, scale: 1, duration: 1.5, ease: 'power2.out' }
       )
 
-      // Title lines: masked clip-path reveal, staggered
-      tl.fromTo(
-        '.hero-title-line',
-        {
-          opacity: 0,
-          y: 40,
-          clipPath: 'inset(0 0 100% 0)',
-        },
-        {
-          opacity: 1,
-          y: 0,
-          clipPath: 'inset(0 0 0% 0)',
-          duration: 1,
-          stagger: 0.12,
-          ease: 'power3.out',
-        },
+      tl.fromTo('.hero-title-line',
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1, stagger: 0.12, ease: 'power3.out' },
         '-=1'
       )
 
-      // Role text: fade up from muted
-      tl.fromTo(
-        '.hero-role',
-        { opacity: 0, y: 15, filter: 'blur(2px)' },
-        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: 'power2.out' },
+      tl.fromTo('.hero-role',
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.7 },
         '-=0.5'
       )
 
-      // CTA: fade up
-      tl.fromTo(
-        '.hero-cta',
+      tl.fromTo('.hero-cta',
         { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.7 },
         '-=0.4'
       )
 
-      // Metadata: fade up delayed
-      tl.fromTo(
-        '.hero-metadata',
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' },
-        '-=0.2'
+      tl.fromTo('.hero-portrait',
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 1 },
+        '-=0.4'
       )
 
-      tl.play()
+      tl.fromTo('.hero-metadata',
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.7 },
+        '-=0.2'
+      )
     }
 
-    const hasSeenIntro = sessionStorage.getItem('srihari-intro-seen')
-
-    if (hasSeenIntro) {
+    const seen = sessionStorage.getItem('srihari-intro-seen')
+    if (seen) {
       animate()
     } else {
-      const handleIntroComplete = () => {
+      const handler = () => {
         animate()
-        window.removeEventListener('intro-complete', handleIntroComplete)
+        window.removeEventListener('intro-complete', handler)
       }
-      window.addEventListener('intro-complete', handleIntroComplete)
+      window.addEventListener('intro-complete', handler)
     }
   }, [])
 
-  // Mouse tracking for camera parallax
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 2 - 1
-      const y = -(e.clientY / window.innerHeight) * 2 + 1
-      setMousePos({ x, y })
+    const move = (e: MouseEvent) => {
+      setMousePos({
+        x: (e.clientX / window.innerWidth) * 2 - 1,
+        y: -(e.clientY / window.innerHeight) * 2 + 1,
+      })
     }
-    window.addEventListener('mousemove', handleMouseMove, { passive: true })
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+
+    window.addEventListener('mousemove', move, { passive: true })
+    return () => window.removeEventListener('mousemove', move)
   }, [])
 
   return (
     <section
       id="hero"
       ref={heroRef}
-      className="relative min-h-screen flex flex-col overflow-hidden"
+      className="relative min-h-screen overflow-hidden"
     >
-      {/* 3D Hero Visual - occupies upper portion */}
       <HeroVisual mousePos={mousePos} scrollProgress={progress} />
 
-      {/* Content area - positioned in lower third */}
-      <div className="relative z-20 w-full max-w-2xl mx-auto pb-32 md:pb-40">
-        <HeroContent />
-        <HeroMeta />
-        <HeroCTA />
-      </div>
+      <div className="relative z-20 mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-16">
+        <div className="grid min-h-screen grid-cols-1 items-center gap-12 py-24 md:grid-cols-12 md:gap-10 lg:gap-16">
 
-      {/* Bottom metadata - pinned at bottom */}
-      <HeroMetadata className="mt-32 md:mt-40" />
+          {/* LEFT — identity + work */}
+          <div className="md:col-span-7">
+            <HeroContent />
+            <HeroMeta />
+            <HeroCTA />
+          </div>
+
+          {/* RIGHT — PHOTO */}
+          <div className="flex items-center justify-center md:col-span-5">
+            <HeroPortrait />
+          </div>
+
+        </div>
+
+        <div className="pb-10">
+          <HeroMetadata />
+        </div>
+      </div>
     </section>
   )
 }
