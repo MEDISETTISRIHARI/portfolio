@@ -1,0 +1,56 @@
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+import path from 'path'
+
+const execFileAsync = promisify(execFile)
+
+const DB_PATH = path.join(
+  process.cwd(),
+  'prisma',
+  'dev.db'
+)
+
+export function sqlString(value: unknown) {
+  return `'${String(value ?? '').replace(/'/g, "''")}'`
+}
+
+async function runSqlite(
+  args: string[]
+) {
+  return execFileAsync(
+    'sqlite3',
+    [
+      '-cmd',
+      'PRAGMA busy_timeout=5000;',
+      ...args,
+    ],
+    {
+      maxBuffer: 10 * 1024 * 1024,
+    }
+  )
+}
+
+export async function query<T = any>(
+  sql: string
+): Promise<T[]> {
+  const { stdout } = await runSqlite([
+    '-json',
+    DB_PATH,
+    sql,
+  ])
+
+  if (!stdout.trim()) {
+    return []
+  }
+
+  return JSON.parse(stdout)
+}
+
+export async function execute(
+  sql: string
+) {
+  await runSqlite([
+    DB_PATH,
+    sql,
+  ])
+}

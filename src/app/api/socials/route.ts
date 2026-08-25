@@ -1,14 +1,34 @@
-import { PrismaClient } from '@prisma/client'
+import { NextResponse } from 'next/server'
+import { query } from '@/lib/sqlite'
 
-const prisma = new PrismaClient()
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-export const GET = async () => {
+export async function GET() {
   try {
-    const data = await prisma.socialLink.findMany({
-      orderBy: { order: 'asc' },
-    })
-    return Response.json(data)
+    const rows = await query(`
+      SELECT
+        id,
+        platform,
+        username,
+        url,
+        icon,
+        visible,
+        "order",
+        createdAt,
+        updatedAt
+      FROM SocialLink
+      WHERE visible = 1
+      ORDER BY "order" ASC, createdAt ASC
+    `)
+
+    return NextResponse.json(rows)
   } catch (error) {
-    return Response.json({ error: 'Failed to fetch social links' }, { status: 500 })
+    console.error('SOCIALS GET ERROR:', error)
+
+    return NextResponse.json(
+      { error: 'Failed to fetch social links' },
+      { status: 500 }
+    )
   }
 }

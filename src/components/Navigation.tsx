@@ -1,5 +1,6 @@
 'use client'
 
+import { normalizeExternalUrl } from '@/lib/externalUrl'
 import { useState, useEffect } from 'react'
 
 export default function Navigation() {
