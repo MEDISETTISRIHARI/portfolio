@@ -104,14 +104,14 @@ export default function ProfileAdmin() {
 
         <Field
           label="Availability"
-          value={profile.availability}
+          value={profile.availability ?? ""}
           onChange={v => update('availability', v)}
           placeholder="Available for opportunities"
         />
 
         <ImageUpload
           label="Profile image"
-          value={profile.image}
+          value={profile.image ?? ""}
           onChange={v => update('image', v)}
         />
 

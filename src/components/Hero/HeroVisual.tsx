@@ -1,57 +1,121 @@
 'use client'
 
-import { Canvas } from '@react-three/fiber'
-import Scene from './Scene'
-import useWebGL from '@/hooks/useWebGL'
-import { useState, useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { usePortfolioContent } from '@/lib/usePortfolioContent'
 
 type HeroVisualProps = {
-  mousePos: { x: number; y: number }
+  mousePos: {
+    x: number
+    y: number
+  }
   scrollProgress: number
 }
 
-export default function HeroVisual({ mousePos, scrollProgress }: HeroVisualProps) {
-  const [mounted, setMounted] = useState(false)
-  const isWebGLSupported = useWebGL()
+export default function HeroVisual({
+  mousePos,
+  scrollProgress,
+}: HeroVisualProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const content = usePortfolioContent()
+
+  const hero = content?.hero
+
+  const video =
+    typeof hero?.video === 'string'
+      ? hero.video.trim()
+      : ''
+
+  const image =
+    typeof hero?.image === 'string'
+      ? hero.image.trim()
+      : ''
+
+  const visualMode =
+    typeof hero?.visualMode === 'string'
+      ? hero.visualMode.toLowerCase().trim()
+      : 'video'
+
+  const showVideo =
+    Boolean(video) &&
+    (
+      visualMode === 'video' ||
+      visualMode === 'auto' ||
+      visualMode === ''
+    )
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    const videoElement = videoRef.current
 
-  if (!mounted) {
-    return (
-      <div className="absolute inset-0 hero-canvas">
-        <Canvas
-          dpr={[1, 2]}
-          camera={{ position: [0, 0, 18], fov: 55 }}
-          gl={{ antialias: true, alpha: true }}
-        >
-          <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={false} />
-        </Canvas>
-      </div>
-    )
-  }
+    if (!videoElement || !showVideo) {
+      return
+    }
 
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    videoElement.muted = true
+    videoElement.defaultMuted = true
+    videoElement.playsInline = true
 
-  if (!isWebGLSupported || prefersReducedMotion) {
-    return (
-      <div className="absolute inset-0 hero-canvas">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-surface to-background opacity-80" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/5 via-background to-background" />
-      </div>
-    )
-  }
+    const playVideo = async () => {
+      try {
+        await videoElement.play()
+      } catch {
+        // Browser may block autoplay until interaction.
+      }
+    }
+
+    void playVideo()
+
+    return () => {
+      videoElement.pause()
+    }
+  }, [video, showVideo])
+
+  const translateX = mousePos.x * 10
+  const translateY =
+    mousePos.y * 8 - scrollProgress * 20
+
+  const scale =
+    1.05 + scrollProgress * 0.025
 
   return (
-    <div className="absolute inset-0 hero-canvas pointer-events-none">
-      <Canvas
-        dpr={[1, 2]}
-        camera={{ position: [0, 0, 18], fov: 55 }}
-        gl={{ antialias: true, alpha: true }}
+    <div
+      className="hero-canvas pointer-events-none absolute inset-0 z-0 overflow-hidden"
+      aria-hidden="true"
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
+          transition: 'transform 0.15s ease-out',
+        }}
       >
-        <Scene mousePos={mousePos} scrollProgress={scrollProgress} prefersReducedMotion={prefersReducedMotion} />
-      </Canvas>
+        {showVideo ? (
+          <video
+            ref={videoRef}
+            key={video}
+            src={video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : image ? (
+          <img
+            src={image}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : null}
+
+        <div className="absolute inset-0 bg-black/55" />
+
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/35 to-black/80" />
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.35)_70%,rgba(0,0,0,0.7)_100%)]" />
+      </div>
+
+      <div className="absolute inset-0 bg-black/10" />
     </div>
   )
 }

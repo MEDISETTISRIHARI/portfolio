@@ -27,15 +27,7 @@ export default function RootPage() {
 
       <main>
 
-        {/*
-          IMPORTANT:
-
-          The existing Hero component is intentionally
-          preserved here.
-
-          We are NOT replacing your 3D / cinematic system.
-        */}
-        <Hero />
+        <Hero profile={content.profile} />
 
         <AboutSection profile={content.profile} />
 
@@ -113,9 +105,7 @@ function AboutSection({
           <div className="md:col-span-8">
 
             <h2 className="font-display text-display-md text-text-primary mb-12 reveal-up">
-
               {name.toUpperCase()}
-
             </h2>
 
             <div className="max-w-2xl">
@@ -169,7 +159,9 @@ function SkillsSection({
             if (Array.isArray(skill.items)) {
               items = skill.items
             } else if (typeof skill.items === 'string') {
+
               try {
+
                 const parsed = JSON.parse(skill.items)
 
                 if (Array.isArray(parsed)) {
@@ -180,11 +172,14 @@ function SkillsSection({
                     .map((item: string) => item.trim())
                     .filter(Boolean)
                 }
+
               } catch {
+
                 items = skill.items
                   .split(',')
                   .map((item: string) => item.trim())
                   .filter(Boolean)
+
               }
             }
 
@@ -282,9 +277,7 @@ function ProjectsSection({
                 <div className="md:col-span-2">
 
                   <p className="font-display text-display-sm text-text-muted group-hover:text-accent transition-colors duration-500">
-
                     {String(index + 1).padStart(2, '0')}
-
                   </p>
 
                 </div>
@@ -292,9 +285,7 @@ function ProjectsSection({
                 <div className="md:col-span-8">
 
                   <h3 className="font-display text-display-md text-text-primary mb-4 group-hover:text-accent transition-colors duration-500">
-
                     {project.title}
-
                   </h3>
 
                   {project.category && (
@@ -319,11 +310,9 @@ function ProjectsSection({
 
                 <div className="md:col-span-2 md:text-right">
 
-                  {project.liveUrl ? (
+                  {project.slug ? (
                     <a
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                      href={`/projects/${project.slug}`}
                       className="label text-text-muted group-hover:text-accent transition-colors duration-500"
                     >
                       VIEW PROJECT
@@ -340,13 +329,12 @@ function ProjectsSection({
 
               <div className="mt-8 md:mt-12 w-full aspect-video bg-surface-elevated border border-border-subtle overflow-hidden relative">
 
-                {project.heroImage ||
-                project.thumbnail ? (
+                {project.thumbnail || project.heroImage ? (
 
                   <img
                     src={
-                      project.heroImage ||
-                      project.thumbnail
+                      project.thumbnail ||
+                      project.heroImage
                     }
                     alt={project.title || 'Project'}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
@@ -491,7 +479,6 @@ function TestimonialsSection({
                     {testimonial.company}
 
                   </p>
-
                 )}
 
               </div>
@@ -517,9 +504,11 @@ function ContactSection({
 }: {
   profile: any
 }) {
+
   async function submitContact(
     event: React.FormEvent<HTMLFormElement>
   ) {
+
     event.preventDefault()
 
     const form =
@@ -531,25 +520,32 @@ function ContactSection({
     const payload = {
       name:
         formData.get('name') || '',
+
       email:
         formData.get('email') || '',
+
       projectType:
         formData.get('projectType') || '',
+
       budget:
         formData.get('budget') || '',
+
       message:
         formData.get('message') || '',
     }
 
     try {
+
       const response = await fetch(
         '/api/contact',
         {
           method: 'POST',
+
           headers: {
             'Content-Type':
               'application/json',
           },
+
           body: JSON.stringify(payload),
         }
       )
@@ -565,12 +561,15 @@ function ContactSection({
       alert(
         'Thanks! Your message has been sent.'
       )
+
     } catch (error) {
+
       console.error(error)
 
       alert(
         'Unable to send your message right now.'
       )
+
     }
   }
 
@@ -653,6 +652,7 @@ function ContactSection({
                   name="projectType"
                   className="w-full border-b border-border-default bg-transparent py-3 text-text-primary focus:border-accent transition-colors duration-300"
                 >
+
                   <option value="">
                     Select project type
                   </option>
@@ -783,6 +783,7 @@ function Footer({
   profile: any
   socials: any[]
 }) {
+
   return (
     <footer className="border-t border-border-subtle py-12">
 
@@ -791,9 +792,12 @@ function Footer({
         <div className="flex flex-col md:flex-row justify-between gap-8">
 
           <p className="body-sm text-text-muted">
+
             © {new Date().getFullYear()}{' '}
+
             {profile?.name ||
               'Portfolio'}
+
           </p>
 
           {socials.length > 0 && (

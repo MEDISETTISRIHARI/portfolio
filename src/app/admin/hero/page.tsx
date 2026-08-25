@@ -12,6 +12,7 @@ import {
   useAdminData,
   HeroData,
 } from '@/components/admin/AdminUI'
+import VideoUpload from '@/components/admin/VideoUpload'
 
 export default function HeroAdmin() {
   const editor = useAdminData<HeroData>(
@@ -60,21 +61,21 @@ export default function HeroAdmin() {
       >
         <Field
           label="Headline"
-          value={hero.headline}
+          value={hero.headline ?? ''}
           onChange={v => update('headline', v)}
           placeholder="I build digital experiences."
         />
 
         <Field
           label="Subtitle"
-          value={hero.subtitle}
+          value={hero.subtitle ?? ''}
           onChange={v => update('subtitle', v)}
           placeholder="Software Developer"
         />
 
         <Area
           label="Description"
-          value={hero.description}
+          value={hero.description ?? ''}
           onChange={v => update('description', v)}
           placeholder="Short introduction..."
           rows={7}
@@ -82,22 +83,21 @@ export default function HeroAdmin() {
 
         <Field
           label="Visual mode"
-          value={hero.visualMode}
+          value={hero.visualMode ?? ''}
           onChange={v => update('visualMode', v)}
           placeholder="image"
         />
 
         <ImageUpload
           label="Hero image"
-          value={hero.image}
+          value={hero.image ?? ''}
           onChange={v => update('image', v)}
         />
 
-        <Field
+        <VideoUpload
           label="Hero video"
-          value={hero.video}
+          value={hero.video ?? ''}
           onChange={v => update('video', v)}
-          placeholder="/videos/hero.mp4"
         />
 
         <div className="border-t border-white/10 pt-8">
@@ -108,14 +108,14 @@ export default function HeroAdmin() {
           <div className="space-y-6">
             <Field
               label="Button text"
-              value={hero.ctaText}
+              value={hero.ctaText ?? ''}
               onChange={v => update('ctaText', v)}
               placeholder="VIEW MY WORK"
             />
 
             <Field
               label="Button link"
-              value={hero.ctaLink}
+              value={hero.ctaLink ?? ''}
               onChange={v => update('ctaLink', v)}
               placeholder="/projects"
             />
@@ -130,14 +130,14 @@ export default function HeroAdmin() {
           <div className="space-y-6">
             <Field
               label="Button text"
-              value={hero.secondaryCta}
+              value={hero.secondaryCta ?? ''}
               onChange={v => update('secondaryCta', v)}
               placeholder="CONTACT ME"
             />
 
             <Field
               label="Button link"
-              value={hero.secondaryLink}
+              value={hero.secondaryLink ?? ''}
               onChange={v => update('secondaryLink', v)}
               placeholder="/contact"
             />
