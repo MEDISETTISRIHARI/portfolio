@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import { execute, query, sqlString } from '@/lib/sqlite'
+import { prisma } from '@/lib/prisma'
 
 const JWT_SECRET =
   process.env.JWT_SECRET || 'srihari-development-secret'
@@ -28,24 +28,14 @@ export async function GET(req: Request) {
   }
 
   try {
-    const rows = await query(`
-      SELECT
-        id,
-        name,
-        role,
-        tagline,
-        bio,
-        location,
-        email,
-        availability,
-        image
-      FROM Profile
-      ORDER BY createdAt ASC
-      LIMIT 1
-    `)
+    const profile = await prisma.profile.findFirst({
+      orderBy: {
+        createdAt: 'asc',
+      },
+    })
 
     return NextResponse.json({
-      profile: rows[0] || null,
+      profile: profile || null,
     })
   } catch (error) {
     console.error('PROFILE GET ERROR:', error)
@@ -87,74 +77,51 @@ export async function PUT(req: Request) {
       )
     }
 
-    const existing = await query<{ id: string }>(`
-      SELECT id
-      FROM Profile
-      ORDER BY createdAt ASC
-      LIMIT 1
-    `)
+    const existing = await prisma.profile.findFirst({
+      orderBy: {
+        createdAt: 'asc',
+      },
+      select: {
+        id: true,
+      },
+    })
 
-    if (existing.length > 0) {
-      await execute(`
-        UPDATE Profile
-        SET
-          name = ${sqlString(name)},
-          role = ${sqlString(role)},
-          tagline = ${sqlString(tagline)},
-          bio = ${sqlString(bio)},
-          location = ${sqlString(location)},
-          email = ${sqlString(email)},
-          availability = ${sqlString(availability)},
-          image = ${sqlString(image)},
-          updatedAt = CURRENT_TIMESTAMP
-        WHERE id = ${sqlString(existing[0].id)}
-      `)
-    } else {
-      await execute(`
-        INSERT INTO Profile (
-          id,
+    let profile
+
+    if (existing) {
+      profile = await prisma.profile.update({
+        where: {
+          id: existing.id,
+        },
+        data: {
           name,
           role,
           tagline,
           bio,
-          location,
+          location: location || null,
           email,
-          availability,
-          image
-        )
-        VALUES (
-          ${sqlString('profile-main')},
-          ${sqlString(name)},
-          ${sqlString(role)},
-          ${sqlString(tagline)},
-          ${sqlString(bio)},
-          ${sqlString(location)},
-          ${sqlString(email)},
-          ${sqlString(availability)},
-          ${sqlString(image)}
-        )
-      `)
+          availability: availability || null,
+          image: image || null,
+        },
+      })
+    } else {
+      profile = await prisma.profile.create({
+        data: {
+          name,
+          role,
+          tagline,
+          bio,
+          location: location || null,
+          email,
+          availability: availability || null,
+          image: image || null,
+        },
+      })
     }
-
-    const rows = await query(`
-      SELECT
-        id,
-        name,
-        role,
-        tagline,
-        bio,
-        location,
-        email,
-        availability,
-        image
-      FROM Profile
-      ORDER BY createdAt ASC
-      LIMIT 1
-    `)
 
     return NextResponse.json({
       ok: true,
-      profile: rows[0] || null,
+      profile,
     })
   } catch (error) {
     console.error('PROFILE SAVE ERROR:', error)
