@@ -12,6 +12,7 @@ type Resource =
   | 'skills'
   | 'services'
   | 'socials'
+  | 'reviews'
 
 function isAuthenticated(req: Request) {
   const cookie = req.headers.get('cookie') || ''
@@ -38,9 +39,13 @@ function getResource(req: Request): Resource | null {
     'skills',
     'services',
     'socials',
+    'reviews',
   ]
 
-  if (!resource || !allowed.includes(resource as Resource)) {
+  if (
+    !resource ||
+    !allowed.includes(resource as Resource)
+  ) {
     return null
   }
 
@@ -77,6 +82,10 @@ export async function GET(req: Request) {
   }
 
   try {
+    /*
+     * PROFILE
+     */
+
     if (resource === 'profile') {
       const rows = await query(`
         SELECT
@@ -98,6 +107,10 @@ export async function GET(req: Request) {
         data: rows[0] || null,
       })
     }
+
+    /*
+     * HERO
+     */
 
     if (resource === 'hero') {
       const rows = await query(`
@@ -122,6 +135,10 @@ export async function GET(req: Request) {
         data: rows[0] || null,
       })
     }
+
+    /*
+     * PROJECTS
+     */
 
     if (resource === 'projects') {
       const rows = await query(`
@@ -152,6 +169,10 @@ export async function GET(req: Request) {
       })
     }
 
+    /*
+     * SKILLS
+     */
+
     if (resource === 'skills') {
       const rows = await query(`
         SELECT
@@ -170,6 +191,10 @@ export async function GET(req: Request) {
       })
     }
 
+    /*
+     * SERVICES
+     */
+
     if (resource === 'services') {
       const rows = await query(`
         SELECT
@@ -187,6 +212,10 @@ export async function GET(req: Request) {
       })
     }
 
+    /*
+     * SOCIAL LINKS
+     */
+
     if (resource === 'socials') {
       const rows = await query(`
         SELECT
@@ -198,6 +227,34 @@ export async function GET(req: Request) {
           visible,
           "order"
         FROM SocialLink
+        ORDER BY "order" ASC, createdAt ASC
+      `)
+
+      return NextResponse.json({
+        data: rows,
+      })
+    }
+
+    /*
+     * REVIEWS
+     *
+     * Uses the existing Testimonial table.
+     */
+
+    if (resource === 'reviews') {
+      const rows = await query(`
+        SELECT
+          id,
+          name,
+          role,
+          company,
+          quote,
+          image,
+          visible,
+          "order",
+          createdAt,
+          updatedAt
+        FROM Testimonial
         ORDER BY "order" ASC, createdAt ASC
       `)
 
@@ -243,6 +300,7 @@ export async function POST(req: Request) {
     /*
      * PROFILE
      */
+
     if (resource === 'profile') {
       const existing = await query<{ id: string }>(`
         SELECT id
@@ -258,7 +316,9 @@ export async function POST(req: Request) {
         bio: String(body.bio || ''),
         location: String(body.location || ''),
         email: String(body.email || ''),
-        availability: String(body.availability || ''),
+        availability: String(
+          body.availability || ''
+        ),
         image: String(body.image || ''),
       }
 
@@ -309,6 +369,7 @@ export async function POST(req: Request) {
     /*
      * HERO
      */
+
     if (resource === 'hero') {
       const existing = await query<{ id: string }>(`
         SELECT id
@@ -323,11 +384,17 @@ export async function POST(req: Request) {
         description: String(body.description || ''),
         image: String(body.image || ''),
         video: String(body.video || ''),
-        visualMode: String(body.visualMode || 'image'),
+        visualMode: String(
+          body.visualMode || 'image'
+        ),
         ctaText: String(body.ctaText || ''),
         ctaLink: String(body.ctaLink || ''),
-        secondaryCta: String(body.secondaryCta || ''),
-        secondaryLink: String(body.secondaryLink || ''),
+        secondaryCta: String(
+          body.secondaryCta || ''
+        ),
+        secondaryLink: String(
+          body.secondaryLink || ''
+        ),
       }
 
       if (existing.length) {
@@ -383,6 +450,7 @@ export async function POST(req: Request) {
     /*
      * PROJECTS
      */
+
     if (resource === 'projects') {
       const id =
         String(body.id || '').trim() ||
@@ -397,22 +465,45 @@ export async function POST(req: Request) {
 
       const title = String(body.title || '').trim()
       const slug = String(body.slug || '').trim()
-      const category = String(body.category || '').trim()
+      const category = String(
+        body.category || ''
+      ).trim()
       const year = String(body.year || '').trim()
-      const shortDesc = String(body.shortDesc || '').trim()
-      const fullDesc = String(body.fullDesc || '').trim()
-      const thumbnail = String(body.thumbnail || '').trim()
-      const heroImage = String(body.heroImage || '').trim()
+      const shortDesc = String(
+        body.shortDesc || ''
+      ).trim()
+      const fullDesc = String(
+        body.fullDesc || ''
+      ).trim()
+      const thumbnail = String(
+        body.thumbnail || ''
+      ).trim()
+      const heroImage = String(
+        body.heroImage || ''
+      ).trim()
       const gallery = jsonArray(body.gallery)
       const video = String(body.video || '').trim()
-      const technologies = jsonArray(body.technologies)
-      const liveUrl = String(body.liveUrl || '').trim()
-      const caseStudy = String(body.caseStudy || '').trim()
+      const technologies = jsonArray(
+        body.technologies
+      )
+      const liveUrl = String(
+        body.liveUrl || ''
+      ).trim()
+      const caseStudy = String(
+        body.caseStudy || ''
+      ).trim()
       const featured = body.featured ? 1 : 0
-      const published = body.published === false ? 0 : 1
+      const published =
+        body.published === false ? 0 : 1
       const order = Number(body.order || 0)
 
-      if (!title || !slug || !category || !shortDesc || !thumbnail) {
+      if (
+        !title ||
+        !slug ||
+        !category ||
+        !shortDesc ||
+        !thumbnail
+      ) {
         return NextResponse.json(
           {
             error:
@@ -487,26 +578,38 @@ export async function POST(req: Request) {
         `)
       }
 
-      return NextResponse.json({ ok: true, id })
+      return NextResponse.json({
+        ok: true,
+        id,
+      })
     }
 
     /*
      * SKILLS
      */
+
     if (resource === 'skills') {
       const id =
         String(body.id || '').trim() ||
         `skill-${Date.now()}`
 
-      const category = String(body.category || '').trim()
-      const title = String(body.title || '').trim()
+      const category = String(
+        body.category || ''
+      ).trim()
+      const title = String(
+        body.title || ''
+      ).trim()
       const items = jsonArray(body.items)
       const order = Number(body.order || 0)
-      const visible = body.visible === false ? 0 : 1
+      const visible =
+        body.visible === false ? 0 : 1
 
       if (!category || !title) {
         return NextResponse.json(
-          { error: 'Category and title are required' },
+          {
+            error:
+              'Category and title are required',
+          },
           { status: 400 }
         )
       }
@@ -550,25 +653,37 @@ export async function POST(req: Request) {
         `)
       }
 
-      return NextResponse.json({ ok: true, id })
+      return NextResponse.json({
+        ok: true,
+        id,
+      })
     }
 
     /*
      * SERVICES
      */
+
     if (resource === 'services') {
       const id =
         String(body.id || '').trim() ||
         `service-${Date.now()}`
 
-      const title = String(body.title || '').trim()
-      const desc = String(body.desc || '').trim()
+      const title = String(
+        body.title || ''
+      ).trim()
+      const desc = String(
+        body.desc || ''
+      ).trim()
       const order = Number(body.order || 0)
-      const visible = body.visible === false ? 0 : 1
+      const visible =
+        body.visible === false ? 0 : 1
 
       if (!title || !desc) {
         return NextResponse.json(
-          { error: 'Title and description are required' },
+          {
+            error:
+              'Title and description are required',
+          },
           { status: 400 }
         )
       }
@@ -609,23 +724,36 @@ export async function POST(req: Request) {
         `)
       }
 
-      return NextResponse.json({ ok: true, id })
+      return NextResponse.json({
+        ok: true,
+        id,
+      })
     }
 
     /*
      * SOCIAL LINKS
      */
+
     if (resource === 'socials') {
       const id =
         String(body.id || '').trim() ||
         `social-${Date.now()}`
 
-      const platform = String(body.platform || '').trim()
-      const username = String(body.username || '').trim()
-      const url = String(body.url || '').trim()
-      const icon = String(body.icon || '').trim()
+      const platform = String(
+        body.platform || ''
+      ).trim()
+      const username = String(
+        body.username || ''
+      ).trim()
+      const url = String(
+        body.url || ''
+      ).trim()
+      const icon = String(
+        body.icon || ''
+      ).trim()
       const order = Number(body.order || 0)
-      const visible = body.visible === false ? 0 : 1
+      const visible =
+        body.visible === false ? 0 : 1
 
       if (!platform || !username || !url) {
         return NextResponse.json(
@@ -679,7 +807,107 @@ export async function POST(req: Request) {
         `)
       }
 
-      return NextResponse.json({ ok: true, id })
+      return NextResponse.json({
+        ok: true,
+        id,
+      })
+    }
+
+    /*
+     * REVIEWS
+     *
+     * Uses the existing Testimonial table.
+     */
+
+    if (resource === 'reviews') {
+      const id =
+        String(body.id || '').trim() ||
+        `review-${Date.now()}`
+
+      const name = String(
+        body.name || ''
+      ).trim()
+
+      const role = String(
+        body.role || ''
+      ).trim()
+
+      const company = String(
+        body.company || ''
+      ).trim()
+
+      const quote = String(
+        body.quote || ''
+      ).trim()
+
+      const image = String(
+        body.image || ''
+      ).trim()
+
+      const order = Number(body.order || 0)
+
+      const visible =
+        body.visible === false ? 0 : 1
+
+      if (!name || !quote) {
+        return NextResponse.json(
+          {
+            error:
+              'Reviewer name and review are required',
+          },
+          { status: 400 }
+        )
+      }
+
+      const existing = await query<{ id: string }>(`
+        SELECT id
+        FROM Testimonial
+        WHERE id = ${sqlString(id)}
+        LIMIT 1
+      `)
+
+      if (existing.length) {
+        await execute(`
+          UPDATE Testimonial SET
+            name = ${sqlString(name)},
+            role = ${sqlString(role)},
+            company = ${sqlString(company)},
+            quote = ${sqlString(quote)},
+            image = ${sqlString(image)},
+            "order" = ${order},
+            visible = ${visible},
+            updatedAt = CURRENT_TIMESTAMP
+          WHERE id = ${sqlString(id)}
+        `)
+      } else {
+        await execute(`
+          INSERT INTO Testimonial (
+            id,
+            name,
+            role,
+            company,
+            quote,
+            image,
+            "order",
+            visible
+          )
+          VALUES (
+            ${sqlString(id)},
+            ${sqlString(name)},
+            ${sqlString(role)},
+            ${sqlString(company)},
+            ${sqlString(quote)},
+            ${sqlString(image)},
+            ${order},
+            ${visible}
+          )
+        `)
+      }
+
+      return NextResponse.json({
+        ok: true,
+        id,
+      })
     }
 
     return NextResponse.json(
@@ -729,13 +957,17 @@ export async function DELETE(req: Request) {
       skills: 'Skill',
       services: 'Service',
       socials: 'SocialLink',
+      reviews: 'Testimonial',
     }
 
     const table = tables[resource]
 
     if (!table) {
       return NextResponse.json(
-        { error: 'This resource cannot be deleted' },
+        {
+          error:
+            'This resource cannot be deleted',
+        },
         { status: 400 }
       )
     }
@@ -745,7 +977,9 @@ export async function DELETE(req: Request) {
       WHERE id = ${sqlString(id)}
     `)
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({
+      ok: true,
+    })
   } catch (error) {
     console.error('ADMIN DELETE ERROR:', error)
 

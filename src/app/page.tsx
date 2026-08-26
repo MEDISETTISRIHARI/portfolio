@@ -1,7 +1,7 @@
 'use client'
 
 import { normalizeExternalUrl } from '@/lib/externalUrl'
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 
 import CinematicIntro from '@/components/CinematicIntro'
 import CustomCursor from '@/components/CustomCursor'
@@ -37,7 +37,7 @@ export default function RootPage() {
 
         <ServicesSection services={content.services} />
 
-        <TestimonialsSection
+        <ReviewsSection
           testimonials={content.testimonials}
         />
 
@@ -417,83 +417,283 @@ function ServicesSection({
 
 
 /* ================================================
-   TESTIMONIALS
+   REVIEWS
 ================================================ */
 
-function TestimonialsSection({
+function ReviewsSection({
   testimonials,
 }: {
   testimonials: any[]
 }) {
-  if (!testimonials.length) {
-    return null
+  const [showForm, setShowForm] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  async function submitReview(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault()
+
+    setSubmitting(true)
+    setMessage('')
+    setError('')
+
+    const form = event.currentTarget
+    const formData = new FormData(form)
+
+    const payload = {
+      name: String(formData.get('name') || '').trim(),
+      quote: String(formData.get('quote') || '').trim(),
+      role: String(formData.get('role') || '').trim(),
+      company: String(formData.get('company') || '').trim(),
+    }
+
+    if (!payload.name || !payload.quote) {
+      setError('Please enter your name and review.')
+      setSubmitting(false)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error || 'Failed to submit review.'
+        )
+      }
+
+      form.reset()
+      setMessage(
+        'Thank you! Your review has been submitted successfully.'
+      )
+      setShowForm(false)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to submit your review right now.'
+      )
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <section
-      id="testimonials"
+      id="reviews"
       className="py-32 md:py-48 border-t border-border-subtle"
     >
       <div className="container mx-auto px-6">
 
-        <p className="label text-text-muted mb-16 reveal-up">
-          TESTIMONIALS
+        <p className="label text-text-muted mb-6 reveal-up">
+          REVIEWS
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+        <p className="body-md text-text-secondary mb-16 reveal-up">
+          What people say about working with me.
+        </p>
 
-          {testimonials.map((testimonial, index) => (
+        {testimonials.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
 
-            <div
-              key={testimonial.id || index}
-              className="surface p-8 md:p-10 reveal-up"
-              style={{
-                animationDelay: `${index * 0.15}s`,
-              }}
-            >
+            {testimonials.map((testimonial, index) => (
 
-              <p className="body-md text-text-secondary mb-8 italic">
-                &ldquo;
-                {testimonial.quote}
-                &rdquo;
-              </p>
+              <div
+                key={testimonial.id || index}
+                className="surface p-8 md:p-10 reveal-up"
+                style={{
+                  animationDelay: `${index * 0.15}s`,
+                }}
+              >
 
-              <div>
-
-                <p className="body-sm text-text-primary font-medium">
-                  {testimonial.name}
+                <p className="body-md text-text-secondary mb-8 italic">
+                  &ldquo;
+                  {testimonial.quote}
+                  &rdquo;
                 </p>
 
-                {(testimonial.role ||
-                  testimonial.company) && (
+                <div>
 
-                  <p className="body-sm text-text-muted">
-
-                    {testimonial.role}
-
-                    {testimonial.role &&
-                    testimonial.company
-                      ? ', '
-                      : ''}
-
-                    {testimonial.company}
-
+                  <p className="body-sm text-text-primary font-medium">
+                    {testimonial.name}
                   </p>
-                )}
+
+                  {(testimonial.role ||
+                    testimonial.company) && (
+
+                    <p className="body-sm text-text-muted">
+
+                      {testimonial.role}
+
+                      {testimonial.role &&
+                      testimonial.company
+                        ? ', '
+                        : ''}
+
+                      {testimonial.company}
+
+                    </p>
+                  )}
+
+                </div>
 
               </div>
 
-            </div>
+            ))}
 
-          ))}
+          </div>
+        )}
+
+        <div className="mt-12 reveal-up">
+
+          {!showForm && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowForm(true)
+                setMessage('')
+                setError('')
+              }}
+              className="inline-flex border border-border-default px-6 py-3 text-sm font-medium text-text-primary hover:bg-text-primary hover:text-background transition-colors duration-300"
+            >
+              GIVE A REVIEW
+            </button>
+          )}
 
         </div>
+
+        {message && (
+          <div className="mt-8 border border-green-500/20 bg-green-500/10 px-5 py-4">
+            <p className="body-sm text-green-300">
+              {message}
+            </p>
+          </div>
+        )}
+
+        {showForm && (
+          <div className="mt-10 max-w-2xl border border-border-subtle p-8 md:p-10 reveal-up">
+
+            <div className="flex items-center justify-between gap-6 mb-8">
+
+              <div>
+                <p className="label text-text-muted mb-2">
+                  SHARE YOUR EXPERIENCE
+                </p>
+
+                <p className="body-sm text-text-secondary">
+                  Tell others about your experience working with me.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false)
+                  setError('')
+                }}
+                className="text-text-muted hover:text-text-primary transition-colors"
+              >
+                CLOSE
+              </button>
+
+            </div>
+
+            <form
+              onSubmit={submitReview}
+              className="space-y-7"
+            >
+
+              <div>
+                <label className="label text-text-muted block mb-3">
+                  YOUR NAME
+                </label>
+
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  className="w-full border-b border-border-default bg-transparent py-3 text-text-primary outline-none focus:border-accent transition-colors duration-300"
+                  placeholder="Your name"
+                />
+              </div>
+
+              <div>
+                <label className="label text-text-muted block mb-3">
+                  ROLE
+                </label>
+
+                <input
+                  name="role"
+                  type="text"
+                  className="w-full border-b border-border-default bg-transparent py-3 text-text-primary outline-none focus:border-accent transition-colors duration-300"
+                  placeholder="Your role"
+                />
+              </div>
+
+              <div>
+                <label className="label text-text-muted block mb-3">
+                  COMPANY
+                </label>
+
+                <input
+                  name="company"
+                  type="text"
+                  className="w-full border-b border-border-default bg-transparent py-3 text-text-primary outline-none focus:border-accent transition-colors duration-300"
+                  placeholder="Company name"
+                />
+              </div>
+
+              <div>
+                <label className="label text-text-muted block mb-3">
+                  REVIEW
+                </label>
+
+                <textarea
+                  name="quote"
+                  required
+                  rows={6}
+                  className="w-full border border-border-default bg-transparent px-4 py-3 text-text-primary outline-none resize-none focus:border-accent transition-colors duration-300"
+                  placeholder="Write your review..."
+                />
+              </div>
+
+              {error && (
+                <div className="border border-red-500/20 bg-red-500/10 px-4 py-3">
+                  <p className="body-sm text-red-300">
+                    {error}
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide hover:bg-accent transition-colors duration-300 disabled:cursor-wait disabled:opacity-50"
+              >
+                {submitting
+                  ? 'SUBMITTING…'
+                  : 'SUBMIT REVIEW'}
+              </button>
+
+            </form>
+
+          </div>
+        )}
 
       </div>
     </section>
   )
 }
-
 
 /* ================================================
    CONTACT
