@@ -19,3 +19,4 @@ coverage
 prisma/dev.db.backup
 prisma/dev.db.backup.sql
 prisma/schema.prisma.sqlite-backup
+prisma/schema.sqlite.backup
