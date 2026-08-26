@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { execFileSync } from 'child_process'
-import path from 'path'
+import { prisma } from '@/lib/prisma'
 
-const DB_PATH = path.join(process.cwd(), 'prisma', 'dev.db')
 const JWT_SECRET =
   process.env.JWT_SECRET || 'srihari-development-secret'
 
@@ -19,19 +17,11 @@ export async function POST(req: Request) {
       )
     }
 
-    const safeEmail = String(email).replace(/'/g, "''")
-
-    const sql =
-      `SELECT id,email,password FROM Admin WHERE email='${safeEmail}';`
-
-    const result = execFileSync(
-      'sqlite3',
-      ['-json', DB_PATH, sql],
-      { encoding: 'utf8' }
-    ).trim()
-
-    const rows = result ? JSON.parse(result) : []
-    const admin = rows[0]
+    const admin = await prisma.admin.findUnique({
+      where: {
+        email: String(email).trim(),
+      },
+    })
 
     if (!admin) {
       return NextResponse.json(
@@ -40,8 +30,8 @@ export async function POST(req: Request) {
       )
     }
 
-    const validPassword = bcrypt.compareSync(
-      password,
+    const validPassword = await bcrypt.compare(
+      String(password),
       admin.password
     )
 
@@ -66,7 +56,7 @@ export async function POST(req: Request) {
     response.cookies.set('admin_token', token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     })

@@ -58,22 +58,10 @@ function jsonArray(value: unknown) {
   }
 
   if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value)
-
-      if (Array.isArray(parsed)) {
-        return JSON.stringify(parsed)
-      }
-    } catch {
-      return JSON.stringify([])
-    }
+    return value
   }
 
   return JSON.stringify([])
-}
-
-function clean(value: unknown) {
-  return String(value ?? '').trim()
 }
 
 export async function GET(req: Request) {
@@ -94,6 +82,10 @@ export async function GET(req: Request) {
   }
 
   try {
+    /*
+     * PROFILE
+     */
+
     if (resource === 'profile') {
       const rows = await query(`
         SELECT
@@ -115,6 +107,10 @@ export async function GET(req: Request) {
         data: rows[0] || null,
       })
     }
+
+    /*
+     * HERO
+     */
 
     if (resource === 'hero') {
       const rows = await query(`
@@ -139,6 +135,10 @@ export async function GET(req: Request) {
         data: rows[0] || null,
       })
     }
+
+    /*
+     * PROJECTS
+     */
 
     if (resource === 'projects') {
       const rows = await query(`
@@ -169,6 +169,10 @@ export async function GET(req: Request) {
       })
     }
 
+    /*
+     * SKILLS
+     */
+
     if (resource === 'skills') {
       const rows = await query(`
         SELECT
@@ -187,6 +191,10 @@ export async function GET(req: Request) {
       })
     }
 
+    /*
+     * SERVICES
+     */
+
     if (resource === 'services') {
       const rows = await query(`
         SELECT
@@ -203,6 +211,10 @@ export async function GET(req: Request) {
         data: rows,
       })
     }
+
+    /*
+     * SOCIAL LINKS
+     */
 
     if (resource === 'socials') {
       const rows = await query(`
@@ -222,6 +234,12 @@ export async function GET(req: Request) {
         data: rows,
       })
     }
+
+    /*
+     * REVIEWS
+     *
+     * Uses the existing Testimonial table.
+     */
 
     if (resource === 'reviews') {
       const rows = await query(`
@@ -282,6 +300,7 @@ export async function POST(req: Request) {
     /*
      * PROFILE
      */
+
     if (resource === 'profile') {
       const existing = await query<{ id: string }>(`
         SELECT id
@@ -290,36 +309,30 @@ export async function POST(req: Request) {
         LIMIT 1
       `)
 
-      const name = clean(body.name)
-      const role = clean(body.role)
-      const tagline = clean(body.tagline)
-      const bio = clean(body.bio)
-      const location = clean(body.location)
-      const email = clean(body.email)
-      const availability = clean(body.availability)
-      const image = clean(body.image)
-
-      if (!name || !role || !email) {
-        return NextResponse.json(
-          {
-            error:
-              'Name, role and email are required',
-          },
-          { status: 400 }
-        )
+      const values = {
+        name: String(body.name || ''),
+        role: String(body.role || ''),
+        tagline: String(body.tagline || ''),
+        bio: String(body.bio || ''),
+        location: String(body.location || ''),
+        email: String(body.email || ''),
+        availability: String(
+          body.availability || ''
+        ),
+        image: String(body.image || ''),
       }
 
       if (existing.length) {
         await execute(`
           UPDATE Profile SET
-            name = ${sqlString(name)},
-            role = ${sqlString(role)},
-            tagline = ${sqlString(tagline)},
-            bio = ${sqlString(bio)},
-            location = ${sqlString(location)},
-            email = ${sqlString(email)},
-            availability = ${sqlString(availability)},
-            image = ${sqlString(image)},
+            name = ${sqlString(values.name)},
+            role = ${sqlString(values.role)},
+            tagline = ${sqlString(values.tagline)},
+            bio = ${sqlString(values.bio)},
+            location = ${sqlString(values.location)},
+            email = ${sqlString(values.email)},
+            availability = ${sqlString(values.availability)},
+            image = ${sqlString(values.image)},
             updatedAt = CURRENT_TIMESTAMP
           WHERE id = ${sqlString(existing[0].id)}
         `)
@@ -334,32 +347,29 @@ export async function POST(req: Request) {
             location,
             email,
             availability,
-            image,
-            updatedAt
+            image
           )
           VALUES (
             ${sqlString('profile-main')},
-            ${sqlString(name)},
-            ${sqlString(role)},
-            ${sqlString(tagline)},
-            ${sqlString(bio)},
-            ${sqlString(location)},
-            ${sqlString(email)},
-            ${sqlString(availability)},
-            ${sqlString(image)},
-            CURRENT_TIMESTAMP
+            ${sqlString(values.name)},
+            ${sqlString(values.role)},
+            ${sqlString(values.tagline)},
+            ${sqlString(values.bio)},
+            ${sqlString(values.location)},
+            ${sqlString(values.email)},
+            ${sqlString(values.availability)},
+            ${sqlString(values.image)}
           )
         `)
       }
 
-      return NextResponse.json({
-        ok: true,
-      })
+      return NextResponse.json({ ok: true })
     }
 
     /*
      * HERO
      */
+
     if (resource === 'hero') {
       const existing = await query<{ id: string }>(`
         SELECT id
@@ -368,49 +378,38 @@ export async function POST(req: Request) {
         LIMIT 1
       `)
 
-      const headline = clean(body.headline)
-      const subtitle = clean(body.subtitle)
-      const description = clean(body.description)
-      const image = clean(body.image)
-      const video = clean(body.video)
-
-      const visualMode =
-        clean(body.visualMode) || 'image'
-
-      const ctaText = clean(body.ctaText)
-      const ctaLink = clean(body.ctaLink)
-      const secondaryCta =
-        clean(body.secondaryCta)
-      const secondaryLink =
-        clean(body.secondaryLink)
-
-      if (
-        !headline ||
-        !subtitle ||
-        !description
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              'Headline, subtitle and description are required',
-          },
-          { status: 400 }
-        )
+      const values = {
+        headline: String(body.headline || ''),
+        subtitle: String(body.subtitle || ''),
+        description: String(body.description || ''),
+        image: String(body.image || ''),
+        video: String(body.video || ''),
+        visualMode: String(
+          body.visualMode || 'image'
+        ),
+        ctaText: String(body.ctaText || ''),
+        ctaLink: String(body.ctaLink || ''),
+        secondaryCta: String(
+          body.secondaryCta || ''
+        ),
+        secondaryLink: String(
+          body.secondaryLink || ''
+        ),
       }
 
       if (existing.length) {
         await execute(`
           UPDATE Hero SET
-            headline = ${sqlString(headline)},
-            subtitle = ${sqlString(subtitle)},
-            description = ${sqlString(description)},
-            image = ${sqlString(image)},
-            video = ${sqlString(video)},
-            visualMode = ${sqlString(visualMode)},
-            ctaText = ${sqlString(ctaText)},
-            ctaLink = ${sqlString(ctaLink)},
-            secondaryCta = ${sqlString(secondaryCta)},
-            secondaryLink = ${sqlString(secondaryLink)},
+            headline = ${sqlString(values.headline)},
+            subtitle = ${sqlString(values.subtitle)},
+            description = ${sqlString(values.description)},
+            image = ${sqlString(values.image)},
+            video = ${sqlString(values.video)},
+            visualMode = ${sqlString(values.visualMode)},
+            ctaText = ${sqlString(values.ctaText)},
+            ctaLink = ${sqlString(values.ctaLink)},
+            secondaryCta = ${sqlString(values.secondaryCta)},
+            secondaryLink = ${sqlString(values.secondaryLink)},
             updatedAt = CURRENT_TIMESTAMP
           WHERE id = ${sqlString(existing[0].id)}
         `)
@@ -427,64 +426,76 @@ export async function POST(req: Request) {
             ctaText,
             ctaLink,
             secondaryCta,
-            secondaryLink,
-            updatedAt
+            secondaryLink
           )
           VALUES (
             ${sqlString('hero-main')},
-            ${sqlString(headline)},
-            ${sqlString(subtitle)},
-            ${sqlString(description)},
-            ${sqlString(image)},
-            ${sqlString(video)},
-            ${sqlString(visualMode)},
-            ${sqlString(ctaText)},
-            ${sqlString(ctaLink)},
-            ${sqlString(secondaryCta)},
-            ${sqlString(secondaryLink)},
-            CURRENT_TIMESTAMP
+            ${sqlString(values.headline)},
+            ${sqlString(values.subtitle)},
+            ${sqlString(values.description)},
+            ${sqlString(values.image)},
+            ${sqlString(values.video)},
+            ${sqlString(values.visualMode)},
+            ${sqlString(values.ctaText)},
+            ${sqlString(values.ctaLink)},
+            ${sqlString(values.secondaryCta)},
+            ${sqlString(values.secondaryLink)}
           )
         `)
       }
 
-      return NextResponse.json({
-        ok: true,
-      })
+      return NextResponse.json({ ok: true })
     }
 
     /*
      * PROJECTS
      */
+
     if (resource === 'projects') {
       const id =
-        clean(body.id) ||
+        String(body.id || '').trim() ||
         `project-${Date.now()}`
 
-      const title = clean(body.title)
-      const slug = clean(body.slug)
-      const category = clean(body.category)
-      const year = clean(body.year)
-      const shortDesc = clean(body.shortDesc)
-      const fullDesc = clean(body.fullDesc)
-      const thumbnail = clean(body.thumbnail)
-      const heroImage = clean(body.heroImage)
+      const existing = await query<{ id: string }>(`
+        SELECT id
+        FROM Project
+        WHERE id = ${sqlString(id)}
+        LIMIT 1
+      `)
+
+      const title = String(body.title || '').trim()
+      const slug = String(body.slug || '').trim()
+      const category = String(
+        body.category || ''
+      ).trim()
+      const year = String(body.year || '').trim()
+      const shortDesc = String(
+        body.shortDesc || ''
+      ).trim()
+      const fullDesc = String(
+        body.fullDesc || ''
+      ).trim()
+      const thumbnail = String(
+        body.thumbnail || ''
+      ).trim()
+      const heroImage = String(
+        body.heroImage || ''
+      ).trim()
       const gallery = jsonArray(body.gallery)
-      const video = clean(body.video)
-      const technologies =
-        jsonArray(body.technologies)
-      const liveUrl = clean(body.liveUrl)
-      const caseStudy = clean(body.caseStudy)
-
-      const featured =
-        body.featured ? 1 : 0
-
+      const video = String(body.video || '').trim()
+      const technologies = jsonArray(
+        body.technologies
+      )
+      const liveUrl = String(
+        body.liveUrl || ''
+      ).trim()
+      const caseStudy = String(
+        body.caseStudy || ''
+      ).trim()
+      const featured = body.featured ? 1 : 0
       const published =
         body.published === false ? 0 : 1
-
-      const order =
-        Number.isFinite(Number(body.order))
-          ? Number(body.order)
-          : 0
+      const order = Number(body.order || 0)
 
       if (
         !title ||
@@ -501,39 +512,6 @@ export async function POST(req: Request) {
           { status: 400 }
         )
       }
-
-      /*
-       * Prevent duplicate slugs.
-       *
-       * This check is separate from the ID check because
-       * slug is UNIQUE in the database.
-       */
-      const duplicateSlug =
-        await query<{ id: string }>(`
-          SELECT id
-          FROM Project
-          WHERE slug = ${sqlString(slug)}
-          AND id != ${sqlString(id)}
-          LIMIT 1
-        `)
-
-      if (duplicateSlug.length) {
-        return NextResponse.json(
-          {
-            error:
-              'That project slug is already in use. Please choose another slug.',
-          },
-          { status: 409 }
-        )
-      }
-
-      const existing =
-        await query<{ id: string }>(`
-          SELECT id
-          FROM Project
-          WHERE id = ${sqlString(id)}
-          LIMIT 1
-        `)
 
       if (existing.length) {
         await execute(`
@@ -576,8 +554,7 @@ export async function POST(req: Request) {
             caseStudy,
             featured,
             published,
-            "order",
-            updatedAt
+            "order"
           )
           VALUES (
             ${sqlString(id)},
@@ -596,8 +573,7 @@ export async function POST(req: Request) {
             ${sqlString(caseStudy)},
             ${featured},
             ${published},
-            ${order},
-            CURRENT_TIMESTAMP
+            ${order}
           )
         `)
       }
@@ -611,20 +587,20 @@ export async function POST(req: Request) {
     /*
      * SKILLS
      */
+
     if (resource === 'skills') {
       const id =
-        clean(body.id) ||
+        String(body.id || '').trim() ||
         `skill-${Date.now()}`
 
-      const category = clean(body.category)
-      const title = clean(body.title)
+      const category = String(
+        body.category || ''
+      ).trim()
+      const title = String(
+        body.title || ''
+      ).trim()
       const items = jsonArray(body.items)
-
-      const order =
-        Number.isFinite(Number(body.order))
-          ? Number(body.order)
-          : 0
-
+      const order = Number(body.order || 0)
       const visible =
         body.visible === false ? 0 : 1
 
@@ -638,13 +614,12 @@ export async function POST(req: Request) {
         )
       }
 
-      const existing =
-        await query<{ id: string }>(`
-          SELECT id
-          FROM Skill
-          WHERE id = ${sqlString(id)}
-          LIMIT 1
-        `)
+      const existing = await query<{ id: string }>(`
+        SELECT id
+        FROM Skill
+        WHERE id = ${sqlString(id)}
+        LIMIT 1
+      `)
 
       if (existing.length) {
         await execute(`
@@ -665,8 +640,7 @@ export async function POST(req: Request) {
             title,
             items,
             "order",
-            visible,
-            updatedAt
+            visible
           )
           VALUES (
             ${sqlString(id)},
@@ -674,8 +648,7 @@ export async function POST(req: Request) {
             ${sqlString(title)},
             ${sqlString(items)},
             ${order},
-            ${visible},
-            CURRENT_TIMESTAMP
+            ${visible}
           )
         `)
       }
@@ -689,19 +662,19 @@ export async function POST(req: Request) {
     /*
      * SERVICES
      */
+
     if (resource === 'services') {
       const id =
-        clean(body.id) ||
+        String(body.id || '').trim() ||
         `service-${Date.now()}`
 
-      const title = clean(body.title)
-      const desc = clean(body.desc)
-
-      const order =
-        Number.isFinite(Number(body.order))
-          ? Number(body.order)
-          : 0
-
+      const title = String(
+        body.title || ''
+      ).trim()
+      const desc = String(
+        body.desc || ''
+      ).trim()
+      const order = Number(body.order || 0)
       const visible =
         body.visible === false ? 0 : 1
 
@@ -715,13 +688,12 @@ export async function POST(req: Request) {
         )
       }
 
-      const existing =
-        await query<{ id: string }>(`
-          SELECT id
-          FROM Service
-          WHERE id = ${sqlString(id)}
-          LIMIT 1
-        `)
+      const existing = await query<{ id: string }>(`
+        SELECT id
+        FROM Service
+        WHERE id = ${sqlString(id)}
+        LIMIT 1
+      `)
 
       if (existing.length) {
         await execute(`
@@ -740,16 +712,14 @@ export async function POST(req: Request) {
             title,
             desc,
             "order",
-            visible,
-            updatedAt
+            visible
           )
           VALUES (
             ${sqlString(id)},
             ${sqlString(title)},
             ${sqlString(desc)},
             ${order},
-            ${visible},
-            CURRENT_TIMESTAMP
+            ${visible}
           )
         `)
       }
@@ -763,21 +733,25 @@ export async function POST(req: Request) {
     /*
      * SOCIAL LINKS
      */
+
     if (resource === 'socials') {
       const id =
-        clean(body.id) ||
+        String(body.id || '').trim() ||
         `social-${Date.now()}`
 
-      const platform = clean(body.platform)
-      const username = clean(body.username)
-      const url = clean(body.url)
-      const icon = clean(body.icon)
-
-      const order =
-        Number.isFinite(Number(body.order))
-          ? Number(body.order)
-          : 0
-
+      const platform = String(
+        body.platform || ''
+      ).trim()
+      const username = String(
+        body.username || ''
+      ).trim()
+      const url = String(
+        body.url || ''
+      ).trim()
+      const icon = String(
+        body.icon || ''
+      ).trim()
+      const order = Number(body.order || 0)
       const visible =
         body.visible === false ? 0 : 1
 
@@ -791,13 +765,12 @@ export async function POST(req: Request) {
         )
       }
 
-      const existing =
-        await query<{ id: string }>(`
-          SELECT id
-          FROM SocialLink
-          WHERE id = ${sqlString(id)}
-          LIMIT 1
-        `)
+      const existing = await query<{ id: string }>(`
+        SELECT id
+        FROM SocialLink
+        WHERE id = ${sqlString(id)}
+        LIMIT 1
+      `)
 
       if (existing.length) {
         await execute(`
@@ -820,8 +793,7 @@ export async function POST(req: Request) {
             url,
             icon,
             "order",
-            visible,
-            updatedAt
+            visible
           )
           VALUES (
             ${sqlString(id)},
@@ -830,8 +802,7 @@ export async function POST(req: Request) {
             ${sqlString(url)},
             ${sqlString(icon)},
             ${order},
-            ${visible},
-            CURRENT_TIMESTAMP
+            ${visible}
           )
         `)
       }
@@ -844,22 +815,36 @@ export async function POST(req: Request) {
 
     /*
      * REVIEWS
+     *
+     * Uses the existing Testimonial table.
      */
+
     if (resource === 'reviews') {
       const id =
-        clean(body.id) ||
+        String(body.id || '').trim() ||
         `review-${Date.now()}`
 
-      const name = clean(body.name)
-      const role = clean(body.role)
-      const company = clean(body.company)
-      const quote = clean(body.quote)
-      const image = clean(body.image)
+      const name = String(
+        body.name || ''
+      ).trim()
 
-      const order =
-        Number.isFinite(Number(body.order))
-          ? Number(body.order)
-          : 0
+      const role = String(
+        body.role || ''
+      ).trim()
+
+      const company = String(
+        body.company || ''
+      ).trim()
+
+      const quote = String(
+        body.quote || ''
+      ).trim()
+
+      const image = String(
+        body.image || ''
+      ).trim()
+
+      const order = Number(body.order || 0)
 
       const visible =
         body.visible === false ? 0 : 1
@@ -874,13 +859,12 @@ export async function POST(req: Request) {
         )
       }
 
-      const existing =
-        await query<{ id: string }>(`
-          SELECT id
-          FROM Testimonial
-          WHERE id = ${sqlString(id)}
-          LIMIT 1
-        `)
+      const existing = await query<{ id: string }>(`
+        SELECT id
+        FROM Testimonial
+        WHERE id = ${sqlString(id)}
+        LIMIT 1
+      `)
 
       if (existing.length) {
         await execute(`
@@ -905,8 +889,7 @@ export async function POST(req: Request) {
             quote,
             image,
             "order",
-            visible,
-            updatedAt
+            visible
           )
           VALUES (
             ${sqlString(id)},
@@ -916,8 +899,7 @@ export async function POST(req: Request) {
             ${sqlString(quote)},
             ${sqlString(image)},
             ${order},
-            ${visible},
-            CURRENT_TIMESTAMP
+            ${visible}
           )
         `)
       }
@@ -936,9 +918,7 @@ export async function POST(req: Request) {
     console.error('ADMIN SAVE ERROR:', error)
 
     return NextResponse.json(
-      {
-        error: 'Failed to save data',
-      },
+      { error: 'Failed to save data' },
       { status: 500 }
     )
   }
@@ -1004,9 +984,7 @@ export async function DELETE(req: Request) {
     console.error('ADMIN DELETE ERROR:', error)
 
     return NextResponse.json(
-      {
-        error: 'Failed to delete item',
-      },
+      { error: 'Failed to delete item' },
       { status: 500 }
     )
   }

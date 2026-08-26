@@ -11,14 +11,14 @@ type AdminUser = {
 type Review = {
   id: string
   name: string
-  role: string
-  company: string
+  role: string | null
+  company: string | null
   quote: string
-  image: string
-  visible: number
+  image: string | null
+  visible: boolean
   order: number
   createdAt: string
-  updatedAt: string
+  updatedAt: string | null
 }
 
 export default function AdminReviewsPage() {
@@ -27,72 +27,85 @@ export default function AdminReviewsPage() {
   const [admin, setAdmin] =
     useState<AdminUser | null>(null)
 
-  const [checking, setChecking] =
-    useState(true)
-
   const [reviews, setReviews] =
     useState<Review[]>([])
 
   const [loading, setLoading] =
     useState(true)
 
+  const [deletingId, setDeletingId] =
+    useState<string | null>(null)
+
   const [error, setError] =
     useState('')
 
-  async function checkAuth() {
-    try {
-      const res = await fetch(
-        '/api/auth/me',
-        {
-          cache: 'no-store',
+  const [message, setMessage] =
+    useState('')
+
+  useEffect(() => {
+    async function checkAuthAndLoad() {
+      try {
+        const authResponse = await fetch(
+          '/api/auth/me',
+          {
+            cache: 'no-store',
+          }
+        )
+
+        const authData =
+          await authResponse.json()
+
+        if (!authData.authenticated) {
+          router.replace('/admin/login')
+          return
         }
-      )
 
-      const data = await res.json()
+        setAdmin(authData.admin)
 
-      if (!data.authenticated) {
+        await loadReviews()
+      } catch (err) {
+        console.error(
+          'ADMIN REVIEWS AUTH ERROR:',
+          err
+        )
+
         router.replace('/admin/login')
-        return
+      } finally {
+        setLoading(false)
       }
-
-      setAdmin(data.admin)
-    } catch {
-      router.replace('/admin/login')
-    } finally {
-      setChecking(false)
     }
-  }
+
+    checkAuthAndLoad()
+  }, [router])
 
   async function loadReviews() {
-    try {
-      setLoading(true)
-      setError('')
+    setError('')
 
-      const res = await fetch(
-        '/api/admin/content?resource=reviews',
+    try {
+      const response = await fetch(
+        '/api/admin/reviews',
         {
           cache: 'no-store',
+          credentials: 'include',
         }
       )
 
-      if (res.status === 401) {
+      if (response.status === 401) {
         router.replace('/admin/login')
         return
       }
 
-      const data = await res.json()
+      const result =
+        await response.json()
 
-      if (!res.ok) {
+      if (!response.ok || !result.ok) {
         throw new Error(
-          data.error || 'Failed to fetch reviews'
+          result.error ||
+            'Failed to load reviews'
         )
       }
 
-      setReviews(
-        Array.isArray(data.data)
-          ? data.data
-          : []
-      )
+      setReviews(result.data || [])
     } catch (err) {
       console.error(
         'ADMIN REVIEWS LOAD ERROR:',
@@ -102,75 +115,65 @@ export default function AdminReviewsPage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'Failed to fetch reviews'
+          : 'Failed to load reviews'
       )
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  useEffect(() => {
-    if (!checking && admin) {
-      loadReviews()
-    }
-  }, [checking, admin])
-
-  async function logout() {
-    try {
-      await fetch(
-        '/api/auth/logout',
-        {
-          method: 'POST',
-        }
-      )
-    } finally {
-      router.replace('/admin/login')
-      router.refresh()
     }
   }
 
   async function deleteReview(
-    id: string
+    review: Review
   ) {
-    const confirmed =
-      window.confirm(
-        'Delete this review permanently?'
-      )
+    const confirmed = window.confirm(
+      `Delete the review from ${review.name}?\n\nThis action cannot be undone.`
+    )
 
-    if (!confirmed) return
+    if (!confirmed) {
+      return
+    }
+
+    setDeletingId(review.id)
+    setError('')
+    setMessage('')
 
     try {
-      setError('')
-
-      const res = await fetch(
-        `/api/admin/content?resource=reviews&id=${encodeURIComponent(id)}`,
+      const response = await fetch(
+        '/api/admin/reviews',
         {
           method: 'DELETE',
+          headers: {
+            'Content-Type':
+              'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            id: review.id,
+          }),
         }
       )
 
-      const data = await res.json()
-
-      if (res.status === 401) {
+      if (response.status === 401) {
         router.replace('/admin/login')
         return
       }
 
-      if (!res.ok) {
+      const result =
+        await response.json()
+
+      if (!response.ok || !result.ok) {
         throw new Error(
-          data.error ||
+          result.error ||
             'Failed to delete review'
         )
       }
 
-      setReviews((current) =>
+      setReviews(current =>
         current.filter(
-          (review) => review.id !== id
+          item => item.id !== review.id
         )
+      )
+
+      setMessage(
+        'Review deleted successfully.'
       )
     } catch (err) {
       console.error(
@@ -183,85 +186,51 @@ export default function AdminReviewsPage() {
           ? err.message
           : 'Failed to delete review'
       )
+    } finally {
+      setDeletingId(null)
     }
   }
 
-  async function toggleVisibility(
-    review: Review
+  async function logout() {
+    await fetch(
+      '/api/auth/logout',
+      {
+        method: 'POST',
+      }
+    )
+
+    router.replace('/admin/login')
+    router.refresh()
+  }
+
+  function formatDate(
+    value: string
   ) {
-    try {
-      setError('')
-
-      const res = await fetch(
-        '/api/admin/content?resource=reviews',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-          body: JSON.stringify({
-            id: review.id,
-            name: review.name,
-            role: review.role,
-            company: review.company,
-            quote: review.quote,
-            image: review.image,
-            order: review.order,
-            visible:
-              review.visible === 1
-                ? false
-                : true,
-          }),
-        }
-      )
-
-      const data = await res.json()
-
-      if (res.status === 401) {
-        router.replace('/admin/login')
-        return
-      }
-
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-            'Failed to update review'
-        )
-      }
-
-      setReviews((current) =>
-        current.map((item) =>
-          item.id === review.id
-            ? {
-                ...item,
-                visible:
-                  item.visible === 1
-                    ? 0
-                    : 1,
-              }
-            : item
-        )
-      )
-    } catch (err) {
-      console.error(
-        'ADMIN REVIEW VISIBILITY ERROR:',
-        err
-      )
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to update review'
-      )
+    if (!value) {
+      return ''
     }
+
+    const date = new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+      return value
+    }
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }
+    )
   }
 
-  if (checking) {
+  if (loading) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
         <p className="text-sm tracking-[0.25em] text-white/50">
-          LOADING ADMIN…
+          LOADING REVIEWS…
         </p>
       </main>
     )
@@ -273,63 +242,53 @@ export default function AdminReviewsPage() {
 
   return (
     <main className="min-h-screen bg-black text-white px-6 py-10 md:px-10 lg:px-16">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-6xl">
 
         {/* HEADER */}
 
-        <header className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
+        <header className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-center sm:justify-between">
 
           <div>
+
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
                 router.push('/admin')
-              }
-              className="mb-6 text-xs tracking-[0.2em] text-white/40 transition hover:text-white"
+              }}
+              className="mb-6 text-sm text-white/40 transition hover:text-white"
             >
               ← BACK TO ADMIN
             </button>
 
             <p className="text-xs tracking-[0.3em] text-white/40">
-              SRIHARI PORTFOLIO
+              ADMIN PANEL
             </p>
 
             <h1 className="mt-3 text-4xl font-semibold md:text-5xl">
-              Client Reviews
+              Reviews
             </h1>
 
-            <p className="mt-3 max-w-2xl text-sm text-white/50">
-              Manage reviews and feedback
-              submitted by visitors and shown
-              on your portfolio.
+            <p className="mt-3 text-sm text-white/50">
+              Manage reviews submitted by visitors.
             </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-
-            <button
-              type="button"
-              onClick={loadReviews}
-              className="border border-white/15 px-5 py-3 text-sm transition hover:bg-white hover:text-black active:scale-[0.99]"
-            >
-              REFRESH
-            </button>
-
-            <button
-              type="button"
-              onClick={logout}
-              className="border border-white/15 px-5 py-3 text-sm transition hover:bg-white hover:text-black active:scale-[0.99]"
-            >
-              LOG OUT
-            </button>
 
           </div>
+
+          <button
+            type="button"
+            onClick={logout}
+            className="border border-white/15 px-5 py-3 text-sm transition hover:bg-white hover:text-black"
+          >
+            LOG OUT
+          </button>
 
         </header>
+
 
         {/* ACCOUNT */}
 
         <section className="mt-8">
+
           <div className="border border-white/10 bg-white/[0.03] p-5">
 
             <p className="text-xs tracking-[0.25em] text-white/40">
@@ -341,176 +300,159 @@ export default function AdminReviewsPage() {
             </p>
 
           </div>
+
         </section>
 
-        {/* ERROR */}
 
-        {error && (
-          <div className="mt-6 border border-red-500/30 bg-red-500/10 p-5">
-            <p className="text-sm text-red-300">
+        {/* STATUS */}
+
+        <section className="mt-8 space-y-3">
+
+          {error && (
+            <div className="border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300">
               {error}
-            </p>
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* CONTENT */}
+          {message && (
+            <div className="border border-green-500/30 bg-green-500/10 px-5 py-4 text-sm text-green-300">
+              {message}
+            </div>
+          )}
 
-        <section className="mt-8">
+        </section>
 
-          <div className="mb-6 flex items-center justify-between">
+
+        {/* REVIEW COUNT */}
+
+        <section className="mt-10">
+
+          <div className="flex items-end justify-between gap-4">
 
             <div>
               <p className="text-xs tracking-[0.25em] text-white/40">
-                REVIEWS
+                STORED REVIEWS
               </p>
 
-              <h2 className="mt-2 text-2xl">
-                Visitor feedback
+              <h2 className="mt-2 text-2xl font-medium">
+                {reviews.length}{' '}
+                {reviews.length === 1
+                  ? 'Review'
+                  : 'Reviews'}
               </h2>
             </div>
 
-            <p className="text-sm text-white/40">
-              {reviews.length}{' '}
-              {reviews.length === 1
-                ? 'review'
-                : 'reviews'}
-            </p>
+            <button
+              type="button"
+              onClick={loadReviews}
+              className="border border-white/15 px-4 py-2 text-xs tracking-[0.15em] text-white/60 transition hover:border-white/40 hover:text-white"
+            >
+              REFRESH
+            </button>
 
           </div>
 
-          {loading ? (
-            <div className="border border-white/10 bg-white/[0.02] p-10">
-              <p className="text-sm tracking-[0.2em] text-white/40">
-                LOADING REVIEWS…
-              </p>
-            </div>
-          ) : reviews.length === 0 ? (
-            <div className="border border-white/10 bg-white/[0.02] p-10">
+        </section>
 
-              <p className="text-xs tracking-[0.25em] text-white/40">
-                NO REVIEWS
-              </p>
 
-              <h2 className="mt-3 text-2xl">
-                No client reviews yet.
-              </h2>
+        {/* REVIEWS */}
 
-              <p className="mt-3 max-w-xl text-sm leading-7 text-white/50">
-                Reviews submitted through the
-                customer-facing portfolio will
-                appear here.
+        <section className="mt-8 pb-20">
+
+          {reviews.length === 0 ? (
+
+            <div className="border border-white/10 bg-white/[0.03] p-10 text-center">
+
+              <p className="text-sm text-white/40">
+                No reviews have been submitted yet.
               </p>
 
             </div>
+
           ) : (
-            <div className="grid gap-4">
 
-              {reviews.map((review) => (
+            <div className="space-y-5">
+
+              {reviews.map(review => (
 
                 <article
                   key={review.id}
-                  className="border border-white/10 bg-white/[0.02] p-6 transition hover:border-white/20"
+                  className="border border-white/10 bg-white/[0.03] p-6 md:p-8"
                 >
 
-                  <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
 
                     <div className="min-w-0 flex-1">
 
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                      {/* REVIEW */}
 
-                        {review.image ? (
-                          <img
-                            src={review.image}
-                            alt={review.name}
-                            className="h-14 w-14 shrink-0 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04]">
-                            <span className="text-sm text-white/40">
-                              {review.name
-                                ?.charAt(0)
-                                ?.toUpperCase() ||
-                                '?'}
-                            </span>
-                          </div>
+                      <p className="text-base leading-7 text-white/75 md:text-lg">
+                        “{review.quote}”
+                      </p>
+
+
+                      {/* PERSON */}
+
+                      <div className="mt-7">
+
+                        <p className="text-sm font-medium text-white">
+                          {review.name}
+                        </p>
+
+                        {(review.role ||
+                          review.company) && (
+
+                          <p className="mt-1 text-sm text-white/40">
+
+                            {review.role}
+
+                            {review.role &&
+                            review.company
+                              ? ' · '
+                              : ''}
+
+                            {review.company}
+
+                          </p>
+
                         )}
-
-                        <div className="min-w-0">
-
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-
-                            <h3 className="text-lg font-medium">
-                              {review.name}
-                            </h3>
-
-                            <span
-                              className={
-                                review.visible === 1
-                                  ? 'text-xs tracking-[0.15em] text-white/60'
-                                  : 'text-xs tracking-[0.15em] text-red-300/70'
-                              }
-                            >
-                              {review.visible === 1
-                                ? 'VISIBLE'
-                                : 'HIDDEN'}
-                            </span>
-
-                          </div>
-
-                          {(review.role ||
-                            review.company) && (
-                            <p className="mt-1 text-sm text-white/40">
-                              {[
-                                review.role,
-                                review.company,
-                              ]
-                                .filter(Boolean)
-                                .join(' • ')}
-                            </p>
-                          )}
-
-                        </div>
 
                       </div>
 
-                      <blockquote className="mt-6 border-l border-white/20 pl-5 text-sm leading-7 text-white/70">
-                        “{review.quote}”
-                      </blockquote>
 
-                      <p className="mt-5 text-xs text-white/25">
-                        {review.createdAt
-                          ? `Submitted ${review.createdAt}`
-                          : ''}
+                      {/* DATE */}
+
+                      <p className="mt-4 text-xs tracking-[0.12em] text-white/25">
+                        SUBMITTED{' '}
+                        {formatDate(
+                          review.createdAt
+                        )}
                       </p>
 
                     </div>
 
-                    <div className="flex shrink-0 flex-wrap gap-2 lg:w-48 lg:flex-col">
+
+                    {/* DELETE */}
+
+                    <div className="shrink-0">
 
                       <button
                         type="button"
+                        disabled={
+                          deletingId ===
+                          review.id
+                        }
                         onClick={() =>
-                          toggleVisibility(
+                          deleteReview(
                             review
                           )
                         }
-                        className="border border-white/15 px-4 py-3 text-xs tracking-[0.15em] transition hover:bg-white hover:text-black active:scale-[0.99]"
+                        className="border border-red-500/30 px-5 py-3 text-xs tracking-[0.15em] text-red-300 transition hover:border-red-400 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        {review.visible === 1
-                          ? 'HIDE REVIEW'
-                          : 'SHOW REVIEW'}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          deleteReview(
-                            review.id
-                          )
-                        }
-                        className="border border-red-400/20 px-4 py-3 text-xs tracking-[0.15em] text-red-300/80 transition hover:bg-red-400 hover:text-black active:scale-[0.99]"
-                      >
-                        DELETE REVIEW
+                        {deletingId ===
+                        review.id
+                          ? 'DELETING…'
+                          : 'DELETE REVIEW'}
                       </button>
 
                     </div>
@@ -522,17 +464,18 @@ export default function AdminReviewsPage() {
               ))}
 
             </div>
+
           )}
 
         </section>
 
+
         {/* FOOTER */}
 
-        <footer className="mt-12 border-t border-white/10 pt-6">
+        <footer className="border-t border-white/10 py-6">
 
           <p className="text-xs text-white/30">
-            Admin panel • Public portfolio
-            remains unchanged
+            Reviews are permanently removed from the database when deleted.
           </p>
 
         </footer>

@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { execFileSync } from 'child_process'
-import path from 'path'
-
-const DB_PATH = path.join(process.cwd(), 'prisma', 'dev.db')
+import { prisma } from '@/lib/prisma'
 
 const JWT_SECRET =
   process.env.JWT_SECRET || 'srihari-development-secret'
@@ -25,10 +22,6 @@ function getAdminFromCookie(req: Request) {
   } catch {
     return null
   }
-}
-
-function sqlString(value: string) {
-  return `'${String(value).replace(/'/g, "''")}'`
 }
 
 export async function PUT(req: Request) {
@@ -71,66 +64,52 @@ export async function PUT(req: Request) {
       )
     }
 
-    const existingEmailResult = execFileSync(
-      'sqlite3',
-      [
-        '-json',
-        DB_PATH,
-        `SELECT id FROM Admin WHERE email=${sqlString(email)} AND id != ${sqlString(currentAdmin.id)} LIMIT 1;`,
-      ],
-      { encoding: 'utf8' }
-    ).trim()
+    const existingAdmin = await prisma.admin.findFirst({
+      where: {
+        email,
+        NOT: {
+          id: currentAdmin.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
 
-    const existingEmailRows = existingEmailResult
-      ? JSON.parse(existingEmailResult)
-      : []
-
-    if (existingEmailRows.length > 0) {
+    if (existingAdmin) {
       return NextResponse.json(
         { error: 'That email is already being used.' },
         { status: 409 }
       )
     }
 
-    let sql = ''
-
-    if (password) {
-      const passwordHash = bcrypt.hashSync(password, 10)
-
-      sql = `
-        UPDATE Admin
-        SET
-          email = ${sqlString(email)},
-          password = ${sqlString(passwordHash)}
-        WHERE id = ${sqlString(currentAdmin.id)};
-      `
-    } else {
-      sql = `
-        UPDATE Admin
-        SET
-          email = ${sqlString(email)}
-        WHERE id = ${sqlString(currentAdmin.id)};
-      `
+    const data: {
+      email: string
+      password?: string
+    } = {
+      email,
     }
 
-    execFileSync(
-      'sqlite3',
-      [DB_PATH, sql],
-      { encoding: 'utf8' }
-    )
+    if (password) {
+      data.password = await bcrypt.hash(password, 10)
+    }
 
-    const result = execFileSync(
-      'sqlite3',
-      [
-        '-json',
-        DB_PATH,
-        `SELECT id,email FROM Admin WHERE id=${sqlString(currentAdmin.id)} LIMIT 1;`,
-      ],
-      { encoding: 'utf8' }
-    ).trim()
+    await prisma.admin.update({
+      where: {
+        id: currentAdmin.id,
+      },
+      data,
+    })
 
-    const rows = result ? JSON.parse(result) : []
-    const admin = rows[0]
+    const admin = await prisma.admin.findUnique({
+      where: {
+        id: currentAdmin.id,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    })
 
     if (!admin) {
       return NextResponse.json(
@@ -150,16 +129,13 @@ export async function PUT(req: Request) {
 
     const response = NextResponse.json({
       ok: true,
-      admin: {
-        id: admin.id,
-        email: admin.email,
-      },
+      admin,
     })
 
     response.cookies.set('admin_token', token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     })
