@@ -166,8 +166,8 @@ export function AdminShell({
         <button
           type="button"
           onClick={() => {
-  window.location.href = '/admin'
-}}
+            window.location.href = '/admin'
+          }}
           className="mb-10 text-sm text-white/50 transition hover:text-white"
         >
           ← BACK TO ADMIN
@@ -260,6 +260,7 @@ export function ImageUpload({
     }
 
     const canvas = document.createElement('canvas')
+
     canvas.width = width
     canvas.height = height
 
@@ -333,9 +334,14 @@ export function ImageUpload({
 
         const result = await response.json()
 
-        if (!response.ok || !result.ok || !result.url) {
+        if (
+          !response.ok ||
+          !result.ok ||
+          !result.url
+        ) {
           throw new Error(
-            result.error || 'Image upload failed'
+            result.error ||
+              'Image upload failed'
           )
         }
 
@@ -365,8 +371,14 @@ export function ImageUpload({
     }
   }
 
+  function removeImage() {
+    onChange('')
+    setError('')
+  }
+
   return (
     <div className="space-y-3">
+
       <span className="block text-xs tracking-[0.2em] text-white/40">
         {label.toUpperCase()}
       </span>
@@ -405,6 +417,7 @@ export function ImageUpload({
 
       {value && (
         <div className="space-y-3">
+
           <div className="break-all border border-white/10 bg-white/[0.02] p-3 text-xs text-white/40">
             {value}
           </div>
@@ -433,6 +446,16 @@ export function ImageUpload({
                 ))}
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={removeImage}
+            disabled={uploading}
+            className="w-full border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs tracking-[0.2em] text-red-300 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            REMOVE IMAGE
+          </button>
+
         </div>
       )}
 
