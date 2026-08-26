@@ -18,7 +18,7 @@ export async function GET() {
         createdAt,
         updatedAt
       FROM SocialLink
-      WHERE visible = 1
+      WHERE visible = TRUE
       ORDER BY "order" ASC, createdAt ASC
     `)
 

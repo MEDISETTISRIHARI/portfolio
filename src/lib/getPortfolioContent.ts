@@ -95,7 +95,7 @@ export async function getPortfolioContent() {
         published,
         "order"
       FROM Project
-      WHERE published = 1
+      WHERE published = TRUE
       ORDER BY "order" ASC, createdAt ASC
     `),
 
@@ -108,7 +108,7 @@ export async function getPortfolioContent() {
         "order",
         visible
       FROM Skill
-      WHERE visible = 1
+      WHERE visible = TRUE
       ORDER BY "order" ASC, createdAt ASC
     `),
 
@@ -120,7 +120,7 @@ export async function getPortfolioContent() {
         "order",
         visible
       FROM Service
-      WHERE visible = 1
+      WHERE visible = TRUE
       ORDER BY "order" ASC, createdAt ASC
     `),
 
@@ -134,7 +134,7 @@ export async function getPortfolioContent() {
         visible,
         "order"
       FROM SocialLink
-      WHERE visible = 1
+      WHERE visible = TRUE
       ORDER BY "order" ASC, createdAt ASC
     `),
   ])

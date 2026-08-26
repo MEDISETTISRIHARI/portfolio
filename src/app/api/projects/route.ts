@@ -28,7 +28,7 @@ export async function GET() {
         createdAt,
         updatedAt
       FROM Project
-      WHERE published = 1
+      WHERE published = TRUE
       ORDER BY "order" ASC, createdAt ASC
     `)
 
