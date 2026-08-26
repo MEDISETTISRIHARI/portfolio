@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { usePortfolioContent } from '@/lib/usePortfolioContent'
 
 type HeroVisualProps = {
+  hero?: any
   mousePos: {
     x: number
     y: number
@@ -12,13 +12,12 @@ type HeroVisualProps = {
 }
 
 export default function HeroVisual({
+  hero,
   mousePos,
   scrollProgress,
 }: HeroVisualProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const content = usePortfolioContent()
-
-  const hero = content?.hero
+  const videoRef =
+    useRef<HTMLVideoElement>(null)
 
   const video =
     typeof hero?.video === 'string'
@@ -32,7 +31,9 @@ export default function HeroVisual({
 
   const visualMode =
     typeof hero?.visualMode === 'string'
-      ? hero.visualMode.toLowerCase().trim()
+      ? hero.visualMode
+          .toLowerCase()
+          .trim()
       : 'video'
 
   const showVideo =
@@ -43,8 +44,13 @@ export default function HeroVisual({
       visualMode === ''
     )
 
+  const showImage =
+    Boolean(image) &&
+    !showVideo
+
   useEffect(() => {
-    const videoElement = videoRef.current
+    const videoElement =
+      videoRef.current
 
     if (!videoElement || !showVideo) {
       return
@@ -69,12 +75,16 @@ export default function HeroVisual({
     }
   }, [video, showVideo])
 
-  const translateX = mousePos.x * 10
+  const translateX =
+    mousePos.x * 10
+
   const translateY =
-    mousePos.y * 8 - scrollProgress * 20
+    mousePos.y * 8 -
+    scrollProgress * 20
 
   const scale =
-    1.05 + scrollProgress * 0.025
+    1.05 +
+    scrollProgress * 0.025
 
   return (
     <div
@@ -85,7 +95,8 @@ export default function HeroVisual({
         className="absolute inset-0"
         style={{
           transform: `translate3d(${translateX}px, ${translateY}px, 0) scale(${scale})`,
-          transition: 'transform 0.15s ease-out',
+          transition:
+            'transform 0.15s ease-out',
         }}
       >
         {showVideo ? (
@@ -100,7 +111,7 @@ export default function HeroVisual({
             preload="auto"
             className="absolute inset-0 h-full w-full object-cover"
           />
-        ) : image ? (
+        ) : showImage ? (
           <img
             src={image}
             alt=""

@@ -130,9 +130,7 @@ export default function Hero({
 
     const seen =
       typeof window !== 'undefined'
-        ? sessionStorage.getItem(
-            'srihari-intro-seen'
-          )
+        ? sessionStorage.getItem('srihari-intro-seen')
         : null
 
     if (seen) {
@@ -203,47 +201,38 @@ export default function Hero({
       ref={heroRef}
       className="relative min-h-screen overflow-hidden"
     >
-
       {/* HERO BACKGROUND */}
       <HeroVisual
+        hero={hero}
         mousePos={mousePos}
         scrollProgress={progress}
       />
 
       <div className="relative z-20 mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-16">
-
         <div className="grid min-h-screen grid-cols-1 items-center gap-12 py-24 md:grid-cols-12 md:gap-10 lg:gap-16">
 
           {/* LEFT — identity + work */}
           <div className="md:col-span-7">
+            <HeroContent hero={hero} />
 
-            <HeroContent />
+            <HeroMeta hero={hero} />
 
-            <HeroMeta />
-
-            <HeroCTA />
-
+            <HeroCTA hero={hero} />
           </div>
 
           {/* RIGHT — PHOTO */}
           <div className="flex items-center justify-center md:col-span-5">
-
             <HeroPortrait
               image={profile?.image}
+              role={hero?.subtitle || profile?.role}
             />
-
           </div>
-
         </div>
 
         <div className="pb-10">
-
           <HeroMetadata />
-
         </div>
-
       </div>
-
     </section>
   )
 }

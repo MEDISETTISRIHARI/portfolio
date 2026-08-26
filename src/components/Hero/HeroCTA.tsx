@@ -3,31 +3,63 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
-export default function HeroCTA() {
-  const primaryRef = useRef<HTMLAnchorElement>(null)
-  const secondaryRef = useRef<HTMLAnchorElement>(null)
+type HeroCTAProps = {
+  hero?: any
+}
+
+export default function HeroCTA({
+  hero,
+}: HeroCTAProps) {
+  const primaryRef =
+    useRef<HTMLAnchorElement>(null)
+
+  const secondaryRef =
+    useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
-    const setupMagnetic = (ref: React.RefObject<HTMLAnchorElement>) => {
+    const setupMagnetic = (
+      ref: React.RefObject<HTMLAnchorElement | null>
+    ) => {
       if (!ref.current) return
 
-      // Store the actual DOM element reference for safe cleanup
       const domElement = ref.current
 
-      const xTo = gsap.quickTo(domElement, 'x', {
-        duration: 0.3,
-        ease: 'power2.out',
-      })
-      const yTo = gsap.quickTo(domElement, 'y', {
-        duration: 0.3,
-        ease: 'power2.out',
-      })
+      const xTo = gsap.quickTo(
+        domElement,
+        'x',
+        {
+          duration: 0.3,
+          ease: 'power2.out',
+        }
+      )
 
-      const handleMouseMove = (e: MouseEvent) => {
-        if (!domElement) return
-        const rect = domElement.getBoundingClientRect()
-        const x = (e.clientX - rect.left - rect.width / 2) * 0.12
-        const y = (e.clientY - rect.top - rect.height / 2) * 0.12
+      const yTo = gsap.quickTo(
+        domElement,
+        'y',
+        {
+          duration: 0.3,
+          ease: 'power2.out',
+        }
+      )
+
+      const handleMouseMove = (
+        event: MouseEvent
+      ) => {
+        const rect =
+          domElement.getBoundingClientRect()
+
+        const x =
+          (event.clientX -
+            rect.left -
+            rect.width / 2) *
+          0.12
+
+        const y =
+          (event.clientY -
+            rect.top -
+            rect.height / 2) *
+          0.12
+
         xTo(x)
         yTo(y)
       }
@@ -41,19 +73,34 @@ export default function HeroCTA() {
         })
       }
 
-      domElement.addEventListener('mousemove', handleMouseMove)
-      domElement.addEventListener('mouseleave', handleMouseLeave)
+      domElement.addEventListener(
+        'mousemove',
+        handleMouseMove
+      )
+
+      domElement.addEventListener(
+        'mouseleave',
+        handleMouseLeave
+      )
 
       return () => {
-        if (domElement) {
-          domElement.removeEventListener('mousemove', handleMouseMove)
-          domElement.removeEventListener('mouseleave', handleMouseLeave)
-        }
+        domElement.removeEventListener(
+          'mousemove',
+          handleMouseMove
+        )
+
+        domElement.removeEventListener(
+          'mouseleave',
+          handleMouseLeave
+        )
       }
     }
 
-    const cleanup1 = setupMagnetic(primaryRef)
-    const cleanup2 = setupMagnetic(secondaryRef)
+    const cleanup1 =
+      setupMagnetic(primaryRef)
+
+    const cleanup2 =
+      setupMagnetic(secondaryRef)
 
     return () => {
       cleanup1?.()
@@ -61,25 +108,54 @@ export default function HeroCTA() {
     }
   }, [])
 
+  const primaryText =
+    typeof hero?.ctaText === 'string' &&
+    hero.ctaText.trim()
+      ? hero.ctaText.trim()
+      : 'VIEW SELECTED WORK'
+
+  const primaryLink =
+    typeof hero?.ctaLink === 'string' &&
+    hero.ctaLink.trim()
+      ? hero.ctaLink.trim()
+      : '#work'
+
+  const secondaryText =
+    typeof hero?.secondaryCta === 'string' &&
+    hero.secondaryCta.trim()
+      ? hero.secondaryCta.trim()
+      : "LET'S TALK"
+
+  const secondaryLink =
+    typeof hero?.secondaryLink === 'string' &&
+    hero.secondaryLink.trim()
+      ? hero.secondaryLink.trim()
+      : '#contact'
+
   return (
-    <div className="mt-12 flex items-center gap-6">
+    <div className="mt-12 flex flex-wrap items-center gap-6">
       <a
         ref={primaryRef}
-        href="#work"
-        className="group relative px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent hover:text-background"
+        href={primaryLink}
+        className="hero-cta group relative px-8 py-4 bg-text-primary text-background text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:bg-accent hover:text-background"
       >
-        <span className="relative z-10 block">VIEW SELECTED WORK</span>
+        <span className="relative z-10 block">
+          {primaryText}
+        </span>
+
         <span
           className="absolute inset-0 bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         />
       </a>
+
       <a
         ref={secondaryRef}
-        href="#contact"
-        className="group relative px-8 py-4 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent"
+        href={secondaryLink}
+        className="hero-cta group relative px-8 py-4 border border-border-default text-text-primary text-sm font-medium tracking-wide overflow-hidden transition-all duration-300 hover:border-accent hover:text-accent"
       >
         <span className="relative z-10 flex items-center gap-2">
-          LET&apos;S TALK
+          {secondaryText}
+
           <svg
             className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
             fill="none"

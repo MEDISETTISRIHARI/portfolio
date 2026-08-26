@@ -2,27 +2,77 @@ import { NextResponse } from 'next/server'
 import { execute, query, sqlString } from '@/lib/sqlite'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-export async function POST(request: Request) {
+function clean(value: unknown) {
+  return String(value ?? '').trim()
+}
+
+export async function POST(req: Request) {
   try {
-    const body = await request.json()
+    const body = await req.json()
 
-    const name = String(body.name || '').trim()
-    const email = String(body.email || '').trim()
-    const projectType = String(body.projectType || '').trim()
-    const budget = String(body.budget || '').trim()
-    const message = String(body.message || '').trim()
+    const name = clean(body.name)
+    const email = clean(body.email)
+    const projectType = clean(body.projectType)
+    const budget = clean(body.budget)
+    const message = clean(body.message)
 
     if (!name || !email || !message) {
       return NextResponse.json(
         {
-          error: 'Name, email and message are required',
+          ok: false,
+          error:
+            'Name, email and message are required.',
         },
         { status: 400 }
       )
     }
 
-    const id = `contact-${Date.now()}-${Math.random()
+    if (name.length > 120) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Name is too long.',
+        },
+        { status: 400 }
+      )
+    }
+
+    if (email.length > 200) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Email is too long.',
+        },
+        { status: 400 }
+      )
+    }
+
+    if (message.length > 5000) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Message is too long.',
+        },
+        { status: 400 }
+      )
+    }
+
+    const emailPattern =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    if (!emailPattern.test(email)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Please enter a valid email address.',
+        },
+        { status: 400 }
+      )
+    }
+
+    const id = `connection-${Date.now()}-${Math.random()
       .toString(36)
       .slice(2, 8)}`
 
@@ -33,7 +83,9 @@ export async function POST(request: Request) {
         email,
         projectType,
         budget,
-        message
+        message,
+        status,
+        createdAt
       )
       VALUES (
         ${sqlString(id)},
@@ -41,10 +93,37 @@ export async function POST(request: Request) {
         ${sqlString(email)},
         ${sqlString(projectType)},
         ${sqlString(budget)},
-        ${sqlString(message)}
+        ${sqlString(message)},
+        'new',
+        CURRENT_TIMESTAMP
       )
     `)
 
+    return NextResponse.json({
+      ok: true,
+      id,
+      message:
+        'Your message has been sent successfully.',
+    })
+  } catch (error) {
+    console.error(
+      'CONTACT SUBMISSION ERROR:',
+      error
+    )
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          'Unable to send your message right now.',
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET() {
+  try {
     const rows = await query(`
       SELECT
         id,
@@ -56,19 +135,24 @@ export async function POST(request: Request) {
         status,
         createdAt
       FROM ContactMessage
-      WHERE id = ${sqlString(id)}
-      LIMIT 1
+      ORDER BY createdAt DESC
     `)
 
-    return NextResponse.json(
-      rows[0] || null,
-      { status: 201 }
-    )
+    return NextResponse.json({
+      ok: true,
+      data: rows,
+    })
   } catch (error) {
-    console.error('CONTACT POST ERROR:', error)
+    console.error(
+      'CONTACT GET ERROR:',
+      error
+    )
 
     return NextResponse.json(
-      { error: 'Failed to send message' },
+      {
+        ok: false,
+        error: 'Failed to fetch connections.',
+      },
       { status: 500 }
     )
   }

@@ -22,10 +22,17 @@ function authenticated(req: Request) {
 }
 
 const extensions: Record<string, string> = {
+  // Images
   'image/jpeg': '.jpg',
   'image/png': '.png',
   'image/webp': '.webp',
   'image/gif': '.gif',
+
+  // Videos
+  'video/mp4': '.mp4',
+  'video/webm': '.webm',
+  'video/quicktime': '.mov',
+  'video/x-m4v': '.m4v',
 }
 
 export async function POST(req: Request) {
@@ -42,7 +49,7 @@ export async function POST(req: Request) {
 
     if (!(file instanceof File)) {
       return NextResponse.json(
-        { error: 'No image selected' },
+        { error: 'No file selected' },
         { status: 400 }
       )
     }
@@ -51,14 +58,27 @@ export async function POST(req: Request) {
 
     if (!extension) {
       return NextResponse.json(
-        { error: 'Only JPG, PNG, WEBP and GIF are allowed' },
+        {
+          error:
+            'Only JPG, PNG, WEBP, GIF, MP4, WebM, MOV and M4V files are allowed',
+        },
         { status: 400 }
       )
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    const isVideo = file.type.startsWith('video/')
+
+    const maxSize = isVideo
+      ? 100 * 1024 * 1024
+      : 10 * 1024 * 1024
+
+    if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'Maximum image size is 10MB' },
+        {
+          error: isVideo
+            ? 'Maximum video size is 100MB'
+            : 'Maximum image size is 10MB',
+        },
         { status: 400 }
       )
     }
@@ -87,10 +107,10 @@ export async function POST(req: Request) {
       url: `/uploads/${filename}`,
     })
   } catch (error) {
-    console.error('IMAGE UPLOAD ERROR:', error)
+    console.error('FILE UPLOAD ERROR:', error)
 
     return NextResponse.json(
-      { error: 'Image upload failed' },
+      { error: 'File upload failed' },
       { status: 500 }
     )
   }
