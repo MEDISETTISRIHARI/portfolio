@@ -31,57 +31,87 @@ export default function Hero({
   const { progress } = useScroll()
 
   /*
-   * HERO ENTRANCE ANIMATION
+   * HERO ENTRANCE
+   *
+   * Important:
+   * Mobile must NEVER wait for the cinematic intro.
+   * The portfolio content must always become visible.
    */
   useEffect(() => {
+    const isMobile =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 767px)').matches
+
     const animate = () => {
+      const canvas =
+        document.querySelector('.hero-canvas')
+
+      const titleLines =
+        document.querySelectorAll('.hero-title-line')
+
+      const role =
+        document.querySelector('.hero-role')
+
+      const cta =
+        document.querySelectorAll('.hero-cta')
+
+      const portrait =
+        document.querySelector('.hero-portrait')
+
+      const metadata =
+        document.querySelector('.hero-metadata')
+
       const tl = gsap.timeline()
 
-      tl.fromTo(
-        '.hero-canvas',
-        {
-          opacity: 0,
-          scale: 1.03,
-        },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1.5,
-          ease: 'power2.out',
-        }
-      )
+      if (canvas) {
+        tl.fromTo(
+          canvas,
+          {
+            opacity: 0,
+            scale: 1.03,
+          },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: isMobile ? 0.6 : 1.5,
+            ease: 'power2.out',
+          }
+        )
+      }
 
-      tl.fromTo(
-        '.hero-title-line',
-        {
-          opacity: 0,
-          y: 40,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          stagger: 0.12,
-          ease: 'power3.out',
-        },
-        '-=1'
-      )
+      if (titleLines.length > 0) {
+        tl.fromTo(
+          titleLines,
+          {
+            opacity: 0,
+            y: isMobile ? 20 : 40,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: isMobile ? 0.6 : 1,
+            stagger: isMobile ? 0.06 : 0.12,
+            ease: 'power3.out',
+          },
+          isMobile ? '-=0.3' : '-=1'
+        )
+      }
 
-      tl.fromTo(
-        '.hero-role',
-        {
-          opacity: 0,
-          y: 15,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.7,
-        },
-        '-=0.5'
-      )
-
-      const cta = document.querySelectorAll('.hero-cta')
+      if (role) {
+        tl.fromTo(
+          role,
+          {
+            opacity: 0,
+            y: 15,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+          },
+          isMobile ? '-=0.2' : '-=0.5'
+        )
+      }
 
       if (cta.length > 0) {
         tl.fromTo(
@@ -93,76 +123,120 @@ export default function Hero({
           {
             opacity: 1,
             y: 0,
-            duration: 0.7,
+            duration: 0.5,
           },
-          '-=0.4'
+          isMobile ? '-=0.2' : '-=0.4'
         )
       }
 
-      tl.fromTo(
-        '.hero-portrait',
-        {
-          opacity: 0,
-          y: 30,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-        },
-        '-=0.4'
-      )
+      if (portrait) {
+        tl.fromTo(
+          portrait,
+          {
+            opacity: 0,
+            y: 20,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+          },
+          isMobile ? '-=0.2' : '-=0.4'
+        )
+      }
 
-      tl.fromTo(
-        '.hero-metadata',
-        {
-          opacity: 0,
-          y: 10,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.7,
-        },
-        '-=0.2'
-      )
+      if (metadata) {
+        tl.fromTo(
+          metadata,
+          {
+            opacity: 0,
+            y: 10,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+          },
+          isMobile ? '-=0.1' : '-=0.2'
+        )
+      }
+    }
+
+    /*
+     * MOBILE:
+     * Start immediately.
+     *
+     * DESKTOP:
+     * Keep the existing cinematic-intro behavior.
+     */
+    if (isMobile) {
+      animate()
+      return
     }
 
     const seen =
-      typeof window !== 'undefined'
-        ? sessionStorage.getItem('srihari-intro-seen')
-        : null
+      sessionStorage.getItem(
+        'srihari-intro-seen'
+      )
 
     if (seen) {
       animate()
-    } else {
-      const handler = () => {
-        animate()
+      return
+    }
 
-        window.removeEventListener(
-          'intro-complete',
-          handler
-        )
-      }
+    const handler = () => {
+      animate()
 
-      window.addEventListener(
+      window.removeEventListener(
+        'intro-complete',
+        handler
+      )
+    }
+
+    window.addEventListener(
+      'intro-complete',
+      handler
+    )
+
+    /*
+     * Safety fallback.
+     *
+     * If the cinematic intro fails for any reason,
+     * the desktop Hero must still become visible.
+     */
+    const fallback = window.setTimeout(() => {
+      animate()
+
+      window.removeEventListener(
+        'intro-complete',
+        handler
+      )
+    }, 2500)
+
+    return () => {
+      window.removeEventListener(
         'intro-complete',
         handler
       )
 
-      return () => {
-        window.removeEventListener(
-          'intro-complete',
-          handler
-        )
-      }
+      window.clearTimeout(fallback)
     }
   }, [])
 
   /*
    * MOUSE PARALLAX
+   *
+   * Disabled on touch/mobile devices.
    */
   useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      '(max-width: 767px)'
+    )
+
+    if (mediaQuery.matches) {
+      return
+    }
+
     const move = (event: MouseEvent) => {
       setMousePos({
         x:
@@ -202,8 +276,8 @@ export default function Hero({
       className="relative min-h-screen overflow-hidden"
     >
       {/* HERO BACKGROUND */}
+
       <HeroVisual
-        hero={hero}
         mousePos={mousePos}
         scrollProgress={progress}
       />
@@ -212,26 +286,35 @@ export default function Hero({
         <div className="grid min-h-screen grid-cols-1 items-center gap-12 py-24 md:grid-cols-12 md:gap-10 lg:gap-16">
 
           {/* LEFT — identity + work */}
+
           <div className="md:col-span-7">
-            <HeroContent hero={hero} />
 
-            <HeroMeta hero={hero} />
+            <HeroContent />
 
-            <HeroCTA hero={hero} />
+            <HeroMeta />
+
+            <HeroCTA />
+
           </div>
 
           {/* RIGHT — PHOTO */}
+
           <div className="flex items-center justify-center md:col-span-5">
+
             <HeroPortrait
               image={profile?.image}
-              role={hero?.subtitle || profile?.role}
             />
+
           </div>
+
         </div>
 
         <div className="pb-10">
+
           <HeroMetadata />
+
         </div>
+
       </div>
     </section>
   )

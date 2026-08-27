@@ -3,173 +3,175 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
+const INTRO_KEY = 'srihari-intro-seen'
+
 export default function CinematicIntro() {
-  const containerRef =
-    useRef<HTMLDivElement>(null)
-
-  const contentRef =
-    useRef<HTMLDivElement>(null)
-
-  const skipRef =
-    useRef<HTMLButtonElement>(null)
-
-  const timelineRef =
-    useRef<gsap.core.Timeline | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const timelineRef = useRef<gsap.core.Timeline | null>(null)
 
   useEffect(() => {
     const container = containerRef.current
     const content = contentRef.current
-    const skip = skipRef.current
 
-    if (!container || !content || !skip) {
+    if (!container || !content) {
+      window.dispatchEvent(
+        new CustomEvent('intro-complete')
+      )
       return
     }
 
-    const hasSeenIntro =
-      sessionStorage.getItem(
-        'srihari-intro-seen'
-      )
+    const completeIntro = () => {
+      try {
+        sessionStorage.setItem(INTRO_KEY, 'true')
+      } catch {}
 
-    /*
-     * If the visitor has already seen
-     * the intro, hide it immediately.
-     */
+      gsap.killTweensOf(container)
+      gsap.killTweensOf(content)
 
-    if (hasSeenIntro) {
       gsap.set(container, {
         display: 'none',
+        visibility: 'hidden',
       })
 
       window.dispatchEvent(
         new CustomEvent('intro-complete')
       )
+    }
 
+    /*
+     * MOBILE
+     *
+     * Never allow the cinematic intro to block
+     * the actual portfolio on phones.
+     */
+    const isMobile =
+      window.matchMedia('(max-width: 767px)').matches
+
+    if (isMobile) {
+      completeIntro()
       return
     }
 
-    const isMobile =
-      window.innerWidth < 768
+    /*
+     * DESKTOP
+     *
+     * If the visitor has already seen the intro,
+     * remove it immediately.
+     */
+    let hasSeenIntro = false
+
+    try {
+      hasSeenIntro =
+        sessionStorage.getItem(INTRO_KEY) === 'true'
+    } catch {}
+
+    if (hasSeenIntro) {
+      completeIntro()
+      return
+    }
 
     const ctx = gsap.context(() => {
-      const base = isMobile ? 0.5 : 0.8
+      const base = 0.8
       const sub = base * 0.75
       const overlap = base * 0.4
 
       const tl = gsap.timeline({
-        onComplete: () => {
-          sessionStorage.setItem(
-            'srihari-intro-seen',
-            'true'
-          )
-
-          gsap.set(container, {
-            display: 'none',
-          })
-
-          window.dispatchEvent(
-            new CustomEvent('intro-complete')
-          )
-        },
+        onComplete: completeIntro,
       })
 
       timelineRef.current = tl
 
       tl.set('.intro-title', {
         opacity: 0,
-        clipPath:
-          'inset(0 100% 0 0)',
+        clipPath: 'inset(0 100% 0 0)',
       })
 
-        .set('.intro-subtitle', {
-          opacity: 0,
-          y: 20,
-        })
+      .set('.intro-subtitle', {
+        opacity: 0,
+        y: 20,
+      })
 
-        .set('.intro-tagline', {
-          opacity: 0,
-          y: 20,
-        })
+      .set('.intro-tagline', {
+        opacity: 0,
+        y: 20,
+      })
 
-        .set('.intro-divider', {
-          opacity: 0,
-          scaleY: 0,
-        })
+      .set('.intro-divider', {
+        opacity: 0,
+        scaleY: 0,
+      })
 
-        .set(skip, {
-          opacity: 0,
-        })
+      .to('.intro-title', {
+        opacity: 1,
+        clipPath: 'inset(0 0% 0 0)',
+        duration: base,
+        ease: 'power3.out',
+      })
 
-        .to('.intro-title', {
+      .to(
+        '.intro-subtitle',
+        {
           opacity: 1,
-          clipPath:
-            'inset(0 0% 0 0)',
+          y: 0,
+          duration: sub,
+          ease: 'power2.out',
+        },
+        `-=${overlap}`
+      )
+
+      .to(
+        '.intro-tagline',
+        {
+          opacity: 1,
+          y: 0,
+          duration: sub,
+          ease: 'power2.out',
+        },
+        `-=${overlap * 0.75}`
+      )
+
+      .to(
+        '.intro-divider',
+        {
+          opacity: 0.5,
+          scaleY: 1,
+          duration: sub * 0.6,
+          ease: 'power2.out',
+        },
+        '-=0.1'
+      )
+
+      .to(
+        content,
+        {
+          scale: 1.02,
+          duration: base * 0.8,
+          ease: 'power1.inOut',
+        },
+        '<'
+      )
+
+      .to(
+        content,
+        {
+          scale: 1,
+          opacity: 0,
+          duration: sub * 0.6,
+          ease: 'power2.in',
+        },
+        `+=${base * 0.3}`
+      )
+
+      .to(
+        container,
+        {
+          yPercent: -100,
           duration: base,
-          ease: 'power3.out',
-        })
-
-        .to(
-          '.intro-subtitle',
-          {
-            opacity: 1,
-            y: 0,
-            duration: sub,
-            ease: 'power2.out',
-          },
-          `-=${overlap}`
-        )
-
-        .to(
-          '.intro-tagline',
-          {
-            opacity: 1,
-            y: 0,
-            duration: sub,
-            ease: 'power2.out',
-          },
-          `-=${overlap * 0.75}`
-        )
-
-        .to(
-          '.intro-divider',
-          {
-            opacity: 0.5,
-            scaleY: 1,
-            duration: sub * 0.6,
-            ease: 'power2.out',
-          },
-          '-=0.1'
-        )
-
-        .to(
-          content,
-          {
-            scale: 1.02,
-            duration: base * 0.8,
-            ease: 'power1.inOut',
-          },
-          '<'
-        )
-
-        .to(
-          content,
-          {
-            scale: 1,
-            opacity: 0,
-            duration: sub * 0.6,
-            ease: 'power2.in',
-          },
-          `+=${base * 0.3}`
-        )
-
-        .to(
-          container,
-          {
-            yPercent: -100,
-            duration: base,
-            ease: 'power3.inOut',
-          },
-          '<'
-        )
+          ease: 'power3.inOut',
+        },
+        '<'
+      )
     }, container)
 
     return () => {
@@ -179,23 +181,15 @@ export default function CinematicIntro() {
     }
   }, [])
 
-  function handleSkip() {
-    if (timelineRef.current) {
-      timelineRef.current.progress(1)
-    }
-  }
-
   return (
     <div
       ref={containerRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background overflow-hidden"
     >
-
       <div
         ref={contentRef}
         className="text-center px-6"
       >
-
         <h1 className="intro-title font-display text-display-lg text-text-primary mb-4">
           SRIHARI
         </h1>
@@ -209,18 +203,7 @@ export default function CinematicIntro() {
         </p>
 
         <div className="intro-divider w-px h-16 bg-gradient-to-b from-transparent via-text-muted to-transparent mx-auto mt-12 opacity-50 origin-top" />
-
       </div>
-
-      <button
-        ref={skipRef}
-        type="button"
-        onClick={handleSkip}
-        className="absolute bottom-8 right-8 caption text-text-muted hover:text-text-primary transition-colors duration-300"
-      >
-        SKIP
-      </button>
-
     </div>
   )
 }

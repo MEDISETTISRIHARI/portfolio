@@ -46,25 +46,25 @@ model Hero {
 }
 
 model Project {
-  id             String    @id @default(cuid())
-  title          String
-  slug           String    @unique
-  category       String
-  year           String?
-  shortDesc      String
-  fullDesc       String?
-  thumbnail      String
-  heroImage      String?
-  gallery        String?
-  video          String?
-  technologies   String?
-  liveUrl        String?
-  caseStudy      String?
-  featured       Boolean   @default(false)
-  published      Boolean   @default(true)
-  order          Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  category     String
+  year         String?
+  shortDesc    String
+  fullDesc     String?
+  thumbnail    String
+  heroImage    String?
+  gallery      String?
+  video        String?
+  technologies String?
+  liveUrl      String?
+  caseStudy    String?
+  featured     Boolean  @default(false)
+  published    Boolean  @default(true)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Skill {

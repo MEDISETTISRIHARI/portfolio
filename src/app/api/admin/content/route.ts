@@ -556,7 +556,7 @@ export async function POST(req: Request) {
             updatedAt = CURRENT_TIMESTAMP
           WHERE id = ${sqlString(id)}
         `)
-      } else {
+           } else {
         await execute(`
           INSERT INTO Project (
             id,
@@ -575,7 +575,9 @@ export async function POST(req: Request) {
             caseStudy,
             featured,
             published,
-            "order"
+            "order",
+            "createdAt",
+            "updatedAt"
           )
           VALUES (
             ${sqlString(id)},
@@ -594,11 +596,12 @@ export async function POST(req: Request) {
             ${sqlString(caseStudy)},
             ${featured},
             ${published},
-            ${order}
+            ${order},
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
           )
         `)
       }
-
       return NextResponse.json({
         ok: true,
         id,
@@ -659,14 +662,16 @@ export async function POST(req: Request) {
           WHERE id = ${sqlString(id)}
         `)
       } else {
-        await execute(`
+                await execute(`
           INSERT INTO Skill (
             id,
             category,
             title,
             items,
             "order",
-            visible
+            visible,
+            "createdAt",
+            "updatedAt"
           )
           VALUES (
             ${sqlString(id)},
@@ -674,7 +679,9 @@ export async function POST(req: Request) {
             ${sqlString(title)},
             ${sqlString(items)},
             ${order},
-            ${visible}
+            ${visible},
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
           )
         `)
       }
@@ -738,21 +745,25 @@ export async function POST(req: Request) {
         `)
       } else {
         await execute(`
-          INSERT INTO Service (
-            id,
-            title,
-            desc,
-            "order",
-            visible
-          )
-          VALUES (
-            ${sqlString(id)},
-            ${sqlString(title)},
-            ${sqlString(desc)},
-            ${order},
-            ${visible}
-          )
-        `)
+  INSERT INTO Service (
+    id,
+    title,
+    desc,
+    "order",
+    visible,
+    createdAt,
+    updatedAt
+  )
+  VALUES (
+    ${sqlString(id)},
+    ${sqlString(title)},
+    ${sqlString(desc)},
+    ${order},
+    ${visible},
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+  )
+`)
       }
 
       return NextResponse.json({
@@ -823,26 +834,30 @@ export async function POST(req: Request) {
           WHERE id = ${sqlString(id)}
         `)
       } else {
-        await execute(`
-          INSERT INTO SocialLink (
-            id,
-            platform,
-            username,
-            url,
-            icon,
-            "order",
-            visible
-          )
-          VALUES (
-            ${sqlString(id)},
-            ${sqlString(platform)},
-            ${sqlString(username)},
-            ${sqlString(url)},
-            ${sqlString(icon)},
-            ${order},
-            ${visible}
-          )
-        `)
+     await execute(`
+  INSERT INTO SocialLink (
+    id,
+    platform,
+    username,
+    url,
+    icon,
+    "order",
+    visible,
+    createdAt,
+    updatedAt
+  )
+  VALUES (
+    ${sqlString(id)},
+    ${sqlString(platform)},
+    ${sqlString(username)},
+    ${sqlString(url)},
+    ${sqlString(icon)},
+    ${order},
+    ${visible},
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+  )
+`)
       }
 
       return NextResponse.json({

@@ -371,12 +371,34 @@ body::before {
 .reveal-up {
   opacity: 0;
   transform: translateY(40px);
-  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+  transition:
+    opacity 0.8s var(--ease-out),
+    transform 0.8s var(--ease-out);
+  will-change: opacity, transform;
 }
 
 .reveal-up.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/*
+ * Mobile safety:
+ * Never allow the main portfolio content to remain
+ * invisible because of a scroll/reveal animation.
+ */
+@media (max-width: 767px) {
+  .reveal-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+
+  .reveal-up.visible {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .hero-reveal {
