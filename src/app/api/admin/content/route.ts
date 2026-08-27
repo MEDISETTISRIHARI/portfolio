@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { execute, query, sqlString } from '@/lib/sqlite'
@@ -492,9 +493,8 @@ export async function POST(req: Request) {
       const caseStudy = String(
         body.caseStudy || ''
       ).trim()
-      const featured = body.featured ? 1 : 0
-      const published =
-        body.published === false ? 0 : 1
+const featured = body.featured ? 'TRUE' : 'FALSE'  
+const published = body.published === false ? 'FALSE' : 'TRUE'
       const order = Number(body.order || 0)
 
       if (

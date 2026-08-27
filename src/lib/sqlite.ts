@@ -85,19 +85,19 @@ function postgresSql(sql: string) {
 
   let result = sql
 
-  // Protect SQL string literals.
+  // Protect string literals.
   result = result.replace(
     /'(?:''|[^'])*'/g,
     (value) => protect(value)
   )
 
-  // Protect identifiers that are already quoted.
+  // Protect already quoted identifiers.
   result = result.replace(
     /"(?:[^"]|"")*"/g,
     (value) => protect(value)
   )
 
-  // Convert bare SQLite-style identifiers to PostgreSQL identifiers.
+  // Convert known bare identifiers to quoted PostgreSQL identifiers.
   result = result.replace(
     identifierPattern,
     (_, identifier) => `"${identifier}"`
@@ -109,10 +109,7 @@ function postgresSql(sql: string) {
     .replace(/"FALSE"/g, 'FALSE')
     .replace(/"CURRENT_TIMESTAMP"/g, 'CURRENT_TIMESTAMP')
 
-  result = result.replace(/"1"/g, '1')
-  result = result.replace(/"0"/g, '0')
-
-  // Convert SQLite-style boolean comparisons to PostgreSQL.
+  // SQLite numeric booleans -> PostgreSQL booleans.
   result = result.replace(
     /"published"\s*=\s*1/g,
     '"published" = TRUE'
@@ -133,7 +130,18 @@ function postgresSql(sql: string) {
     '"visible" = FALSE'
   )
 
-  // Restore protected SQL fragments exactly as they were.
+  // Handle common INSERT/UPDATE boolean values.
+  result = result.replace(
+    /,\s*1\s*,/g,
+    ', TRUE,'
+  )
+
+  result = result.replace(
+    /,\s*0\s*,/g,
+    ', FALSE,'
+  )
+
+  // Restore protected SQL.
   result = result.replace(
     /__SQL_PROTECTED_(\d+)__/g,
     (_, index) => protectedParts[Number(index)]

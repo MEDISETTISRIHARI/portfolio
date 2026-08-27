@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
+import { put } from '@vercel/blob'
 import jwt from 'jsonwebtoken'
-import { promises as fs } from 'fs'
-import path from 'path'
 import crypto from 'crypto'
 
 const JWT_SECRET =
@@ -11,7 +10,9 @@ function authenticated(req: Request) {
   const cookie = req.headers.get('cookie') || ''
   const match = cookie.match(/admin_token=([^;]+)/)
 
-  if (!match) return false
+  if (!match) {
+    return false
+  }
 
   try {
     jwt.verify(match[1], JWT_SECRET)
@@ -22,18 +23,19 @@ function authenticated(req: Request) {
 }
 
 const extensions: Record<string, string> = {
-  // Images
   'image/jpeg': '.jpg',
   'image/png': '.png',
   'image/webp': '.webp',
   'image/gif': '.gif',
 
-  // Videos
   'video/mp4': '.mp4',
   'video/webm': '.webm',
   'video/quicktime': '.mov',
   'video/x-m4v': '.m4v',
 }
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
@@ -41,6 +43,20 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error(
+        'BLOB_READ_WRITE_TOKEN is not configured'
+      )
+
+      return NextResponse.json(
+        {
+          error:
+            'File storage is not configured on the server',
+        },
+        { status: 500 }
       )
     }
 
@@ -68,49 +84,58 @@ export async function POST(req: Request) {
 
     const isVideo = file.type.startsWith('video/')
 
+    /*
+     * This route receives the file through a Vercel Function.
+     * Vercel limits server-upload request bodies to 4.5 MB.
+     *
+     * Images are therefore limited to 4 MB here.
+     * Larger files should use a client-upload flow later.
+     */
     const maxSize = isVideo
-      ? 100 * 1024 * 1024
-      : 10 * 1024 * 1024
+      ? 4 * 1024 * 1024
+      : 4 * 1024 * 1024
 
     if (file.size > maxSize) {
       return NextResponse.json(
         {
-          error: isVideo
-            ? 'Maximum video size is 100MB'
-            : 'Maximum image size is 10MB',
+          error:
+            'File is too large for this upload method. Maximum size is 4MB.',
         },
-        { status: 400 }
+        { status: 413 }
       )
     }
 
     const filename =
       `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${extension}`
 
-    const uploadDir = path.join(
-      process.cwd(),
-      'public',
-      'uploads'
+    const blob = await put(
+      `portfolio/${filename}`,
+      file,
+      {
+        access: 'public',
+        addRandomSuffix: false,
+        contentType: file.type,
+      }
     )
-
-    await fs.mkdir(uploadDir, { recursive: true })
-
-    const filepath = path.join(uploadDir, filename)
-
-    const buffer = Buffer.from(
-      await file.arrayBuffer()
-    )
-
-    await fs.writeFile(filepath, buffer)
 
     return NextResponse.json({
       ok: true,
-      url: `/uploads/${filename}`,
+      url: blob.url,
+      pathname: blob.pathname,
+      contentType: file.type,
+      size: file.size,
     })
   } catch (error) {
-    console.error('FILE UPLOAD ERROR:', error)
+    console.error(
+      'VERCEL BLOB FILE UPLOAD ERROR:',
+      error
+    )
 
     return NextResponse.json(
-      { error: 'File upload failed' },
+      {
+        ok: false,
+        error: 'File upload failed',
+      },
       { status: 500 }
     )
   }

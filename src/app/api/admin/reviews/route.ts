@@ -1,20 +1,28 @@
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import { execute, query, sqlString } from '@/lib/sqlite'
+import { prisma } from '@/lib/prisma'
 
 const JWT_SECRET =
-  process.env.JWT_SECRET || 'srihari-development-secret'
+  process.env.JWT_SECRET ||
+  'srihari-development-secret'
 
 function isAuthenticated(req: Request) {
-  const cookie = req.headers.get('cookie') || ''
-  const match = cookie.match(/admin_token=([^;]+)/)
+  const cookie =
+    req.headers.get('cookie') || ''
+
+  const match =
+    cookie.match(/admin_token=([^;]+)/)
 
   if (!match) {
     return false
   }
 
   try {
-    jwt.verify(match[1], JWT_SECRET)
+    jwt.verify(
+      match[1],
+      JWT_SECRET
+    )
+
     return true
   } catch {
     return false
@@ -38,28 +46,22 @@ export async function GET(req: Request) {
   }
 
   try {
-    const rows = await query(`
-      SELECT
-        id,
-        name,
-        role,
-        company,
-        quote,
-        image,
-        visible,
-        "order",
-        createdAt,
-        updatedAt
-      FROM Testimonial
-      ORDER BY createdAt DESC
-    `)
+    const rows =
+      await prisma.testimonial.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
 
     return NextResponse.json({
       ok: true,
       data: rows,
     })
   } catch (error) {
-    console.error('ADMIN REVIEWS GET ERROR:', error)
+    console.error(
+      'ADMIN REVIEWS GET ERROR:',
+      error
+    )
 
     return NextResponse.json(
       {
@@ -89,7 +91,8 @@ export async function DELETE(req: Request) {
   try {
     const body = await req.json()
 
-    const id = String(body.id || '').trim()
+    const id =
+      String(body.id || '').trim()
 
     if (!id) {
       return NextResponse.json(
@@ -103,16 +106,14 @@ export async function DELETE(req: Request) {
       )
     }
 
-    const existing = await query(
-      `
-        SELECT id
-        FROM Testimonial
-        WHERE id = ${sqlString(id)}
-        LIMIT 1
-      `
-    )
+    const existing =
+      await prisma.testimonial.findUnique({
+        where: {
+          id,
+        },
+      })
 
-    if (!existing.length) {
+    if (!existing) {
       return NextResponse.json(
         {
           ok: false,
@@ -124,18 +125,23 @@ export async function DELETE(req: Request) {
       )
     }
 
-    await execute(`
-      DELETE FROM Testimonial
-      WHERE id = ${sqlString(id)}
-    `)
+    await prisma.testimonial.delete({
+      where: {
+        id,
+      },
+    })
 
     return NextResponse.json({
       ok: true,
-      message: 'Review deleted successfully',
+      message:
+        'Review deleted successfully',
       id,
     })
   } catch (error) {
-    console.error('ADMIN REVIEW DELETE ERROR:', error)
+    console.error(
+      'ADMIN REVIEW DELETE ERROR:',
+      error
+    )
 
     return NextResponse.json(
       {

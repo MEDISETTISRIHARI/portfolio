@@ -1,27 +1,28 @@
 import { NextResponse } from 'next/server'
-import { execute, query, sqlString } from '@/lib/sqlite'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+function text(value: unknown) {
+  return String(value ?? '').trim()
+}
+
 export async function GET() {
   try {
-    const rows = await query(`
-      SELECT
-        id,
-        name,
-        role,
-        company,
-        quote,
-        image,
-        visible,
-        "order",
-        createdAt,
-        updatedAt
-      FROM Testimonial
-      WHERE visible = TRUE
-      ORDER BY "order" ASC, createdAt ASC
-    `)
+    const rows = await prisma.testimonial.findMany({
+      where: {
+        visible: true,
+      },
+      orderBy: [
+        {
+          order: 'asc',
+        },
+        {
+          createdAt: 'asc',
+        },
+      ],
+    })
 
     return NextResponse.json(rows)
   } catch (error) {
@@ -42,10 +43,10 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
 
-    const name = String(body.name || '').trim()
-    const role = String(body.role || '').trim()
-    const company = String(body.company || '').trim()
-    const quote = String(body.quote || '').trim()
+    const name = text(body.name)
+    const role = text(body.role)
+    const company = text(body.company)
+    const quote = text(body.quote)
 
     if (!name || !quote) {
       return NextResponse.json(
@@ -83,38 +84,28 @@ export async function POST(req: Request) {
       )
     }
 
-    const id = `review-${Date.now()}`
+    const id =
+      `review-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`
 
-    await execute(`
-      INSERT INTO Testimonial (
-        id,
-        name,
-        role,
-        company,
-        quote,
-        image,
-        visible,
-        "order",
-        createdAt,
-        updatedAt
-      )
-      VALUES (
-        ${sqlString(id)},
-        ${sqlString(name)},
-        ${sqlString(role)},
-        ${sqlString(company)},
-        ${sqlString(quote)},
-        '',
-        1,
-        0,
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP
-      )
-    `)
+    const review =
+      await prisma.testimonial.create({
+        data: {
+          id,
+          name,
+          role: role || null,
+          company: company || null,
+          quote,
+          image: null,
+          visible: true,
+          order: 0,
+        },
+      })
 
     return NextResponse.json({
       ok: true,
-      id,
+      id: review.id,
     })
   } catch (error) {
     console.error('REVIEW POST ERROR:', error)
@@ -123,6 +114,10 @@ export async function POST(req: Request) {
       {
         ok: false,
         error: 'Failed to submit review',
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error),
       },
       {
         status: 500,

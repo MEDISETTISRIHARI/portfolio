@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  FormEvent,
   ReactNode,
   useEffect,
   useState,
@@ -81,6 +80,17 @@ export type SocialData = {
   visible: boolean
 }
 
+export type ReviewData = {
+  id?: string
+  name: string
+  role: string
+  company: string
+  quote: string
+  image: string
+  order: number
+  visible: boolean
+}
+
 export const emptyProfile: ProfileData = {
   name: '',
   role: '',
@@ -148,6 +158,16 @@ export const emptySocial: SocialData = {
   visible: true,
 }
 
+export const emptyReview: ReviewData = {
+  name: '',
+  role: '',
+  company: '',
+  quote: '',
+  image: '',
+  order: 0,
+  visible: true,
+}
+
 export function AdminShell({
   title,
   description,
@@ -157,10 +177,8 @@ export function AdminShell({
   description: string
   children: ReactNode
 }) {
-  const router = useRouter()
-
   return (
-    <main className="min-h-screen bg-black text-white px-5 py-10 sm:px-8 sm:py-16">
+    <main className="min-h-screen bg-black px-5 py-10 text-white sm:px-8 sm:py-16">
       <div className="mx-auto max-w-5xl">
 
         <button
@@ -242,70 +260,76 @@ export function ImageUpload({
       return file
     }
 
-    const bitmap = await createImageBitmap(file)
+    try {
+      const bitmap = await createImageBitmap(file)
 
-    const maxSize = 1600
+      const maxSize = 1600
 
-    let width = bitmap.width
-    let height = bitmap.height
+      let width = bitmap.width
+      let height = bitmap.height
 
-    if (width > maxSize || height > maxSize) {
-      const scale = Math.min(
-        maxSize / width,
-        maxSize / height
+      if (width > maxSize || height > maxSize) {
+        const scale = Math.min(
+          maxSize / width,
+          maxSize / height
+        )
+
+        width = Math.round(width * scale)
+        height = Math.round(height * scale)
+      }
+
+      const canvas = document.createElement('canvas')
+
+      canvas.width = width
+      canvas.height = height
+
+      const ctx = canvas.getContext('2d')
+
+      if (!ctx) {
+        bitmap.close()
+        return file
+      }
+
+      ctx.drawImage(
+        bitmap,
+        0,
+        0,
+        width,
+        height
       )
 
-      width = Math.round(width * scale)
-      height = Math.round(height * scale)
-    }
-
-    const canvas = document.createElement('canvas')
-
-    canvas.width = width
-    canvas.height = height
-
-    const ctx = canvas.getContext('2d')
-
-    if (!ctx) {
       bitmap.close()
-      return file
-    }
 
-    ctx.drawImage(
-      bitmap,
-      0,
-      0,
-      width,
-      height
-    )
+      const blob = await new Promise<Blob | null>(
+        resolve =>
+          canvas.toBlob(
+            resolve,
+            'image/webp',
+            0.82
+          )
+      )
 
-    bitmap.close()
-
-    const blob = await new Promise<Blob | null>(
-      resolve =>
-        canvas.toBlob(
-          resolve,
-          'image/webp',
-          0.82
-        )
-    )
-
-    if (!blob) {
-      return file
-    }
-
-    return new File(
-      [blob],
-      `${file.name.replace(/\.[^.]+$/, '')}.webp`,
-      {
-        type: 'image/webp',
-        lastModified: Date.now(),
+      if (!blob) {
+        return file
       }
-    )
+
+      return new File(
+        [blob],
+        `${file.name.replace(/\.[^.]+$/, '')}.webp`,
+        {
+          type: 'image/webp',
+          lastModified: Date.now(),
+        }
+      )
+    } catch {
+      return file
+    }
   }
 
   async function upload(files: FileList | null) {
-    if (!files || files.length === 0) return
+    if (!files || files.length === 0) {
+      return
+    }
 
     setUploading(true)
     setError('')
@@ -316,10 +340,6 @@ export function ImageUpload({
       for (const originalFile of Array.from(files)) {
         const file = await compressImage(originalFile)
 
-        console.log(
-          `Image compressed: ${Math.round(originalFile.size / 1024)}KB → ${Math.round(file.size / 1024)}KB`
-        )
-
         const form = new FormData()
         form.append('file', file)
 
@@ -329,19 +349,30 @@ export function ImageUpload({
             method: 'POST',
             body: form,
             credentials: 'include',
+            cache: 'no-store',
           }
         )
 
-        const result = await response.json()
+        const text = await response.text()
+
+        let result: any
+
+        try {
+          result = JSON.parse(text)
+        } catch {
+          throw new Error(
+            `Upload failed (${response.status})`
+          )
+        }
 
         if (
           !response.ok ||
-          !result.ok ||
-          !result.url
+          !result?.ok ||
+          !result?.url
         ) {
           throw new Error(
-            result.error ||
-              'Image upload failed'
+            result?.error ||
+              `Image upload failed (${response.status})`
           )
         }
 
@@ -378,7 +409,6 @@ export function ImageUpload({
 
   return (
     <div className="space-y-3">
-
       <span className="block text-xs tracking-[0.2em] text-white/40">
         {label.toUpperCase()}
       </span>
@@ -583,26 +613,41 @@ export function useAdminData<T>(
 
     try {
       const res = await fetch(
-        `/api/admin/content?resource=${resource}`,
+        `/api/admin/content?resource=${encodeURIComponent(resource)}`,
         {
+          method: 'GET',
           cache: 'no-store',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json',
+          },
         }
       )
+
+      const text = await res.text()
+
+      let result: any
+
+      try {
+        result = JSON.parse(text)
+      } catch {
+        throw new Error(
+          `Server returned invalid response (${res.status})`
+        )
+      }
 
       if (res.status === 401) {
         router.push('/admin/login')
         return
       }
 
-      const result = await res.json()
-
       if (!res.ok) {
         throw new Error(
-          result.error || 'Failed to load'
+          result?.error || 'Failed to load'
         )
       }
 
-      setData(result.data ?? initial)
+      setData(result?.data ?? initial)
     } catch (err) {
       setError(
         err instanceof Error
@@ -615,7 +660,7 @@ export function useAdminData<T>(
   }
 
   useEffect(() => {
-    load()
+    void load()
   }, [resource])
 
   async function save(payload: unknown) {
@@ -625,30 +670,44 @@ export function useAdminData<T>(
 
     try {
       const res = await fetch(
-        `/api/admin/content?resource=${resource}`,
+        `/api/admin/content?resource=${encodeURIComponent(resource)}`,
         {
           method: 'POST',
+          credentials: 'include',
+          cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
+            Accept: 'application/json',
           },
           body: JSON.stringify(payload),
         }
       )
+
+      const text = await res.text()
+
+      let result: any
+
+      try {
+        result = JSON.parse(text)
+      } catch {
+        throw new Error(
+          `Server returned invalid response (${res.status})`
+        )
+      }
 
       if (res.status === 401) {
         router.push('/admin/login')
         return false
       }
 
-      const result = await res.json()
-
-      if (!res.ok) {
+      if (!res.ok || result?.ok === false) {
         throw new Error(
-          result.error || 'Failed to save'
+          result?.error || 'Failed to save'
         )
       }
 
       setMessage('Saved successfully.')
+
       await load()
 
       return true
@@ -671,26 +730,42 @@ export function useAdminData<T>(
 
     try {
       const res = await fetch(
-        `/api/admin/content?resource=${resource}&id=${encodeURIComponent(id)}`,
+        `/api/admin/content?resource=${encodeURIComponent(resource)}&id=${encodeURIComponent(id)}`,
         {
           method: 'DELETE',
+          credentials: 'include',
+          cache: 'no-store',
+          headers: {
+            Accept: 'application/json',
+          },
         }
       )
+
+      const text = await res.text()
+
+      let result: any
+
+      try {
+        result = JSON.parse(text)
+      } catch {
+        throw new Error(
+          `Server returned invalid response (${res.status})`
+        )
+      }
 
       if (res.status === 401) {
         router.push('/admin/login')
         return false
       }
 
-      const result = await res.json()
-
-      if (!res.ok) {
+      if (!res.ok || result?.ok === false) {
         throw new Error(
-          result.error || 'Failed to delete'
+          result?.error || 'Failed to delete'
         )
       }
 
       setMessage('Deleted successfully.')
+
       await load()
 
       return true

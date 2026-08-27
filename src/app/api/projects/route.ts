@@ -1,44 +1,102 @@
 import { NextResponse } from 'next/server'
-import { execute, query, sqlString } from '@/lib/sqlite'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+function text(value: unknown) {
+  return String(value ?? '').trim()
+}
+
+function arrayValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return value
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed = JSON.parse(value)
+
+      if (Array.isArray(parsed)) {
+        return parsed
+      }
+    } catch {
+      return []
+    }
+  }
+
+  return []
+}
+
+function projectData(body: any) {
+  return {
+    title: text(body.title),
+    slug: text(body.slug),
+    category: text(body.category),
+    year: text(body.year) || null,
+    shortDesc: text(body.shortDesc),
+    fullDesc: text(body.fullDesc) || null,
+    thumbnail: text(body.thumbnail),
+    heroImage: text(body.heroImage) || null,
+    gallery: JSON.stringify(arrayValue(body.gallery)),
+    video: text(body.video) || null,
+    technologies: JSON.stringify(
+      arrayValue(body.technologies)
+    ),
+    liveUrl: text(body.liveUrl) || null,
+    caseStudy: text(body.caseStudy) || null,
+    featured: Boolean(body.featured),
+    published:
+      body.published === false
+        ? false
+        : Boolean(body.published ?? true),
+    order: Number(body.order ?? 0),
+  }
+}
+
+function validate(data: ReturnType<typeof projectData>) {
+  if (
+    !data.title ||
+    !data.slug ||
+    !data.category ||
+    !data.shortDesc ||
+    !data.thumbnail
+  ) {
+    return (
+      'Title, slug, category, short description and thumbnail are required'
+    )
+  }
+
+  return null
+}
+
 export async function GET() {
   try {
-    const rows = await query(`
-      SELECT
-        id,
-        title,
-        slug,
-        category,
-        year,
-        shortDesc,
-        fullDesc,
-        thumbnail,
-        heroImage,
-        gallery,
-        video,
-        technologies,
-        liveUrl,
-        caseStudy,
-        featured,
-        published,
-        "order",
-        createdAt,
-        updatedAt
-      FROM Project
-      WHERE published = TRUE
-      ORDER BY "order" ASC, createdAt ASC
-    `)
+    const rows = await prisma.project.findMany({
+      where: {
+        published: true,
+      },
+      orderBy: [
+        {
+          order: 'asc',
+        },
+        {
+          createdAt: 'asc',
+        },
+      ],
+    })
 
     return NextResponse.json(rows)
   } catch (error) {
     console.error('PROJECTS GET ERROR:', error)
 
     return NextResponse.json(
-      { error: 'Failed to fetch projects' },
-      { status: 500 }
+      {
+        error: 'Failed to fetch projects',
+      },
+      {
+        status: 500,
+      }
     )
   }
 }
@@ -47,105 +105,245 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    const id =
-      String(body.id || '').trim() ||
-      `project-${Date.now()}`
+    const data = projectData(body)
 
-    const title = String(body.title || '').trim()
-    const slug = String(body.slug || '').trim()
-    const category = String(body.category || '').trim()
-    const year = String(body.year || '').trim()
-    const shortDesc = String(body.shortDesc || '').trim()
-    const fullDesc = String(body.fullDesc || '').trim()
-    const thumbnail = String(body.thumbnail || '').trim()
-    const heroImage = String(body.heroImage || '').trim()
-    const gallery = Array.isArray(body.gallery)
-      ? JSON.stringify(body.gallery)
-      : String(body.gallery || '')
-    const video = String(body.video || '').trim()
-    const technologies = Array.isArray(body.technologies)
-      ? JSON.stringify(body.technologies)
-      : String(body.technologies || '')
-    const liveUrl = String(body.liveUrl || '').trim()
-    const caseStudy = String(body.caseStudy || '').trim()
-    const featured = body.featured ? 1 : 0
-    const published = body.published === false ? 0 : 1
-    const order = Number(body.order || 0)
+    const validationError = validate(data)
 
-    if (
-      !title ||
-      !slug ||
-      !category ||
-      !shortDesc ||
-      !thumbnail
-    ) {
+    if (validationError) {
       return NextResponse.json(
         {
-          error:
-            'Title, slug, category, short description and thumbnail are required',
+          error: validationError,
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       )
     }
 
-    await execute(`
-      INSERT INTO Project (
-        id,
-        title,
-        slug,
-        category,
-        year,
-        shortDesc,
-        fullDesc,
-        thumbnail,
-        heroImage,
-        gallery,
-        video,
-        technologies,
-        liveUrl,
-        caseStudy,
-        featured,
-        published,
-        "order"
-      )
-      VALUES (
-        ${sqlString(id)},
-        ${sqlString(title)},
-        ${sqlString(slug)},
-        ${sqlString(category)},
-        ${sqlString(year)},
-        ${sqlString(shortDesc)},
-        ${sqlString(fullDesc)},
-        ${sqlString(thumbnail)},
-        ${sqlString(heroImage)},
-        ${sqlString(gallery)},
-        ${sqlString(video)},
-        ${sqlString(technologies)},
-        ${sqlString(liveUrl)},
-        ${sqlString(caseStudy)},
-        ${featured},
-        ${published},
-        ${order}
-      )
-    `)
+    const requestedId = text(body.id)
 
-    const rows = await query(`
-      SELECT *
-      FROM Project
-      WHERE id = ${sqlString(id)}
-      LIMIT 1
-    `)
+    // If an ID is supplied and already exists,
+    // treat POST as an update. This keeps compatibility
+    // with an existing admin UI that may use POST for save.
+    if (requestedId) {
+      const existing = await prisma.project.findUnique({
+        where: {
+          id: requestedId,
+        },
+      })
+
+      if (existing) {
+        const updated = await prisma.project.update({
+          where: {
+            id: requestedId,
+          },
+          data,
+        })
+
+        return NextResponse.json(updated)
+      }
+    }
+
+    const existingSlug = await prisma.project.findUnique({
+      where: {
+        slug: data.slug,
+      },
+    })
+
+    if (existingSlug) {
+      return NextResponse.json(
+        {
+          error:
+            'A project with this slug already exists',
+        },
+        {
+          status: 409,
+        }
+      )
+    }
+
+    const created = await prisma.project.create({
+      data,
+    })
 
     return NextResponse.json(
-      rows[0] || null,
-      { status: 201 }
+      created,
+      {
+        status: 201,
+      }
     )
   } catch (error) {
     console.error('PROJECT POST ERROR:', error)
 
     return NextResponse.json(
-      { error: 'Failed to create project' },
-      { status: 500 }
+      {
+        error: 'Failed to create or update project',
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+      {
+        status: 500,
+      }
+    )
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json()
+
+    const id = text(body.id)
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          error: 'Project ID is required',
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
+    const data = projectData(body)
+
+    const validationError = validate(data)
+
+    if (validationError) {
+      return NextResponse.json(
+        {
+          error: validationError,
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
+    const existing = await prisma.project.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!existing) {
+      return NextResponse.json(
+        {
+          error: 'Project not found',
+        },
+        {
+          status: 404,
+        }
+      )
+    }
+
+    const duplicateSlug = await prisma.project.findFirst({
+      where: {
+        slug: data.slug,
+        NOT: {
+          id,
+        },
+      },
+    })
+
+    if (duplicateSlug) {
+      return NextResponse.json(
+        {
+          error:
+            'Another project already uses this slug',
+        },
+        {
+          status: 409,
+        }
+      )
+    }
+
+    const updated = await prisma.project.update({
+      where: {
+        id,
+      },
+      data,
+    })
+
+    return NextResponse.json(updated)
+  } catch (error) {
+    console.error('PROJECT PUT ERROR:', error)
+
+    return NextResponse.json(
+      {
+        error: 'Failed to update project',
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+      {
+        status: 500,
+      }
+    )
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json()
+
+    const id = text(body.id)
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          error: 'Project ID is required',
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
+    const existing = await prisma.project.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!existing) {
+      return NextResponse.json(
+        {
+          error: 'Project not found',
+        },
+        {
+          status: 404,
+        }
+      )
+    }
+
+    await prisma.project.delete({
+      where: {
+        id,
+      },
+    })
+
+    return NextResponse.json({
+      ok: true,
+      id,
+    })
+  } catch (error) {
+    console.error('PROJECT DELETE ERROR:', error)
+
+    return NextResponse.json(
+      {
+        error: 'Failed to delete project',
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      },
+      {
+        status: 500,
+      }
     )
   }
 }
