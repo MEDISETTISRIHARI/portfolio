@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
+import {
+  handleUpload,
+  type HandleUploadBody,
+} from '@vercel/blob/client'
 import jwt from 'jsonwebtoken'
-import crypto from 'crypto'
 
 const JWT_SECRET =
   process.env.JWT_SECRET || 'srihari-development-secret'
@@ -22,119 +24,58 @@ function authenticated(req: Request) {
   }
 }
 
-const extensions: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-  'image/gif': '.gif',
-
-  'video/mp4': '.mp4',
-  'video/webm': '.webm',
-  'video/quicktime': '.mov',
-  'video/x-m4v': '.m4v',
-}
-
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
-    if (!authenticated(req)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    const body = (await req.json()) as HandleUploadBody
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.error(
-        'BLOB_READ_WRITE_TOKEN is not configured'
-      )
+    const jsonResponse = await handleUpload({
+      body,
+      request: req,
 
-      return NextResponse.json(
-        {
-          error:
-            'File storage is not configured on the server',
-        },
-        { status: 500 }
-      )
-    }
+      onBeforeGenerateToken: async () => {
+        if (!authenticated(req)) {
+          throw new Error('Unauthorized')
+        }
 
-    const form = await req.formData()
-    const file = form.get('file')
+        return {
+          allowedContentTypes: [
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+            'video/x-m4v',
+          ],
 
-    if (!(file instanceof File)) {
-      return NextResponse.json(
-        { error: 'No file selected' },
-        { status: 400 }
-      )
-    }
+          maximumSizeInBytes:
+            100 * 1024 * 1024,
 
-    const extension = extensions[file.type]
+          addRandomSuffix: true,
+        }
+      },
 
-    if (!extension) {
-      return NextResponse.json(
-        {
-          error:
-            'Only JPG, PNG, WEBP, GIF, MP4, WebM, MOV and M4V files are allowed',
-        },
-        { status: 400 }
-      )
-    }
-
-    const isVideo = file.type.startsWith('video/')
-
-    /*
-     * This route receives the file through a Vercel Function.
-     * Vercel limits server-upload request bodies to 4.5 MB.
-     *
-     * Images are therefore limited to 4 MB here.
-     * Larger files should use a client-upload flow later.
-     */
-    const maxSize = isVideo
-      ? 4 * 1024 * 1024
-      : 4 * 1024 * 1024
-
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        {
-          error:
-            'File is too large for this upload method. Maximum size is 4MB.',
-        },
-        { status: 413 }
-      )
-    }
-
-    const filename =
-      `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${extension}`
-
-    const blob = await put(
-      `portfolio/${filename}`,
-      file,
-      {
-        access: 'public',
-        addRandomSuffix: false,
-        contentType: file.type,
-      }
-    )
-
-    return NextResponse.json({
-      ok: true,
-      url: blob.url,
-      pathname: blob.pathname,
-      contentType: file.type,
-      size: file.size,
+      onUploadCompleted: async ({ blob }) => {
+        console.log(
+          'VIDEO UPLOAD COMPLETED:',
+          blob.url
+        )
+      },
     })
+
+    return NextResponse.json(jsonResponse)
   } catch (error) {
     console.error(
-      'VERCEL BLOB FILE UPLOAD ERROR:',
+      'VERCEL BLOB CLIENT UPLOAD ERROR:',
       error
     )
 
     return NextResponse.json(
       {
-        ok: false,
-        error: 'File upload failed',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Video upload failed',
       },
       { status: 500 }
     )

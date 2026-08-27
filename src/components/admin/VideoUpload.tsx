@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { upload } from '@vercel/blob/client'
 
 type VideoUploadProps = {
   value: string
@@ -29,17 +30,11 @@ export default function VideoUpload({
 
     setError('')
 
-    /*
-     * Make sure the selected file is actually a video.
-     */
     if (!file.type.startsWith('video/')) {
       setError('Please select a video file.')
       return
     }
 
-    /*
-     * Maximum video size: 100 MB.
-     */
     if (file.size > 100 * 1024 * 1024) {
       setError('Video must be smaller than 100MB.')
       return
@@ -48,40 +43,32 @@ export default function VideoUpload({
     setUploading(true)
 
     try {
-      const formData = new FormData()
+      const filename = `portfolio-hero-${Date.now()}-${file.name}`
 
-      formData.append('file', file)
+      const blob = await upload(filename, file, {
+        access: 'public',
+        handleUploadUrl: '/api/admin/upload',
+        clientPayload: JSON.stringify({
+          type: 'hero-video',
+        }),
+        multipart: true,
+        onUploadProgress: (progress) => {
+          console.log(
+            `Video upload: ${progress.percentage}%`
+          )
+        },
+      })
 
-      const response = await fetch(
-        '/api/admin/upload',
-        {
-          method: 'POST',
-          body: formData,
-          credentials: 'include',
-        }
-      )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || 'Video upload failed.'
-        )
-      }
-
-      if (!data.url) {
+      if (!blob?.url) {
         throw new Error(
           'Upload succeeded but no video URL was returned.'
         )
       }
 
-      /*
-       * Send the uploaded video URL back
-       * to the Hero admin form.
-       */
-      onChange(data.url)
-
+      onChange(blob.url)
     } catch (err) {
+      console.error('VIDEO UPLOAD ERROR:', err)
+
       setError(
         err instanceof Error
           ? err.message
@@ -90,10 +77,6 @@ export default function VideoUpload({
     } finally {
       setUploading(false)
 
-      /*
-       * Reset the file input so the same file
-       * can be selected again if necessary.
-       */
       if (inputRef.current) {
         inputRef.current.value = ''
       }
@@ -108,8 +91,6 @@ export default function VideoUpload({
   return (
     <div className="space-y-4">
 
-      {/* LABEL */}
-
       <div>
         <p className="text-xs tracking-[0.2em] text-white/40">
           {label}
@@ -121,12 +102,8 @@ export default function VideoUpload({
         </p>
       </div>
 
-
-      {/* CURRENT VIDEO PREVIEW */}
-
       {value && (
         <div className="overflow-hidden border border-white/10 bg-black">
-
           <video
             src={value}
             controls
@@ -135,12 +112,8 @@ export default function VideoUpload({
             preload="metadata"
             className="max-h-[420px] w-full object-contain"
           />
-
         </div>
       )}
-
-
-      {/* UPLOAD BUTTON */}
 
       <label
         className={`
@@ -159,13 +132,10 @@ export default function VideoUpload({
           }
         `}
       >
-
         <span className="block text-sm tracking-wide text-white/70">
-
           {uploading
             ? 'UPLOADING VIDEO…'
             : 'CHOOSE VIDEO FILE'}
-
         </span>
 
         <span className="mt-3 block text-xs text-white/30">
@@ -175,20 +145,15 @@ export default function VideoUpload({
         <input
           ref={inputRef}
           type="file"
-          accept="video/*"
+          accept="video/mp4,video/webm,video/quicktime,video/x-m4v"
           disabled={uploading}
           onChange={handleFileChange}
           className="sr-only"
         />
-
       </label>
-
-
-      {/* CURRENT URL */}
 
       {value && (
         <div className="space-y-3">
-
           <p className="text-xs tracking-[0.15em] text-white/30">
             VIDEO URL
           </p>
@@ -214,12 +179,8 @@ export default function VideoUpload({
             "
             placeholder="/uploads/hero-video.mp4"
           />
-
         </div>
       )}
-
-
-      {/* REMOVE BUTTON */}
 
       {value && !uploading && (
         <button
@@ -242,16 +203,11 @@ export default function VideoUpload({
         </button>
       )}
 
-
-      {/* ERROR */}
-
       {error && (
         <div className="border border-red-500/20 bg-red-500/10 px-4 py-3">
-
           <p className="text-sm text-red-300">
             {error}
           </p>
-
         </div>
       )}
 

@@ -278,6 +278,7 @@ export default function Hero({
       {/* HERO BACKGROUND */}
 
       <HeroVisual
+        hero={hero}
         mousePos={mousePos}
         scrollProgress={progress}
       />
