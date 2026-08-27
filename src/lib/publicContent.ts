@@ -10,8 +10,12 @@ export type PortfolioContent = {
   socials: any[]
 }
 
-function parseJson(value: any, fallback: any = []) {
-  if (value === null || value === undefined || value === '') {
+function parseJson(value: unknown, fallback: any = []) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ''
+  ) {
     return fallback
   }
 
@@ -24,6 +28,29 @@ function parseJson(value: any, fallback: any = []) {
   } catch {
     return fallback
   }
+}
+
+function toBoolean(value: unknown) {
+  if (typeof value === 'boolean') {
+    return value
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0
+  }
+
+  if (typeof value === 'string') {
+    const v = value.trim().toLowerCase()
+
+    return (
+      v === 'true' ||
+      v === '1' ||
+      v === 'yes' ||
+      v === 'on'
+    )
+  }
+
+  return Boolean(value)
 }
 
 export async function getPublicContent(): Promise<PortfolioContent> {
@@ -163,41 +190,45 @@ export async function getPublicContent(): Promise<PortfolioContent> {
     `),
   ])
 
-  const profileData = profile[0] || null
-  const heroData = hero[0] || null
-
   return {
-    profile: profileData,
+    profile: profile[0] || null,
 
-    hero: heroData,
+    hero: hero[0] || null,
 
     projects: projects.map((project: any) => ({
       ...project,
-      featured: Boolean(project.featured),
-      published: Boolean(project.published),
+      featured: toBoolean(project.featured),
+      published: toBoolean(project.published),
       gallery: parseJson(project.gallery, []),
-      technologies: parseJson(project.technologies, []),
+      technologies: parseJson(
+        project.technologies,
+        []
+      ),
     })),
 
     skills: skills.map((skill: any) => ({
       ...skill,
-      visible: Boolean(skill.visible),
+      visible: toBoolean(skill.visible),
       items: parseJson(skill.items, []),
     })),
 
     services: services.map((service: any) => ({
       ...service,
-      visible: Boolean(service.visible),
+      visible: toBoolean(service.visible),
     })),
 
-    testimonials: testimonials.map((testimonial: any) => ({
-      ...testimonial,
-      visible: Boolean(testimonial.visible),
-    })),
+    testimonials: testimonials.map(
+      (testimonial: any) => ({
+        ...testimonial,
+        visible: toBoolean(
+          testimonial.visible
+        ),
+      })
+    ),
 
     socials: socials.map((social: any) => ({
       ...social,
-      visible: Boolean(social.visible),
+      visible: toBoolean(social.visible),
     })),
   }
 }

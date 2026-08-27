@@ -1,6 +1,4 @@
-import {
-  query,
-} from '@/lib/sqlite'
+import { query } from '@/lib/sqlite'
 
 function parseJSON(
   value: unknown,
@@ -30,6 +28,29 @@ function parseJSON(
   } catch {
     return fallback
   }
+}
+
+function toBoolean(value: unknown) {
+  if (typeof value === 'boolean') {
+    return value
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0
+  }
+
+  if (typeof value === 'string') {
+    const v = value.trim().toLowerCase()
+
+    return (
+      v === 'true' ||
+      v === '1' ||
+      v === 'yes' ||
+      v === 'on'
+    )
+  }
+
+  return Boolean(value)
 }
 
 export async function getPortfolioContent() {
@@ -140,47 +161,41 @@ export async function getPortfolioContent() {
   ])
 
   return {
-    profile:
-      profileRows[0] || null,
+    profile: profileRows[0] || null,
 
-    hero:
-      heroRows[0] || null,
+    hero: heroRows[0] || null,
 
-    projects:
-      projectRows.map((project: any) => ({
-        ...project,
-        featured: Boolean(project.featured),
-        published: Boolean(project.published),
-        gallery: parseJSON(
-          project.gallery,
-          []
-        ),
-        technologies: parseJSON(
-          project.technologies,
-          []
-        ),
-      })),
+    projects: projectRows.map((project: any) => ({
+      ...project,
+      featured: toBoolean(project.featured),
+      published: toBoolean(project.published),
+      gallery: parseJSON(
+        project.gallery,
+        []
+      ),
+      technologies: parseJSON(
+        project.technologies,
+        []
+      ),
+    })),
 
-    skills:
-      skillRows.map((skill: any) => ({
-        ...skill,
-        visible: Boolean(skill.visible),
-        items: parseJSON(
-          skill.items,
-          []
-        ),
-      })),
+    skills: skillRows.map((skill: any) => ({
+      ...skill,
+      visible: toBoolean(skill.visible),
+      items: parseJSON(
+        skill.items,
+        []
+      ),
+    })),
 
-    services:
-      serviceRows.map((service: any) => ({
-        ...service,
-        visible: Boolean(service.visible),
-      })),
+    services: serviceRows.map((service: any) => ({
+      ...service,
+      visible: toBoolean(service.visible),
+    })),
 
-    socials:
-      socialRows.map((social: any) => ({
-        ...social,
-        visible: Boolean(social.visible),
-      })),
+    socials: socialRows.map((social: any) => ({
+      ...social,
+      visible: toBoolean(social.visible),
+    })),
   }
 }

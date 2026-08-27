@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { execute, query, sqlString } from '@/lib/sqlite'
@@ -19,7 +18,9 @@ function isAuthenticated(req: Request) {
   const cookie = req.headers.get('cookie') || ''
   const match = cookie.match(/admin_token=([^;]+)/)
 
-  if (!match) return false
+  if (!match) {
+    return false
+  }
 
   try {
     jwt.verify(match[1], JWT_SECRET)
@@ -43,10 +44,7 @@ function getResource(req: Request): Resource | null {
     'reviews',
   ]
 
-  if (
-    !resource ||
-    !allowed.includes(resource as Resource)
-  ) {
+  if (!resource || !allowed.includes(resource as Resource)) {
     return null
   }
 
@@ -64,6 +62,48 @@ function jsonArray(value: unknown) {
 
   return JSON.stringify([])
 }
+
+function postgresBoolean(value: unknown, defaultValue = true) {
+  if (value === undefined || value === null) {
+    return defaultValue ? 'TRUE' : 'FALSE'
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'TRUE' : 'FALSE'
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0 ? 'TRUE' : 'FALSE'
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+
+    if (
+      normalized === 'false' ||
+      normalized === '0' ||
+      normalized === 'no' ||
+      normalized === 'off'
+    ) {
+      return 'FALSE'
+    }
+
+    if (
+      normalized === 'true' ||
+      normalized === '1' ||
+      normalized === 'yes' ||
+      normalized === 'on'
+    ) {
+      return 'TRUE'
+    }
+  }
+
+  return defaultValue ? 'TRUE' : 'FALSE'
+}
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(req: Request) {
   if (!isAuthenticated(req)) {
@@ -83,10 +123,6 @@ export async function GET(req: Request) {
   }
 
   try {
-    /*
-     * PROFILE
-     */
-
     if (resource === 'profile') {
       const rows = await query(`
         SELECT
@@ -108,10 +144,6 @@ export async function GET(req: Request) {
         data: rows[0] || null,
       })
     }
-
-    /*
-     * HERO
-     */
 
     if (resource === 'hero') {
       const rows = await query(`
@@ -136,10 +168,6 @@ export async function GET(req: Request) {
         data: rows[0] || null,
       })
     }
-
-    /*
-     * PROJECTS
-     */
 
     if (resource === 'projects') {
       const rows = await query(`
@@ -170,10 +198,6 @@ export async function GET(req: Request) {
       })
     }
 
-    /*
-     * SKILLS
-     */
-
     if (resource === 'skills') {
       const rows = await query(`
         SELECT
@@ -192,10 +216,6 @@ export async function GET(req: Request) {
       })
     }
 
-    /*
-     * SERVICES
-     */
-
     if (resource === 'services') {
       const rows = await query(`
         SELECT
@@ -212,10 +232,6 @@ export async function GET(req: Request) {
         data: rows,
       })
     }
-
-    /*
-     * SOCIAL LINKS
-     */
 
     if (resource === 'socials') {
       const rows = await query(`
@@ -235,12 +251,6 @@ export async function GET(req: Request) {
         data: rows,
       })
     }
-
-    /*
-     * REVIEWS
-     *
-     * Uses the existing Testimonial table.
-     */
 
     if (resource === 'reviews') {
       const rows = await query(`
@@ -310,30 +320,28 @@ export async function POST(req: Request) {
         LIMIT 1
       `)
 
-      const values = {
-        name: String(body.name || ''),
-        role: String(body.role || ''),
-        tagline: String(body.tagline || ''),
-        bio: String(body.bio || ''),
-        location: String(body.location || ''),
-        email: String(body.email || ''),
-        availability: String(
-          body.availability || ''
-        ),
-        image: String(body.image || ''),
-      }
+      const name = String(body.name || '').trim()
+      const role = String(body.role || '').trim()
+      const tagline = String(body.tagline || '').trim()
+      const bio = String(body.bio || '').trim()
+      const location = String(body.location || '').trim()
+      const email = String(body.email || '').trim()
+      const availability = String(
+        body.availability || ''
+      ).trim()
+      const image = String(body.image || '').trim()
 
       if (existing.length) {
         await execute(`
           UPDATE Profile SET
-            name = ${sqlString(values.name)},
-            role = ${sqlString(values.role)},
-            tagline = ${sqlString(values.tagline)},
-            bio = ${sqlString(values.bio)},
-            location = ${sqlString(values.location)},
-            email = ${sqlString(values.email)},
-            availability = ${sqlString(values.availability)},
-            image = ${sqlString(values.image)},
+            name = ${sqlString(name)},
+            role = ${sqlString(role)},
+            tagline = ${sqlString(tagline)},
+            bio = ${sqlString(bio)},
+            location = ${sqlString(location)},
+            email = ${sqlString(email)},
+            availability = ${sqlString(availability)},
+            image = ${sqlString(image)},
             updatedAt = CURRENT_TIMESTAMP
           WHERE id = ${sqlString(existing[0].id)}
         `)
@@ -352,19 +360,21 @@ export async function POST(req: Request) {
           )
           VALUES (
             ${sqlString('profile-main')},
-            ${sqlString(values.name)},
-            ${sqlString(values.role)},
-            ${sqlString(values.tagline)},
-            ${sqlString(values.bio)},
-            ${sqlString(values.location)},
-            ${sqlString(values.email)},
-            ${sqlString(values.availability)},
-            ${sqlString(values.image)}
+            ${sqlString(name)},
+            ${sqlString(role)},
+            ${sqlString(tagline)},
+            ${sqlString(bio)},
+            ${sqlString(location)},
+            ${sqlString(email)},
+            ${sqlString(availability)},
+            ${sqlString(image)}
           )
         `)
       }
 
-      return NextResponse.json({ ok: true })
+      return NextResponse.json({
+        ok: true,
+      })
     }
 
     /*
@@ -379,38 +389,38 @@ export async function POST(req: Request) {
         LIMIT 1
       `)
 
-      const values = {
-        headline: String(body.headline || ''),
-        subtitle: String(body.subtitle || ''),
-        description: String(body.description || ''),
-        image: String(body.image || ''),
-        video: String(body.video || ''),
-        visualMode: String(
-          body.visualMode || 'image'
-        ),
-        ctaText: String(body.ctaText || ''),
-        ctaLink: String(body.ctaLink || ''),
-        secondaryCta: String(
-          body.secondaryCta || ''
-        ),
-        secondaryLink: String(
-          body.secondaryLink || ''
-        ),
-      }
+      const headline = String(body.headline || '').trim()
+      const subtitle = String(body.subtitle || '').trim()
+      const description = String(
+        body.description || ''
+      ).trim()
+      const image = String(body.image || '').trim()
+      const video = String(body.video || '').trim()
+      const visualMode =
+        String(body.visualMode || 'image').trim() ||
+        'image'
+      const ctaText = String(body.ctaText || '').trim()
+      const ctaLink = String(body.ctaLink || '').trim()
+      const secondaryCta = String(
+        body.secondaryCta || ''
+      ).trim()
+      const secondaryLink = String(
+        body.secondaryLink || ''
+      ).trim()
 
       if (existing.length) {
         await execute(`
           UPDATE Hero SET
-            headline = ${sqlString(values.headline)},
-            subtitle = ${sqlString(values.subtitle)},
-            description = ${sqlString(values.description)},
-            image = ${sqlString(values.image)},
-            video = ${sqlString(values.video)},
-            visualMode = ${sqlString(values.visualMode)},
-            ctaText = ${sqlString(values.ctaText)},
-            ctaLink = ${sqlString(values.ctaLink)},
-            secondaryCta = ${sqlString(values.secondaryCta)},
-            secondaryLink = ${sqlString(values.secondaryLink)},
+            headline = ${sqlString(headline)},
+            subtitle = ${sqlString(subtitle)},
+            description = ${sqlString(description)},
+            image = ${sqlString(image)},
+            video = ${sqlString(video)},
+            visualMode = ${sqlString(visualMode)},
+            ctaText = ${sqlString(ctaText)},
+            ctaLink = ${sqlString(ctaLink)},
+            secondaryCta = ${sqlString(secondaryCta)},
+            secondaryLink = ${sqlString(secondaryLink)},
             updatedAt = CURRENT_TIMESTAMP
           WHERE id = ${sqlString(existing[0].id)}
         `)
@@ -431,21 +441,23 @@ export async function POST(req: Request) {
           )
           VALUES (
             ${sqlString('hero-main')},
-            ${sqlString(values.headline)},
-            ${sqlString(values.subtitle)},
-            ${sqlString(values.description)},
-            ${sqlString(values.image)},
-            ${sqlString(values.video)},
-            ${sqlString(values.visualMode)},
-            ${sqlString(values.ctaText)},
-            ${sqlString(values.ctaLink)},
-            ${sqlString(values.secondaryCta)},
-            ${sqlString(values.secondaryLink)}
+            ${sqlString(headline)},
+            ${sqlString(subtitle)},
+            ${sqlString(description)},
+            ${sqlString(image)},
+            ${sqlString(video)},
+            ${sqlString(visualMode)},
+            ${sqlString(ctaText)},
+            ${sqlString(ctaLink)},
+            ${sqlString(secondaryCta)},
+            ${sqlString(secondaryLink)}
           )
         `)
       }
 
-      return NextResponse.json({ ok: true })
+      return NextResponse.json({
+        ok: true,
+      })
     }
 
     /*
@@ -493,8 +505,17 @@ export async function POST(req: Request) {
       const caseStudy = String(
         body.caseStudy || ''
       ).trim()
-const featured = body.featured ? 'TRUE' : 'FALSE'  
-const published = body.published === false ? 'FALSE' : 'TRUE'
+
+      const featured = postgresBoolean(
+        body.featured,
+        false
+      )
+
+      const published = postgresBoolean(
+        body.published,
+        true
+      )
+
       const order = Number(body.order || 0)
 
       if (
@@ -596,13 +617,18 @@ const published = body.published === false ? 'FALSE' : 'TRUE'
       const category = String(
         body.category || ''
       ).trim()
+
       const title = String(
         body.title || ''
       ).trim()
+
       const items = jsonArray(body.items)
       const order = Number(body.order || 0)
-      const visible =
-        body.visible === false ? 0 : 1
+
+      const visible = postgresBoolean(
+        body.visible,
+        true
+      )
 
       if (!category || !title) {
         return NextResponse.json(
@@ -671,12 +697,17 @@ const published = body.published === false ? 'FALSE' : 'TRUE'
       const title = String(
         body.title || ''
       ).trim()
+
       const desc = String(
         body.desc || ''
       ).trim()
+
       const order = Number(body.order || 0)
-      const visible =
-        body.visible === false ? 0 : 1
+
+      const visible = postgresBoolean(
+        body.visible,
+        true
+      )
 
       if (!title || !desc) {
         return NextResponse.json(
@@ -742,18 +773,25 @@ const published = body.published === false ? 'FALSE' : 'TRUE'
       const platform = String(
         body.platform || ''
       ).trim()
+
       const username = String(
         body.username || ''
       ).trim()
+
       const url = String(
         body.url || ''
       ).trim()
+
       const icon = String(
         body.icon || ''
       ).trim()
+
       const order = Number(body.order || 0)
-      const visible =
-        body.visible === false ? 0 : 1
+
+      const visible = postgresBoolean(
+        body.visible,
+        true
+      )
 
       if (!platform || !username || !url) {
         return NextResponse.json(
@@ -815,8 +853,6 @@ const published = body.published === false ? 'FALSE' : 'TRUE'
 
     /*
      * REVIEWS
-     *
-     * Uses the existing Testimonial table.
      */
 
     if (resource === 'reviews') {
@@ -846,8 +882,10 @@ const published = body.published === false ? 'FALSE' : 'TRUE'
 
       const order = Number(body.order || 0)
 
-      const visible =
-        body.visible === false ? 0 : 1
+      const visible = postgresBoolean(
+        body.visible,
+        true
+      )
 
       if (!name || !quote) {
         return NextResponse.json(
@@ -918,7 +956,12 @@ const published = body.published === false ? 'FALSE' : 'TRUE'
     console.error('ADMIN SAVE ERROR:', error)
 
     return NextResponse.json(
-      { error: 'Failed to save data' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to save data',
+      },
       { status: 500 }
     )
   }
