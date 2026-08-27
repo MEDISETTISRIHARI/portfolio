@@ -302,9 +302,7 @@ export default function Hero({
 
           <div className="flex items-center justify-center md:col-span-5">
 
-            <HeroPortrait
-              image={profile?.image}
-            />
+          <HeroPortrait image={profile?.image} />
 
           </div>
 

@@ -25,6 +25,7 @@ async function main() {
       bio: 'I create high-quality websites, interfaces and interactive digital experiences where design, technology and motion work together.',
       email: 'hello@example.com',
       location: 'Remote',
+      image: '/images/srihari-profile.jpg',
     },
   })
 

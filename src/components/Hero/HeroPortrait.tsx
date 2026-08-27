@@ -15,14 +15,16 @@ export default function HeroPortrait({
       ? role.trim()
       : 'CREATIVE WEB DESIGNER'
 
+  const portraitImage =
+    typeof image === 'string' && image.trim()
+      ? image.trim()
+      : '/images/srihari-profile.jpg'
+
   return (
     <div className="hero-portrait relative z-30 w-full max-w-[420px] mx-auto">
       <div className="relative aspect-[4/5] overflow-hidden border border-white/15 bg-neutral-900">
         <img
-          src={
-            image ||
-            '/images/srihari-profile.jpg'
-          }
+          src={portraitImage}
           alt="Portrait"
           className="absolute inset-0 h-full w-full object-cover grayscale-[20%] contrast-110 brightness-90"
         />
